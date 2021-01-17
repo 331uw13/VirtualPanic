@@ -15,14 +15,9 @@ namespace VPanic {
 		return lerp(t_dst_min, t_dst_max, norm(t_value, t_src_min, t_src_max));
 	}
 
-	
-	float map(int t_value, int t_src_min, int t_src_max, int t_dst_min, int t_dst_max) {
-		return lerp(t_dst_min, t_dst_max, norm(t_value, t_src_min, t_src_max));
-	}
-
 	bool out_of_bounds(const Space& t_space, const vec2& t_size) {
-		return (t_space.x < 0 && t_space.x + t_space.w < 0 || t_space.x > t_size.x ||
-				t_space.y < 0 && t_space.y + t_space.h < 0 || t_space.y > t_size.y);
+		return ((t_space.x < 0 && t_space.x + t_space.w < 0) || (t_space.x > t_size.x) ||
+				(t_space.y < 0 && t_space.y + t_space.h < 0) || (t_space.y > t_size.y));
 	}
 	
 	bool out_of_bounds(const vec2& t_point, const vec2& t_size) {

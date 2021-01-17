@@ -146,16 +146,20 @@ namespace VPanic {
 			m_mousewheel_callback = t_callback;
 		}
 	}
+	
+	SDL_Renderer* Engine::get_renderer() const {
+		return m_renderer;
+	}
 
 	int Engine::get_fps() const {
 		return m_fps;
 	}
 
-	vec2 Engine::get_window_size() const {
+	vec2 Engine::get_window_size() {
 		return m_win_size;
 	}
 
-	vec2 Engine::get_center() {
+	vec2 Engine::get_window_center() {
 		return m_win_size / 2;
 	}
 
@@ -216,8 +220,8 @@ namespace VPanic {
 			if(m_cursor_visible) {
 				// draw cursor
 				// TODO: support texture!
-				render(Space(Mouse::get_pos(), 14, 4.4f), cursor_color);
-				render(Space(Mouse::get_pos(), 4.4f, 14), cursor_color);
+				//render(Space(Mouse::get_pos(), 14, 4.4f), cursor_color);
+				//render(Space(Mouse::get_pos(), 4.4f, 14), cursor_color);
 			}
 		
 			// finally update the screen

@@ -26,6 +26,9 @@ namespace VPanic {
 
 		int get_fps() const;
 
+
+		SDL_Renderer* get_renderer() const;
+	
 		vec2 get_window_size();
 		vec2 get_window_center();
 		
