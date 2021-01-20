@@ -135,6 +135,10 @@ namespace VPanic {
 		return Space(m_pos, m_size.x * m_scale.x, m_size.y * m_scale.y);
 	}
 
+	vec2 Texture::get_scale() const {
+		return m_scale;
+	}
+
 }
 
 

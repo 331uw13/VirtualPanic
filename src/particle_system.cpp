@@ -34,17 +34,46 @@ namespace VPanic {
 					clamp<int>(a, 0, 255);
 				}
 
+				if(m_size_over_lifetime) {
+					p->size += vec2(m_size_mod);
+				}
+
 				switch(p->type) {
 					case ParticleType::TEXTURE:
+						p->texture.scale(p->size);
 						p->texture.colorize(copy_dim_color(p->color, a));
 						p->texture.position(p->pos);
 						break;
 
+					case ParticleType::RECT:
+						break;
+					
+					case ParticleType::CIRCLE:
+						break;
+
+					case ParticleType::TRAIL:
+						break;
+					
 					default: break;
 				}
 
 			}
-			p->texture.render(t_engine);
+			switch(p->type) {
+				case ParticleType::TEXTURE:
+					p->texture.render(t_engine);
+					break;
+
+				case ParticleType::RECT:
+					break;
+				
+				case ParticleType::CIRCLE:
+					break;
+
+				case ParticleType::TRAIL:
+					break;
+				
+				default: break;
+			}
 		}
 	}
 
@@ -58,21 +87,24 @@ namespace VPanic {
 
 	void ParticleSystem::add_texture(
 			const Texture&  t_texture,
-			const vec2&     t_position,
-			const vec2&     t_velocity,
-			const vec2&     t_acceleration,
+			const vec2&     t_pos,
+			const vec2&     t_vel,
+			const vec2&     t_acc,
 			const Color&    t_color,
 			int             t_max_lifetime)
    	{
-		if(t_type == ParticleType::NONE) { return; }
-		if(m_particles.size() < static_cast<uint32_t>(m_max_particles) && m_max_particles > 0) { return; }
-		
+		if(!_can_add()) { return; }
+		m_particles.push_back(Particle { ParticleType::TEXTURE,
+				t_pos, t_vel, t_acc, t_texture.get_scale(), t_color, t_max_lifetime, 0, { t_texture }});
 
+	}
 
+	bool ParticleSystem::_can_add() {
+		return !(m_max_particles > 0 && m_particles.size() < static_cast<uint32_t>(m_max_particles));
 	}
 	
 	void ParticleSystem::max_particles(int t_max) {
-		if(t_max < m_particles.size()) {
+		if(m_particles.size() > static_cast<uint32_t>(t_max)) {
 			m_particles.erase(m_particles.begin(), m_particles.begin() + t_max);
 		}
 		m_max_particles = t_max;

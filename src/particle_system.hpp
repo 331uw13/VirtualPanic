@@ -14,9 +14,7 @@ namespace VPanic {
 		TEXTURE,
 		RECT,
 		CIRCLE,
-		// TRAIL
-		// CURVE
-		// ...
+		TRAIL,
 	};
 
 	class ParticleSystem {
@@ -27,13 +25,18 @@ namespace VPanic {
 		uint32_t particle_count();
 
 		void add_texture(
-				const Texture&  t_texture
-				const vec2&     t_position,
-				const vec2&     t_velocity,
-				const vec2&     t_acceleration,
+				const Texture&  t_texture,
+				const vec2&     t_pos,
+				const vec2&     t_vel,
+				const vec2&     t_acc,
 				const Color&    t_color,
 				int             t_max_lifetime
 			);
+
+		// TODO:
+		// add_rect
+		// add_circle
+		// add_trail
 
 
 		// negative value for "no limit"
@@ -57,12 +60,19 @@ namespace VPanic {
 			vec2 pos;
 			vec2 vel;
 			vec2 acc;
+			vec2 size;
 			Color color;
 			int max_lifetime;
 			int lifetime;
+
+			union {
+				Texture texture;
+				// ...
+			};
+			~Particle() {}
 		};
 
-		Texture m_texture;
+		bool _can_add();
 
 		std::vector<Particle> m_particles;
 		Timer m_timer { Timer() };

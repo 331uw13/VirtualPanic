@@ -26,6 +26,7 @@ namespace VPanic {
 		
 		Color get_color();
 		Space get_space();
+		vec2  get_scale() const;
 
 		Texture() {}
 		~Texture() {}
