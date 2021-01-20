@@ -15,7 +15,7 @@ namespace VPanic {
 
 	float norm(float t_v, float t_min, float t_max);
 	float map(int t_value, int t_src_min, int t_src_max, int t_dst_min, int t_dst_max);
-	int random(int t_min, int t_max);
+	float random(float t_min, float t_max);
 	bool out_of_bounds(const Space& t_space, const vec2& t_size);
 	bool out_of_bounds(const vec2& t_point, const vec2& t_size);
 

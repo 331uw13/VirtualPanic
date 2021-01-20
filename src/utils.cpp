@@ -16,16 +16,16 @@ namespace VPanic {
 	}
 
 	bool out_of_bounds(const Space& t_space, const vec2& t_size) {
-		return ((t_space.x < 0 && t_space.x + t_space.w < 0) || (t_space.x > t_size.x) ||
-				(t_space.y < 0 && t_space.y + t_space.h < 0) || (t_space.y > t_size.y));
+		return ((t_space.x + t_space.w < 0) || (t_space.x > t_size.x)
+				|| (t_space.y + t_space.h < 0) || (t_space.y > t_size.y));
 	}
 	
 	bool out_of_bounds(const vec2& t_point, const vec2& t_size) {
 		return out_of_bounds(Space(t_point, 1, 1), t_size);
 	}
 
-	int random(int t_min, int t_max) {
-		return t_min + (fast_rand() % (t_max + 1 - t_min));
+	float random(float t_min, float t_max) {
+		return t_min + static_cast<float>(fast_rand()) / (static_cast<float>(0x7FFF / (t_max - t_min)));
 	}
 
 	int lerp(int t_a, int t_b, float t) {

@@ -92,7 +92,6 @@ namespace VPanic {
 		}
 
 		SDL_ShowCursor(false);
-		// ? SDL_RenderSetScale(m_renderer, m_pixel_size, m_pixel_size);
 	
 		if(m_using_imgui) {
 			ImGui::CreateContext();
@@ -147,11 +146,19 @@ namespace VPanic {
 		}
 	}
 	
+	void Engine::render(const Space& t_space, const Color& t_color) {
+		if(!_can_render()) { return; }
+		if(out_of_bounds(t_space, m_win_size)) { return; }
+
+		SDL_SetRenderDrawColor(m_renderer, t_color.r, t_color.g, t_color.b, t_color.a);
+		SDL_RenderFillRect(m_renderer, &t_space);
+	}
+	
 	SDL_Renderer* Engine::get_renderer() const {
 		return m_renderer;
 	}
 
-	int Engine::get_fps() const {
+	int Engine::get_fps() {
 		return m_fps;
 	}
 
@@ -220,8 +227,8 @@ namespace VPanic {
 			if(m_cursor_visible) {
 				// draw cursor
 				// TODO: support texture!
-				//render(Space(Mouse::get_pos(), 14, 4.4f), cursor_color);
-				//render(Space(Mouse::get_pos(), 4.4f, 14), cursor_color);
+				render(Space(Mouse::get_pos(), 13.f, 4.8f), cursor_color);
+				render(Space(Mouse::get_pos(), 4.8f, 13.f), cursor_color);
 			}
 		
 			// finally update the screen

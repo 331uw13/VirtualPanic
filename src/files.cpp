@@ -5,13 +5,11 @@
 #include "files.hpp"
 #include "messages.hpp"
 
-#include <cstdio>
-
 namespace VPanic {
 	
 	bool find_files(const char* t_path, std::vector<File>* t_out) {
 		if(t_out == nullptr) { return false; }
-		const unsigned int path_length = strlen(t_path);
+		const uint32_t path_length = strlen(t_path);
 		if(path_length <= 0 || t_path == nullptr) {
 			message("find_files() : \"no directory specified\"", MsgType::WARNING);
 			return false;

@@ -6,6 +6,7 @@
 #include "mouse.hpp"
 #include "settings.hpp"
 #include "color.hpp"
+#include "space.hpp"
 
 #include "imgui/imgui.h"
 
@@ -19,16 +20,20 @@ namespace VPanic {
 		void quit();
 		
 		void show_cursor(bool t_visible);
-
+		
 		void set_update_callback(void(*t_callback)(int));
 		void set_keypress_callback(void(*t_callback)(SDL_Keycode));
 		void set_mousewheel_callback(void(*t_callback)(int));
 
-		int get_fps() const;
+		// rendering stuff
+		void render(const Space& t_space, const Color& t_color);
+		// render_rect
+		// render_circle
+		// render_line
 
 
 		SDL_Renderer* get_renderer() const;
-	
+		int get_fps();
 		vec2 get_window_size();
 		vec2 get_window_center();
 		
