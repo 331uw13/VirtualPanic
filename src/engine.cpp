@@ -251,8 +251,9 @@ namespace VPanic {
 			if(m_cursor_visible) {
 				// draw cursor
 				// TODO: support texture!
-				render(Space(Mouse::get_pos(), 13.f, 4.8f), cursor_color);
-				render(Space(Mouse::get_pos(), 4.8f, 13.f), cursor_color);
+				const vec2 mpos = Mouse::get_pos<vec2>();
+				render(Space(mpos, 13.f, 4.8f), cursor_color);
+				render(Space(mpos, 4.8f, 13.f), cursor_color);
 			}
 		
 			// finally update the screen

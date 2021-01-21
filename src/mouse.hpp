@@ -13,10 +13,6 @@ namespace VPanic {
 /*
 
 	ivec2 Mouse::get_real_pos() {
-		int x = 0;
-		int y = 0;
-		SDL_GetMouseState(&x, &y);
-		return ivec2(x, y);
 	}
 
 	ivec2 Mouse::get_pos() {
@@ -24,10 +20,11 @@ namespace VPanic {
 	}
 
 */
-		template<typename T> get_real_pos() {
-		}
-
-		template<typename T> get_pos() {
+		template<typename T> T get_pos() {
+			int x = 0;
+			int y = 0;
+			SDL_GetMouseState(&x, &y);
+			return T(x, y);
 		}
 
 		bool button_down(int t_button);

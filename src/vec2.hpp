@@ -57,7 +57,7 @@ namespace VPanic {
 			x = y = 0;
 		}
 
-		~vec2() {};
+		~ivec2() {};
 
 		//int angle(const ivec2& t_a0) const;
 		//int distance(const ivec2& t_a0) const;
