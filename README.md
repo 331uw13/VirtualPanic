@@ -1,5 +1,8 @@
 # VirtualPanic
-( work in progress )
+### ( work in progress )
+
+
+- this project is using: 
 
 https://www.libsdl.org/
 
