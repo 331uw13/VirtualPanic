@@ -11,7 +11,7 @@ namespace VPanic {
 	}
 
 	bool Space::empty() const {
-		return (x <= 0 && y <= 0 && w <= 0 && h <= 0);
+		return (x == 0 && y == 0 && w == 0 && h == 0);
 	}
 
 }

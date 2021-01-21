@@ -82,7 +82,7 @@ namespace VPanic {
 	
 		uint32_t m_update_delay  { 5 }; 
 		int m_max_particles { -1 };
-		float m_size_mod { 0.2f };
+		float m_size_mod { 0.03f };
 	
 		
 	};

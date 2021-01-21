@@ -9,6 +9,12 @@ namespace VPanic {
 		return *this;
 	}
 	
+	vec2& vec2::operator -= (const vec2& t_a0) {
+		this->x -= t_a0.x;
+		this->y -= t_a0.y;
+		return *this;
+	}
+
 	vec2 vec2::operator + (const vec2& t_a0) {
 		return vec2(this->x + t_a0.x, this->y + t_a0.y);
 	}

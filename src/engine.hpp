@@ -25,7 +25,8 @@ namespace VPanic {
 		void set_keypress_callback(void(*t_callback)(SDL_Keycode));
 		void set_mousewheel_callback(void(*t_callback)(int));
 
-		// rendering stuff
+		void render_custom(const std::vector<vec2>& t_points);
+
 		void render(const Space& t_space, const Color& t_color);
 		// render_rect
 		// render_circle

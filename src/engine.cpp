@@ -146,6 +146,30 @@ namespace VPanic {
 		}
 	}
 	
+	void Engine::render_custom(const std::vector<vec2>& t_points) {
+		if(!_can_render()) { return; }
+		const uint32_t size = t_points.size();
+		if(size < 3) { return; }
+		SDL_SetRenderDrawColor(m_renderer, 230, 30, 30, 255);	
+		
+		const SDL_Point* points = &t_points[0];
+		SDL_RenderDrawLines(m_renderer, points, size);
+
+		/*for(uint32_t i = 0; i < size - 1; i++) {
+
+			float x1 = t_points[i+1].x;
+			float y1 = t_points[i+1].y;
+
+			float x0 = t_points[i].x;
+			float y0 = t_points[i].y;
+
+			SDL_RenderDrawLine(m_renderer, x0, y0, x1, y1);
+		}
+		SDL_RenderDrawLine(m_renderer, t_points[size-1].x, t_points[size-1].y, t_points[0].x, t_points[0].y);
+		*/
+
+	}
+	
 	void Engine::render(const Space& t_space, const Color& t_color) {
 		if(!_can_render()) { return; }
 		if(out_of_bounds(t_space, m_win_size)) { return; }

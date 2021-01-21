@@ -113,5 +113,9 @@ namespace VPanic {
 		return found_any;
 	}
 
+	bool contains_point(const Space& t_space, const vec2& t_point) {
+		return (t_point.x >= t_space.x && t_point.x < t_space.x + t_space.w &&
+				t_point.y >= t_space.y && t_point.y < t_space.y + t_space.h);
+	}
 
 }

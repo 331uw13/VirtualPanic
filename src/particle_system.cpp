@@ -28,7 +28,7 @@ namespace VPanic {
 				p->pos += p->vel;
 				p->vel += p->acc;
 
-				int a = 255;	
+				int a = 255;
 				if(m_alpha_over_lifetime) {
 					a = lerp(p->color.a, 0, norm(p->lifetime, 0, p->max_lifetime + m_update_delay));
 					clamp<int>(a, 0, 255);
@@ -36,13 +36,14 @@ namespace VPanic {
 
 				if(m_size_over_lifetime) {
 					p->size += vec2(m_size_mod);
+					p->pos -= p->size;
 				}
 
 				switch(p->type) {
 					case ParticleType::TEXTURE:
-						p->texture.scale(p->size);
+						p->texture.scale = p->size;
 						p->texture.colorize(copy_dim_color(p->color, a));
-						p->texture.position(p->pos);
+						p->texture.pos = p->pos;
 						break;
 
 					case ParticleType::RECT:
@@ -95,7 +96,7 @@ namespace VPanic {
    	{
 		if(!_can_add()) { return; }
 		m_particles.push_back(Particle { ParticleType::TEXTURE,
-				t_pos, t_vel, t_acc, t_texture.get_scale(), t_color, t_max_lifetime, 0, { t_texture }});
+				t_pos, t_vel, t_acc, t_texture.scale, t_color, t_max_lifetime, 0, { t_texture }});
 
 	}
 

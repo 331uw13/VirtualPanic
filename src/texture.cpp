@@ -13,11 +13,11 @@ namespace VPanic {
 		SDL_Renderer* renderer = t_engine->get_renderer();
 		if(renderer == nullptr) { return; }
 	
-		Space dest(m_pos, m_size.x * m_scale.x, m_size.y * m_scale.y);
+		Space dest(pos, m_size.x * scale.x, m_size.y * scale.y);
 		if(out_of_bounds(dest, t_engine->get_window_size())) { return; }
 		
 		if(m_colorize) {
-			// call this in colorize() ?
+			// do this in colorize() ?
 			SDL_SetTextureColorMod(m_data, m_color.r, m_color.g, m_color.b);
 			SDL_SetTextureAlphaMod(m_data, m_color.a);
 		}
@@ -26,18 +26,13 @@ namespace VPanic {
 		   	0, 0, static_cast<int>(m_size.x), static_cast<int>(m_size.y)
 	   	};
 
-		/*SDL_Rect dst { 
-			static_cast<int>(m_pos.x), static_cast<int>(m_pos.y),
-			static_cast<int>(m_size.x * m_scale.x), static_cast<int>(m_size.y * m_scale.y)
-	   	};*/
-
-		SDL_Point p { dest.w / 2, dest.h / 2 }; // TODO: options for this?
+		SDL_Point p { dest.w / 2, dest.h / 2 }; // TODO: options for this? maybe?
 		SDL_RenderCopyEx(
 				renderer,
 			   	m_data,
 			   	&src,
 			   	&dest,
-			   	m_angle,
+			   	angle,
 			   	&p,
 			   	SDL_FLIP_NONE
 		);
@@ -98,18 +93,6 @@ namespace VPanic {
 		return m_is_loaded;
 	}
 
-	void Texture::position(const vec2& t_pos) {
-		m_pos = t_pos;
-	}
-
-	void Texture::scale(const vec2& t_scale) {
-		m_scale = t_scale;
-	}
-
-	void Texture::rotate(float t_angle) {
-		m_angle = t_angle;
-	}
-
 	Color Texture::get_color() {
 		return m_color;
 	}
@@ -132,11 +115,7 @@ namespace VPanic {
 	//}
 
 	Space Texture::get_space() {
-		return Space(m_pos, m_size.x * m_scale.x, m_size.y * m_scale.y);
-	}
-
-	vec2 Texture::get_scale() const {
-		return m_scale;
+		return Space(pos, m_size.x * scale.x, m_size.y * scale.y);
 	}
 
 }

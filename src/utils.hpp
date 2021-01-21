@@ -8,8 +8,7 @@
 
 namespace VPanic {	
 
-	template <typename T> 
-	void clamp(T& t, const T& t_min, const T& t_max) {
+	template <typename T> void clamp(T& t, const T& t_min, const T& t_max) {
 		t = (t < t_min) ? t_min : (t > t_max) ? t_max : t;
 	}
 
@@ -18,6 +17,8 @@ namespace VPanic {
 	float random(float t_min, float t_max);
 	bool out_of_bounds(const Space& t_space, const vec2& t_size);
 	bool out_of_bounds(const vec2& t_point, const vec2& t_size);
+
+	bool contains_point(const Space& t_space, const vec2& t_point);
 
 	int lerp(int t_a, int t_b, float t);
 	Color rgb_lerp(Color t_color1, Color t_color2, float t);	

@@ -16,9 +16,6 @@ namespace VPanic {
 
 		bool is_loaded();
 		
-		void position(const vec2& t_pos);
-		void scale(const vec2& t_scale);
-		void rotate(float t_angle);
 		//void crop(const Space& t_area);
 
 		void colorize(const Color& t_color);
@@ -26,24 +23,22 @@ namespace VPanic {
 		
 		Color get_color();
 		Space get_space();
-		vec2  get_scale() const;
 
-		Texture() {}
+		vec2 pos;
+		vec2 scale;
+		float angle;
+
+		Texture() : pos(vec2()), scale(vec2(1)), angle(0.0f) {}
 		~Texture() {}
 
 	private:
 
-		SDL_Texture* m_data { nullptr };
-		bool m_is_loaded { false };
-
-		vec2 m_pos    { vec2() };
-		vec2 m_size   { vec2() };
-		vec2 m_scale  { vec2(1) };
-		float m_angle { 0.0f };
-		
+		SDL_Texture* m_data   { nullptr };
+		bool m_is_loaded      { false };
 		bool m_colorize       { false };
 		Color m_color         { Color() };
 		Color m_origin_color  { Color() };
+		vec2 m_size           { vec2() };
 
 	};
 

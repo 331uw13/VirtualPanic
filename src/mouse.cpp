@@ -2,14 +2,14 @@
 
 namespace VPanic {
 
-	vec2 Mouse::get_real_pos() {
+	ivec2 Mouse::get_real_pos() {
 		int x = 0;
 		int y = 0;
 		SDL_GetMouseState(&x, &y);
-		return vec2(x, y);
+		return ivec2(x, y);
 	}
 
-	vec2 Mouse::get_pos() {
+	ivec2 Mouse::get_pos() {
 		return get_real_pos();
 	}
 
