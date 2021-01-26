@@ -1,3 +1,2 @@
 # VirtualPanic
-### ( work in progress )
-nvm.. this is boring
+nvm... this is boring
