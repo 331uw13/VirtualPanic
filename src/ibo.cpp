@@ -10,11 +10,10 @@ namespace VPanic {
 	void IBO::data(const uint32_t* t_indices) {
 		bind();
 		m_index_count = sizeof(t_indices) * sizeof(uint32_t);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_count, t_indices, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_count, t_indices, GL_DYNAMIC_DRAW);
 	}
 	
 	void IBO::bind() {
-		// NOTE: this gets loaded into VAO, but make sure everything works first
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
 	}
 

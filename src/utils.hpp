@@ -13,7 +13,7 @@ namespace VPanic {
 	void set_seed(int new_seed);
 
 	template<typename T> void clamp(T& value, const T& min, const T& max) {
-		return ((value > max) ? max : (value < min) ? min : value);
+		value = ((value > max) ? max : (value < min) ? min : value);
 	}
 
 	Color color_lerp(const Color& start, const Color& end, float t);

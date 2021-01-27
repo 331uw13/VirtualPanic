@@ -9,7 +9,7 @@ namespace VPanic {
 	
 	void VBO::data(const float* t_data) {
 		bind();
-		glBufferData(GL_ARRAY_BUFFER, sizeof(t_data) * sizeof(float), t_data, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(t_data) * sizeof(float), t_data, GL_DYNAMIC_DRAW);
 	}
 	
 	void VBO::bind() {

@@ -1,10 +1,11 @@
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
-//#include <GL/gl.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "engine.hpp"
 #include "messages.hpp"
-
 #include "vbo.hpp"
 #include "ibo.hpp"
 
@@ -28,7 +29,7 @@ namespace VPanic {
 		message(MType::INFO, "Initializing VirtualPanic ...");
 
 		if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-			message(MType::BAD, "Failed to initialize SDL (%s)", SDL_GetError());
+			message(MType::BAD, "Failed to initialize SDL! (%s)", SDL_GetError());
 			return;
 		}
 		
@@ -37,17 +38,18 @@ namespace VPanic {
 		//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);	
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
 		m_window = SDL_CreateWindow(t_title, 0, 0, t_size.x, t_size.y,
 			   	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);	
 		
 		if(m_window == nullptr) {
-			message(MType::BAD, "Failed to create window (%s)", SDL_GetError());
+			message(MType::BAD, "Failed to create window! (%s)", SDL_GetError());
+			quit();
 			return;	
 		}
 
-		SDL_GL_CreateContext(m_window);
+		m_context = SDL_GL_CreateContext(m_window);
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		
 		message(MType::OK, "Created new window (%4%ix%i%0)", m_width, m_height);
@@ -58,7 +60,9 @@ namespace VPanic {
 
 		int glew_err = glewInit();
 		if(glew_err != GLEW_OK) {
-			message(MType::BAD, "Failed to initialize glew (%s)", SDL_GetError());
+			message(MType::BAD, "Failed to initialize glew! (%s)", SDL_GetError());
+			quit();
+			return;
 		}
 		
 		message(MType::OK, "Initialized glew");
@@ -72,21 +76,25 @@ namespace VPanic {
 		
 		//glMatrixMode(GL_MODELVIEW);
 		//glLoadIdentity();
-	
+		
+		glEnable(GL_DEPTH_TEST); // z
 
 		message(MType::DEBUG, "%s", glGetString(GL_VERSION));
 		message(MType::DEBUG, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	
 
 		const char* vertex_src =
-			"#version 330\n"
-			"layout (location = 0) in vec2 pos;"
+			"#version 130\n"
+			"in vec3 pos;"
+			"uniform mat4 model;"
+			"uniform mat4 view;"
+			"uniform mat4 proj;"
 			"void main() {"
-			"gl_Position = vec4(pos.x, pos.y, 0, 3);"
+			"gl_Position = proj*view*model*vec4(pos, 3);"
 			"}";
 
 		const char* fragment_src =
-			"#version 330\n"
+			"#version 130\n"
 			"uniform vec4 color;"
 			"void main() {"
 			"gl_FragColor = vec4(color.x/255.0, color.y/255.0, color.z/255.0, 1.0);"
@@ -100,50 +108,6 @@ namespace VPanic {
 			quit();
 			return;
 		}
-
-		
-		// ------- TEST --------- ( delete later! )
-		// |
-/*	
-		float tmp_points[] = {
-
-			-0.5, -0.5,
-			 0.5, -0.5,
-			 0.5,  0.5,
-			-0.5,  0.5
-
-		};
-
-		uint32_t indices[] = {
-			0, 1, 2,  // 1
-		   	2, 3, 0   // 2
-		};
-
-
-
-
-		
-		// VAO
-
-		glGenVertexArrays(1, &m_vao);
-		glBindVertexArray(m_vao);
-
-		
-		// VBO
-
-		glGenBuffers(1, &m_buffer);
-		glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(tmp_points) * sizeof(float), tmp_points, GL_STATIC_DRAW);
-		
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, 0);
-		glEnaleVertexAttribArray(0);
-
-		// IBO
-		glGenBuffers(1, &m_ibo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices) * sizeof(uint32_t), indices, GL_STATIC_DRAW);
-		*/		
-
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -163,24 +127,13 @@ namespace VPanic {
 	   		m_window = nullptr;
 			message(MType::OK, "Deleted window");
 		}
-	
-		SDL_GL_DeleteContext(m_context);
-		m_context = NULL;
-		message(MType::OK, "Deleted context");
 
+		if(m_context != NULL) {
+			SDL_GL_DeleteContext(m_context);
+			m_context = NULL;
+			message(MType::OK, "Deleted context");
+		}
 		SDL_Quit();
-
-
-		/*
-		glDeleteBuffers(1, &m_vao);
-		glDeleteBuffers(1, &m_ibo);
-		glDeleteBuffers(1, &m_buffer);
-		m_vao = 0;
-		m_ibo = 0;
-		m_buffer = 0;
-
-		message(MType::OK, "Deleted buffers");
-		*/
 		
 		// clean shaders
 		message(MType::INFO, "Deleting %i shaders", m_shaders.size());
@@ -195,76 +148,91 @@ namespace VPanic {
 
 		message(MType::INFO, "Engine cleanup done!");
 		// NOTE: some stuff may have calls in their destructor when exiting!
-	}
-	
+	}	
 
 	void Engine::execute() {
 		if(!ok()) { return; }
 		if(m_loop) { return; }
 		m_loop = true;
 
-		float test_points[] = {
-
-			-0.5, -0.5,
-			 0.5, -0.5,
-			 0.5,  0.5,
-			-0.5,  0.5
-
-		};
-
-		uint32_t test_indices[] = {
-			0, 1, 2,
-		   	2, 3, 0
-		};
-	
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 proj = glm::mat4(1.0f);
 
 		uint32_t vao;
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
-
-
 		VBO vbo;
 		IBO ibo;
 
 		vbo.gen();
 		ibo.gen();
+		
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
 
-		vbo.data(test_points);
-		ibo.data(test_indices);
+		float points[] = {
+			-0.5, -0.5,
+			 0.5, -0.5,
+			 0.5,  0.5,
+			-0.5,  0.5,
+		};
 
+		uint32_t indx[] = {
+			0, 1, 2,
+			3, 2, 0
+		};
+
+		vbo.data(points);
+		ibo.data(indx);
 
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, 0);
 		glEnableVertexAttribArray(0);
 
-		
-		SDL_Event event;
-		while(!m_quit) {
+		float z = -1.5f;
+		float z_inc = 0.08f;
 
-		
+		SDL_Event event;
+
+		Vec p_mpos;
+		float aratio = static_cast<float>(m_width) / static_cast<float>(m_height);
+
+		while(!m_quit) {
 			glClearColor(
 					background_color.r / 255.0f,
 				   	background_color.g / 255.0f,
 				   	background_color.b / 255.0f,
 				   	1.0f);
 
-			glClear(GL_COLOR_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 			Vec mpos = Mouse::get_pos();
-			int r = map(mpos.x, 0, m_width, 60, 255);
-			int b = map(mpos.y, 0, m_height, 60, 255);
+			int r = map(mpos.x, 0, m_width, 255, 50);
+			int g = map(mpos.x, 0, m_width, 50, 255);
+			int b = map(mpos.y, 0, m_height, 50, 255);
 
 		
 			glUseProgram(m_shaders[0]);
-			glUniform4f(0, r, 0, b, 255);
-			glDrawElements(GL_TRIANGLES, ibo.index_count(), GL_UNSIGNED_INT, nullptr);
+			glUniform4f(glGetUniformLocation(m_shaders[0], "color"), r, g, b, 255);
 
+			float dx = mpos.x - p_mpos.x;
+			float dy = mpos.y - p_mpos.y;
+
+			clamp<float>(dy, -15.0f, 15.0f);
+			clamp<float>(dx, -15.0f, 15.0f);
+
+			model = glm::rotate(model, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+        	view = glm::translate(view, glm::vec3(0.0f, 0.0f, z));
+        	proj = glm::perspective(glm::radians(50.0f), aratio, 0.1f, 100.0f);
 			
-			if(m_update_callback != nullptr) {
-				m_update_callback(); // TODO: check if it has been set with Engine::set_update_callback
-			}
-			
-			
+			glUniformMatrix4fv(glGetUniformLocation(m_shaders[0], "model"), 1, GL_FALSE, &model[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(m_shaders[0], "view"), 1, GL_FALSE, &view[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(m_shaders[0], "proj"), 1, GL_FALSE, &proj[0][0]);
+
+			glDrawElements(GL_TRIANGLES, ibo.index_count(), GL_UNSIGNED_INT, nullptr);
+		
+			z = 0.0f;
+			p_mpos = mpos;
+	
 			// handle events
 			while(SDL_PollEvent(&event)) {
 				switch(event.type) {
@@ -272,12 +240,21 @@ namespace VPanic {
 						quit();
 						break;
 
+					case SDL_MOUSEWHEEL:
+						if(event.wheel.y < 0) {
+							z-=z_inc;
+						}
+						else if(event.wheel.y > 0){
+							z+=z_inc;
+						}
+						
+						message(MType::DEBUG, "Z: %f", z);
+						break;
+
 					default: break;
 				}
 			}
-
 			SDL_GL_SwapWindow(m_window);
-
 		}
 		m_loop = false;
 	}
@@ -293,7 +270,6 @@ namespace VPanic {
 		
 		// check if shader has been compiled succesfully
 		if(!_shader_ok(vertex_shader)) { return false; }
-
 
 		int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragment_shader, 1, &t_fragment_src, NULL);
