@@ -1,11 +1,14 @@
 #pragma once
 #include "color.hpp"
+#include "vec.hpp"
 
 namespace VPanic {
 
 	float lerp   (float start, float end, float t);
 	float norm   (float value, float min, float max);
 	float map    (float value, float src_min, float src_max, float dst_min, float dst_max);
+
+	float distance(const vec3& p0, const vec3& p1);
 
 	float random (float min, float max);
 

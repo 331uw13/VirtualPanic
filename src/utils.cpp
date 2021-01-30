@@ -1,3 +1,4 @@
+#include <cmath>
 #include "utils.hpp"
 
 namespace VPanic {
@@ -14,6 +15,14 @@ namespace VPanic {
 	
 	float map(float value, float src_min, float src_max, float dst_min, float dst_max) {
 		return lerp(dst_min, dst_max, norm(value, src_min, src_max));
+	}
+
+	float distance(const vec3& p0, const vec3& p1) {
+		const float dx = p1.x - p0.x;
+		const float dy = p1.y - p0.y;
+		const float dz = p1.z - p0.z;
+	
+		return sqrt((dx*dx)+(dy*dy)+(dz*dz));
 	}
 
 	float random(float min, float max) {

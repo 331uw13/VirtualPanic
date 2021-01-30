@@ -1,5 +1,4 @@
 #include <chrono>
-
 #include "timer.hpp"
 
 namespace VPanic {

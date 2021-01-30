@@ -11,7 +11,7 @@ namespace VPanic {
 			RIGHT
 		};
 		
-		Vec get_pos();
+		vec2 get_pos();
 		bool button_down(int t_button);
 
 	}
