@@ -2,6 +2,7 @@
 
 ### todo:
 
+- delete 'Render::init()'
 - delete vec.hpp and use them from glm
 - different type of lights
 - effects for shapes
