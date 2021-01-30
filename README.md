@@ -1,6 +1,6 @@
 # VirtualPanic
-
-### todo:
+```
+TODO:
 
 - some memory management
 - delete 'Render::init()'
@@ -14,7 +14,7 @@
 - collision detection
 
   (more alot stuff...)
-
+```
 
 https://learnopengl.com/  :heart:
 
