@@ -12,7 +12,7 @@ namespace VPanic {
 		float yaw    { 0.0f };
 		float roll   { 0.0f };
 
-		float sensetivity { 0.01f };
+		float sensetivity { 0.15f };
 		float move_speed  { 0.2f };
 
 	};

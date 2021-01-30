@@ -85,6 +85,7 @@ namespace VPanic {
 		message(MType::DEBUG, "%s", glGetString(GL_VERSION));
 		message(MType::DEBUG, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	
+		SDL_SetRelativeMouseMode(SDL_TRUE);
 		SDL_ShowCursor(false);
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -132,8 +133,9 @@ namespace VPanic {
 			m_cam->yaw = -90.f;
 		}
 	
-		float mx = -90.f;
-		float my = 0;
+		//float mx = -90.f;
+		//float my = 0;
+
 
 		Timer timer;
 		SDL_Event event;
@@ -167,22 +169,6 @@ namespace VPanic {
 				else if(Keyboard::keydown(Keyboard::Mod::SHIFT)) {
 					m_cam->pos.y -= m_cam->move_speed;
 				}
-				
-				const vec2 mpos = Mouse::get_pos();
-			
-				my += (static_cast<float>(m_height/2.0f) - mpos.y) * m_cam->sensetivity;
-				clamp<float>(my, -360.0f, 360.0f);
-				
-				mx += (mpos.x - static_cast<float>(m_width/2.0f)) * m_cam->sensetivity;
-
-				m_cam->yaw = mx;
-				m_cam->pitch = my;
-				clamp<float>(m_cam->pitch, -89.0f, 89.0f);
-					
-				if(timer.elapsed() > 110) {
-					SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
-					timer.reset();
-				}
 			}
 			
 
@@ -201,6 +187,14 @@ namespace VPanic {
 								m_height = event.window.data2;
 								glViewport(0, 0, m_width, m_height);
 								break;
+						}
+						break;
+
+					case SDL_MOUSEMOTION:
+						if(m_cam != nullptr) {
+							m_cam->yaw += static_cast<float>(event.motion.xrel) * m_cam->sensetivity;
+							m_cam->pitch += static_cast<float>(-event.motion.yrel) * m_cam->sensetivity;
+							clamp<float>(m_cam->pitch, -89.0, 89.0);
 						}
 						break;
 
