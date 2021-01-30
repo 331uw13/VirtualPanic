@@ -14,3 +14,6 @@
 - collision detection
   (more alot stuff...)
 
+
+https://learnopengl.com/  :heart:
+
