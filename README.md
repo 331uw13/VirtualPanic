@@ -1,6 +1,6 @@
 # VirtualPanic
 
-aims to make 3D graphics fast and simple and fast results
+aims to make 3D graphics fast, simple and fast results
 
 ```
 TODO:
