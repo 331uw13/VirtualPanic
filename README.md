@@ -1,22 +1,13 @@
 # VirtualPanic
 
-aims to be very simple and fast 3D graphics library
+### aims to be very simple and fast 3D graphics library
 
-```
-TODO:
+ ( work in progress )
 
-- different type of lights
-- effects for shapes
-- textures
-- fog
-- physics
-- collision detection
-- write math library
 
-  (more alot stuff...)
-```
+# 
 
-https://learnopengl.com/  :heart:
+https://learnopengl.com/  thanks for reading material :heart:
 
 
 ![](https://github.com/331uw13/VirtualPanic/blob/master/Images/rainbow.png)
