@@ -1,10 +1,11 @@
 # VirtualPanic
+
+aims to make 3D graphics fast and simple and fast results
+
 ```
 TODO:
 
 - some memory management
-- delete 'Render::init()'
-- delete vec.hpp and use them from glm
 - different type of lights
 - effects for shapes
 - textures
@@ -12,6 +13,7 @@ TODO:
 - particles
 - physics
 - collision detection
+- write math library
 
   (more alot stuff...)
 ```
