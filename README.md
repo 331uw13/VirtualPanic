@@ -1,9 +1,9 @@
 # VirtualPanic
 
-### aims to be very simple and fast 3D graphics library
 https://331uw13.github.io/VirtualPanicWiki/
 
- ( work in progress )
+### aims to be very simple and fast 3D graphics library
+( work in progress )
 
 # 
 
