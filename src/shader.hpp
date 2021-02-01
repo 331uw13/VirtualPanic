@@ -1,8 +1,9 @@
 #pragma once
-#include <string>
+#include <GL/glew.h>
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <string>
 
-#include "vec.hpp"
 #include "color.hpp"
 
 namespace VPanic {
@@ -13,17 +14,24 @@ namespace VPanic {
 		Shader() {}
 		~Shader() { del(); } 
 
-		void load_shaders(const char* t_vertex_filename, const char* t_fragment_filename);
+		void load(const char* t_vertex_filename, const char* t_fragment_filename);
+		void load_from_memory(const char* t_vertex_src, const char* t_fragment_src);
 
 		void set_color(const char* t_name, const Color& t_color) const;
-		void set_vec3(const char* t_name, const vec3& t_v3) const;
+		void set_vec3(const char* t_name, const glm::vec3& t_v3) const;
+		void set_vec2(const char* t_name, const glm::vec2& t_v2) const;
 		void set_mat4(const char* t_name, const glm::mat4& t_m) const;
 		
+		template<typename T> void set_value(const char* t_name, const T& v) {
+			glUniform1f(glGetUniformLocation(m_id, t_name), v);
+		}
+
+		/*
 		// note: use template?
 		void set_float(const char* t_name, const float t_f) const;
 		void set_bool(const char* t_name, const bool t_b) const;
 		// ...
-
+		*/
 		void use() const;
 		void del();
 		

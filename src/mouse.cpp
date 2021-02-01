@@ -4,11 +4,11 @@
 
 namespace VPanic {
 
-	vec2 Mouse::get_pos() {
+	glm::vec2 Mouse::get_pos() {
 		int x = 0;
 		int y = 0;
 		SDL_GetMouseState(&x, &y);
-		return vec2(static_cast<float>(x), static_cast<float>(y));
+		return glm::vec2(static_cast<float>(x), static_cast<float>(y));
 	}
 
 	bool Mouse::button_down(int t_button) {

@@ -13,9 +13,11 @@ namespace VPanic {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		glBufferData(GL_ARRAY_BUFFER, t_data.size() * sizeof(float), &t_data[0], GL_STATIC_DRAW);
 
+		// vertices
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, 0);
 		glEnableVertexAttribArray(0);
 		
+		// normals
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, (void*)(sizeof(float)*3));
 		glEnableVertexAttribArray(1);
 		

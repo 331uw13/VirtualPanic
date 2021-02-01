@@ -6,22 +6,32 @@
 
 namespace VPanic {
 
-	void Shader::load_shaders(const char* t_vertex_filename, const char* t_fragment_filename) {
+	void Shader::load(const char* t_vertex_filename, const char* t_fragment_filename) {
+		if(m_loaded) { del(); }
 		m_id = _compile_shader(_read_file(t_vertex_filename).c_str(), _read_file(t_fragment_filename).c_str());
+	}
+	
+	void Shader::load_from_memory(const char* t_vertex_src, const char* t_fragment_src) {
+		if(m_loaded) { del(); }
+		m_id = _compile_shader(t_vertex_src, t_fragment_src);
 	}
 
 	void Shader::set_color(const char* t_name, const Color& t_color) const {
 		glUniform4f(glGetUniformLocation(m_id, t_name), t_color.r, t_color.g, t_color.b, t_color.a);
 	}
 	
-	void Shader::set_vec3(const char* t_name, const vec3& t_v3) const {
+	void Shader::set_vec3(const char* t_name, const glm::vec3& t_v3) const {
 		glUniform3f(glGetUniformLocation(m_id, t_name), t_v3.x, t_v3.y, t_v3.z);
+	}
+	
+	void Shader::set_vec2(const char* t_name, const glm::vec2& t_v2) const {
+		glUniform2f(glGetUniformLocation(m_id, t_name), t_v2.x, t_v2.y);
 	}
 
 	void Shader::set_mat4(const char* t_name, const glm::mat4& t_m) const {
 		glUniformMatrix4fv(glGetUniformLocation(m_id, t_name), 1, GL_FALSE, &t_m[0][0]);
 	}
-	
+/*	
 	void Shader::set_float(const char* t_name, const float t_f) const {
 		glUniform1f(glGetUniformLocation(m_id, t_name), t_f);
 	}
@@ -29,7 +39,7 @@ namespace VPanic {
 	void Shader::set_bool(const char* t_name, const bool t_b) const {
 		glUniform1f(glGetUniformLocation(m_id, t_name), t_b);
 	}
-
+*/
 
 
 	int Shader::get_id() const {
@@ -56,7 +66,7 @@ namespace VPanic {
 		
 		// check if shader has been compiled succesfully
 		if(!_shader_ok(vertex_shader)) { 
-			message(MType::INFO, "vertex shader");
+			message(MType::BAD, "Vertex shader failed");
 			return false;
 	   	}
 
@@ -66,7 +76,7 @@ namespace VPanic {
 		
 		// check if shader has been compiled succesfully
 		if(!_shader_ok(fragment_shader)) { 
-			message(MType::INFO, "fragment shader");
+			message(MType::BAD, "Fragment shader failed");
 			return false;
 	   	}
 		

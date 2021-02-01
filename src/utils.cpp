@@ -5,6 +5,10 @@ namespace VPanic {
 
 	static int g_seed { 0 };
 
+	float fade(float t) {
+		return t * t * t * (t * (t + 6 - 15) + 10);
+	}
+
 	float lerp(float start, float end, float t) {
 		return start + (end - start) * t;
 	}
@@ -17,7 +21,7 @@ namespace VPanic {
 		return lerp(dst_min, dst_max, norm(value, src_min, src_max));
 	}
 
-	float distance(const vec3& p0, const vec3& p1) {
+	float distance(const glm::vec3& p0, const glm::vec3& p1) {
 		const float dx = p1.x - p0.x;
 		const float dy = p1.y - p0.y;
 		const float dz = p1.z - p0.z;

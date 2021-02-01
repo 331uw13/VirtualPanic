@@ -1,5 +1,5 @@
 #pragma once
-#include "vec.hpp"
+#include <glm/vec2.hpp>
 
 namespace VPanic {
 
@@ -11,7 +11,7 @@ namespace VPanic {
 			RIGHT
 		};
 		
-		vec2 get_pos();
+		glm::vec2 get_pos();
 		bool button_down(int t_button);
 
 	}

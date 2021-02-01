@@ -4,7 +4,7 @@ namespace VPanic {
 
 	namespace Keyboard {
 	
-		enum class Mod {
+		enum class Mod { // NOTE: this needs better name
 			CTRL = 64,
 			SHIFT = 1,
 			ALT = 256,
