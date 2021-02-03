@@ -100,6 +100,7 @@ namespace VPanic {
 		// check flags
 		
 		if(t_settings & INIT_IMGUI) {
+			message(MType::INFO, "Using ImGui");
 			m_using_imgui = true;
 			ImGui::CreateContext();
 			ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);

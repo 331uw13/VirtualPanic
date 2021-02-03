@@ -7,11 +7,6 @@
 
 namespace VPanic {
 
-
-	void Render::add_light(const Light& t_light) {
-		m_light = t_light;
-	}
-	
 	void Render::wireframe(const bool b) {
 		glPolygonMode(GL_FRONT_AND_BACK, b ? GL_LINE : GL_FILL);
 	}
@@ -28,13 +23,15 @@ namespace VPanic {
 		model = glm::rotate(model, glm::radians(t_shape.rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(t_shape.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	
-		t_shader.use();
+		//t_shader.use();
 			
+		//t_shader.set_vec3("u_lights", m_light.pos);
+		//t_shader.set_color("u_light.color", m_light.color);
+		//t_shader.set_value<float>("u_light.brightness", m_light.brightness);
+
 		// NOTE: this should be handled from user side, not in library
-		t_shader.set_color("u_color", t_shape.color);
-		t_shader.set_color("u_light_color", m_light.color);
-		t_shader.set_vec3("u_light_pos", m_light.pos);
-		t_shader.set_vec3("u_view_pos", t_cam.pos);
+		t_shader.set_color("u_shape_color", t_shape.color);
+		t_shader.set_vec3("u_camera_pos", t_cam.pos);
 	
 		// NOTE: this probably can be handled from library if added optional texture support and other things
 		// 			and then vertex shader can be always loaded from memory
@@ -42,7 +39,8 @@ namespace VPanic {
 		t_shader.set_mat4("proj", t_cam.projection);
 		t_shader.set_mat4("view", t_cam.view);
 		t_shader.set_mat4("model", model);
-		
+	
+		// well... this can maybe be just in 'Shape::draw()'
 		glBindVertexArray(t_shape.vao);
 		glDrawArrays(GL_TRIANGLES, 0, t_shape.vertices.size()/2);
 	}

@@ -56,7 +56,7 @@ namespace VPanic {
 		void vsync(const bool b);
 		void fullscreen(const bool b);
 
-		Color background_color   { Color(15, 20, 30) };
+		Color background_color   { Color(0, 0, 0) };
 		// TODO: Color cursor_color       { Color(240, 240, 240, 188) };
 		
 	private:

@@ -2,14 +2,16 @@
 #include <glm/vec3.hpp>
 
 #include "color.hpp"
-#include "shader.hpp"
+
 
 namespace VPanic {
 
 	struct Light {
 
 		glm::vec3 pos;
-		Color color;
+		Color color;	
+		float brightness { 1.0f };
+
 
 		Light(const glm::vec3& t_pos, const Color& t_color)
 			: pos(t_pos), color(t_color) {}
