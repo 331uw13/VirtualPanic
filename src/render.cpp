@@ -23,13 +23,12 @@ namespace VPanic {
 		model = glm::rotate(model, glm::radians(t_shape.rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(t_shape.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	
-		//t_shader.use();
+		t_shader.use();
 			
 		//t_shader.set_vec3("u_lights", m_light.pos);
 		//t_shader.set_color("u_light.color", m_light.color);
 		//t_shader.set_value<float>("u_light.brightness", m_light.brightness);
 
-		// NOTE: this should be handled from user side, not in library
 		t_shader.set_color("u_shape_color", t_shape.color);
 		t_shader.set_vec3("u_camera_pos", t_cam.pos);
 	
