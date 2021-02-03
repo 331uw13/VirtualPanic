@@ -24,9 +24,9 @@ install(
 	DESTINATION include/VirtualPanic
 )
 
-#install(
-#	DIRECTORY ./src/imgui/
-#	DESTINATION include/VirtualPanic/imgui
-#)
+install(
+	DIRECTORY ./src/ImGui
+	DESTINATION include/VirtualPanic/
+)
 
 
