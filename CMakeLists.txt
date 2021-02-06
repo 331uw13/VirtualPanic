@@ -3,9 +3,11 @@ project(virtual-panic)
 
 set(WARNINGS "-Wall -Wextra -Wunused-function -Wformat")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS} -lSDL2 -lGL -lGLEW")
-file(GLOB_RECURSE SOURCE_FILES "./src/*.cpp")
-file(GLOB_RECURSE HEADER_FILES "./src/*.hpp") #"./src/*.h")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS} -lSDL2 -lGL")
+file(GLOB_RECURSE SOURCE_FILES "./src/*.cpp" "./src/*.c")
+file(GLOB_RECURSE HEADER_FILES "./src/*.hpp")
+
+find_package(OpenGL REQUIRED)
 
 add_library (
 	VirtualPanic
@@ -24,9 +26,9 @@ install(
 	DESTINATION include/VirtualPanic
 )
 
-install(
-	DIRECTORY ./src/ImGui
-	DESTINATION include/VirtualPanic/
-)
+#install(
+#	DIRECTORY ./src/ImGui
+#	DESTINATION include/VirtualPanic/
+#)
 
 
