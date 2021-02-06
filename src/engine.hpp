@@ -4,7 +4,6 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
-#include "ImGui/imgui.h"
 
 #include "mouse.hpp"
 #include "color.hpp"

@@ -30,7 +30,7 @@ namespace VPanic {
 	}
 
 	float random(float min, float max) {
-		return min + static_cast<float>(fast_rand()) / (static_cast<float>(0x7FFF / (max - min)));
+		return min + static_cast<float>(fast_rand()) / (static_cast<float>((float)0x7FFF / (float)(max - min)));
 	}
 
 	int fast_rand() {

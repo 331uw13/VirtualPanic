@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
+#include "shader.hpp"
+
 namespace VPanic {
 
 	struct Camera {
@@ -12,17 +14,16 @@ namespace VPanic {
 		float yaw    { 0.0f };
 		float pitch  { 0.0f };
 		float roll   { 0.0f };
-		float z_far  { 140.f };
-		float z_near { 0.15f };
-		float aspect_ratio { 1.0f };
-		float sensetivity { 0.145f };
-		float move_speed  { 0.13f }; // NOTE: when creating entity class then move this
+		float aspect_ratio  { 1.0f };
+		float sensetivity   { 0.145f };
+		float move_speed    { 0.15f }; // NOTE: when creating entity class then move this
+		float z_far   { 105.f };
+		float z_near  { 0.15f };
 
 		glm::mat4 view        { glm::mat4(1.0f) };
 		glm::mat4 projection  { glm::mat4(1.0f) };
 	
-		// calculates view and projection for you
-		void update(); 
+		void update(const Shader& t_shader); 
 	};
 
 }

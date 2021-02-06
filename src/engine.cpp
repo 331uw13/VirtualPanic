@@ -1,12 +1,11 @@
-#include <GL/glew.h>
+//#include <GL/glew.h>
+#include <GL/gl3w.h>
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 
-#include "ImGui/imgui_impl_opengl3.h"
-#include "ImGui/imgui_impl_sdl.h"
-
 #include "engine.hpp"
 #include "messages.hpp"
+#include "timer.hpp"
 
 namespace VPanic {
 	
@@ -36,60 +35,67 @@ namespace VPanic {
 			return;
 	   	}
 
-		message(MType::INFO, "Initializing VirtualPanic ...");
+		Timer timer;
+		message(MType::INFO, "Hello!");
 
 		if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-			message(MType::BAD, "Failed to initialize SDL! (%s)", SDL_GetError());
+			message(MType::BAD, "Failed to initialize %6SDL%0! (%s)", SDL_GetError());
 			return;
-		}
-		
-		message(MType::OK, "Initialized SDL2");
+		}	
+		message(MType::OK, "Initialized %6SDL");
 
-		//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);	
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	
+		//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);	
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		message(MType::DEBUG, "Set attributes");
 
 		m_window = SDL_CreateWindow(t_title, 0, 0, t_size.x, t_size.y, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);	
-		
-		glEnable(GL_MULTISAMPLE);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); // TODO: option for this!
+		message(MType::DEBUG, "Check window");
 		
 		if(m_window == nullptr) {
 			message(MType::BAD, "Failed to create window! (%s)", SDL_GetError());
 			quit();
 			return;	
 		}
-
-		m_context = SDL_GL_CreateContext(m_window);
+		
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
-		
-		
+	
 		message(MType::OK, "Created new window (%4%ix%i%0)", m_width, m_height);
+		
+	
+		
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		m_context = SDL_GL_CreateContext(m_window);
+	
+		if(m_context != NULL) {
+			message(MType::OK, "Created context");
+		}
 
-		int glew_err = glewInit();
-		if(glew_err != GLEW_OK) {
-			message(MType::BAD, "Failed to initialize glew! (%s)", SDL_GetError());
+		if(gl3wInit()) {
+			message(MType::BAD, "Failed to initialize %6gl3w!");
+			quit();
+			return;		
+		}
+
+		message(MType::OK, "Initialized %6gl3w");	
+		if(!gl3wIsSupported(3, 3)) {
+			message(MType::BAD, "OpenGL version 3.3 is not supported!!!");
 			quit();
 			return;
 		}
+
 		
-		message(MType::OK, "Initialized glew");
-		
-		glViewport(0, 0, m_width, m_height);
-		
+		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CW);
-		
 		glEnable(GL_DEPTH_TEST);
-	
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		message(MType::DEBUG, "%s", glGetString(GL_VERSION));
-		message(MType::DEBUG, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+		message(MType::INFO, "%s", glGetString(GL_VERSION));
+		message(MType::INFO, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 		glClearColor(background_color.r / 255.0f, background_color.g / 255.0f, background_color.b / 255.0f, 1.0f);
 		SDL_GL_SwapWindow(m_window);
@@ -100,13 +106,11 @@ namespace VPanic {
 		// check flags
 		
 		if(t_settings & INIT_IMGUI) {
-			message(MType::INFO, "Using ImGui");
-			m_using_imgui = true;
-			ImGui::CreateContext();
-			ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
-			ImGui_ImplOpenGL3_Init("#version 130"); // TODO: add options for this
+			message(MType::INFO, "Using %6ImGui");
 
-			message(MType::OK, "Initialized ImGui");
+			// ...
+
+			message(MType::OK, "Initialized %6ImGui");
 		}
 
 		if(t_settings & FULLSCREEN) {
@@ -118,8 +122,10 @@ namespace VPanic {
 			message(MType::INFO, "Using VSync");
 			vsync(true);
 		}
+		
+		glViewport(0, 0, m_width, m_height);
 
-		message(MType::OK, "Done!");
+		message(MType::OK, "%2Engine is ready! %5[%ims]", timer.elapsed());
 		m_init_ok = true;
 	
 	}
@@ -133,15 +139,13 @@ namespace VPanic {
 
 		// cleanup some memory,  TODO: check for memory leaks
 
-		message(MType::INFO, "Quitting...");
+		message(MType::INFO, "%5Quitting...");
 
 		camera_active(false);
 
 		if(m_using_imgui) {
-			ImGui_ImplOpenGL3_Shutdown();
-			ImGui_ImplSDL2_Shutdown();
-			ImGui::DestroyContext();
-			message(MType::OK, "Destroyed ImGui");
+			// ...
+			message(MType::OK, "Destroyed %6ImGui");
 		}
 
 		if(m_context != NULL) {
@@ -154,8 +158,10 @@ namespace VPanic {
 			message(MType::OK, "Destroyed window");
 		}
 
-		SDL_Quit();
-		
+		SDL_Quit();	
+		message(MType::OK, "Destroyed %6SDL2");
+
+		message(MType::INFO, "Reset settings");	
 		m_update_callback = nullptr;
 		m_keydown_callback = nullptr;
 		m_mouse_wheel_callback = nullptr;
@@ -167,7 +173,7 @@ namespace VPanic {
 		m_using_camera = false;
 		m_init_ok = false;
 		m_quit = true;
-
+		
 		message(MType::INFO, "Engine cleanup done!");
 		// NOTE: some stuff may have calls in their destructor when exiting!
 	}
@@ -197,9 +203,7 @@ namespace VPanic {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			if(m_using_imgui) {
-				ImGui_ImplOpenGL3_NewFrame();
-				ImGui_ImplSDL2_NewFrame(m_window);
-				ImGui::NewFrame();
+				// ....
 			}
 
 			if(m_cam != nullptr && m_using_camera) {
@@ -229,8 +233,7 @@ namespace VPanic {
 			}
 
 			if(m_using_imgui) {
-				ImGui::Render();
-				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+				//...
 			}
 
 			// handle events
@@ -298,9 +301,9 @@ namespace VPanic {
 	void Engine::camera_active(const bool b) {
 		SDL_SetWindowGrab(m_window, b ? SDL_TRUE : SDL_FALSE);
 		SDL_SetRelativeMouseMode(b ? SDL_TRUE : SDL_FALSE);
-		SDL_ShowCursor(b);
 		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
 		m_using_camera = b;
+		SDL_ShowCursor(!b);
 	}
 
 	void Engine::vsync(const bool b) {

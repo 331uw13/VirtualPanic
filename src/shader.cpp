@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+#include <GL/gl3w.h>
 #include <fstream>
 
 #include "shader.hpp"
@@ -7,13 +7,18 @@
 
 namespace VPanic {
 
+	Shader::~Shader() {
+		unload();
+		message(MType::DEBUG, "Deleted shader");
+	}
+
 	void Shader::load(const char* t_shader_filename, const uint32_t t_glsl_version, const int t_settings) {
 
 		Timer timer;
 
 		// TODO: check if the any source is changed, if it is then delete and load else gtfo
 		if(m_loaded) {
-		   	del();
+		   	unload();
 	   	}
 
 		if(!(t_settings & NO_SHADER_UTIL)) {
@@ -26,11 +31,12 @@ namespace VPanic {
 		// TODO: 
 		// add option for geometry shader
 		// add option to support all kind of things in vertex shader
-	
-		printf("%s\n", m_fragment_source.c_str());
 
-		_compile_shaders();	
-		message(MType::DEBUG, "Shader::load() --> [%ims]", timer.elapsed());
+		_compile_shaders();
+		
+		if(m_loaded) {
+			message(MType::OK, "Loaded shader %3\"%s\" %5[%ims]", t_shader_filename, timer.elapsed());
+		}
 	}
 
 	void Shader::set_color(const char* t_name, const Color& t_color) const {
@@ -52,11 +58,15 @@ namespace VPanic {
 	void Shader::set_mat4(const char* t_name, const glm::mat4& t_m) const {
 		glUniformMatrix4fv(glGetUniformLocation(m_id, t_name), 1, GL_FALSE, &t_m[0][0]);
 	}
-
-
-	int Shader::get_id() const {
-		return m_id;
+	
+	void Shader::set_int(const char* t_name, const int t_i) const {
+		glUniform1i(glGetUniformLocation(m_id, t_name), t_i);
 	}
+	
+	void Shader::set_float(const char* t_name, const float t_f) const {
+		glUniform1f(glGetUniformLocation(m_id, t_name), t_f);		
+	}
+
 	bool Shader::is_loaded() const {
 		return m_loaded;
 	}
@@ -65,7 +75,7 @@ namespace VPanic {
 		glUseProgram(m_id);
 	}
 
-	void Shader::del() {
+	void Shader::unload() {
 		glDeleteProgram(m_id);
 		m_id = 0;
 		m_loaded = false;
@@ -137,6 +147,9 @@ namespace VPanic {
 		int iv = 0;
 		glGetShaderiv(t_id, GL_COMPILE_STATUS, &iv);
 		if(iv == 0) {
+		
+			// TODO: show part of source where the error is
+
 			char msg[1024];
 			glGetShaderInfoLog(t_id, 1024, NULL, msg);
 			message(MType::BAD, "%1(Shader Compile Error):%0 %s", msg);
@@ -145,43 +158,63 @@ namespace VPanic {
 		}
 		return true;
 	}
-	
-	
+
+
+	// newlines here are just because its easier to debug
+		
 	void Shader::_add_functions(const uint32_t t_glsl_version) {
 		m_fragment_source = 
 			"#version " + std::to_string(t_glsl_version) +
-			"\n"
+			" core\n"
+			// TODO: rename stuff
 			"in vec3 i_fg_pos;\n"
 			"in vec3 i_normal;\n"
-			"uniform vec4 u_shape_color;\n"
-			"uniform vec3 u_camera_pos;\n"
+			"struct VPanicCamera {\n"
+				" vec3 pos;"
+				" vec3 front;"
+			"};\n"
+			"struct VPanicShape {\n"
+				" vec3 pos;"
+				" vec4 color;"
+			"};\n"
+			"uniform VPanicShape shape;"
+			"uniform VPanicCamera camera;"
 			"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float ambient, float specular, float shine) {\n"
 				" vec3 am = ambient*vec3(color)*brightness;\n"
 				" vec3 norm = normalize(i_normal);\n"
 				" vec3 ld = normalize(pos-i_fg_pos);\n"
 				" vec3 rd = reflect(-ld, norm);\n"
 				" vec3 diff = (max(dot(norm, ld), 0.0)*brightness)*vec3(color);\n"
-				" float spec = pow(max(dot(normalize(u_camera_pos-i_fg_pos), rd), 0.0), shine);\n"
-				" return (am+diff+spec)*vec3(u_shape_color);\n"
+				" float spec = pow(max(dot(normalize(camera.pos-i_fg_pos), rd), 0.0), shine);\n"
+				" return (am+diff+spec)*vec3(shape.color);\n"
+			"}"
+			"float vpanic_fog(vec3 pos, float max, float min) {\n"
+				" float dist = distance(pos, i_fg_pos);"
+				" if(dist <= min) { return 0.0; }"
+				" if(dist >= max) { return 1.0; }"
+				" return 1.0 - (max - dist) / (max - min);"
 			"}";
 	}
 	
 	void Shader::_safe_check_vertex_source(const uint32_t t_glsl_version) {
-		if(m_vertex_source.size() <= 1 && m_vertex_source.find('#') != 0) {	
+		// make sure that vertex source is not empty and it starts with '#'
+		// else update it
+		if(m_vertex_source.size() <= 1 && m_vertex_source.find(0x23) != 0) {	
 			m_vertex_source = 
 				"#version " + std::to_string(t_glsl_version) +
-				"\n"
+				" core\n"
 				"in vec3 pos;\n"
 				"in vec3 normal;\n"
+				"in vec3 off;\n"
 				"out vec3 i_fg_pos;\n"
 				"out vec3 i_normal;\n"
 				"uniform mat4 proj;\n"
 				"uniform mat4 view;\n"
 				"uniform mat4 model;\n"
 				"void main() {\n"
-				"i_normal = normal;\n"
-				"i_fg_pos = vec3(model*vec4(pos, 1.0));\n"
-				"gl_Position = proj*view*model*vec4(pos, 1.0);\n"
+					" i_normal = normal;\n"
+					" i_fg_pos = vec3(model*vec4(pos+off, 1.0));\n"
+					" gl_Position = proj*view*model*vec4(pos+off, 1.0);\n"
 				"}";
 		}
 	}

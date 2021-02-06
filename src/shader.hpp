@@ -1,5 +1,5 @@
 #pragma once
-#include <GL/glew.h>
+#include <GL/gl3w.h>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <vector>
@@ -15,29 +15,25 @@ namespace VPanic {
 	public:
 		
 		Shader() {}
-		~Shader() { del(); }
+		~Shader();
 
 		void load(const char* t_shader_filename, const uint32_t t_glsl_version, const int t_settings = 0);
+		void unload();
+		bool is_loaded() const;
 
 
+		void use() const;
+		
 		// TODO: make sure that shader has uniform 't_name'
 
+		// NOTE: 'set_color' normalizes the color so dont do that in shader code
 		void set_color(const char* t_name, const Color& t_color) const;
 		void set_vec3(const char* t_name, const glm::vec3& t_v3) const;
 		void set_vec2(const char* t_name, const glm::vec2& t_v2) const;
 		void set_mat4(const char* t_name, const glm::mat4& t_m) const;
-	
-		// NOTE: this is stupid!
-		template<typename T> void set_value(const char* t_name, const T& v) const {
-			glUniform1f(glGetUniformLocation(m_id, t_name), v);
-		}
-
-		void use() const;
-		void del();
+		void set_int(const char* t_name, const int t_i) const;
+		void set_float(const char* t_name, const float t_f) const;
 		
-		bool is_loaded() const;
-		int get_id() const;
-
 	private:
 
 		void _compile_shaders();
@@ -48,9 +44,8 @@ namespace VPanic {
 		std::string m_vertex_source;
 		std::string m_fragment_source;
 
-
+		uint32_t m_id { 0 };
 		bool m_loaded { false };
-		int m_id { 0 };
 	
 		// this adds things to the shader code
 		// vpanic_light(), vpanic_fog()... they just help you calculate stuff if you are feeling lazy
