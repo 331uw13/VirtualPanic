@@ -2,7 +2,7 @@
 
 [VirtualPanic Wiki](https://331uw13.github.io/VirtualPanicWiki/)
 
-### aims to be very simple and fast 3D graphics library
+### aims to be very simple and fast 3D graphics library with OpenGL
 ( work in progress )
 
 
