@@ -15,6 +15,7 @@ namespace VPanic {
 
 	*/
 
+	// TODO: move this struct
 	struct Vertex {
 		glm::vec3 point;
 		glm::vec3 normal;
