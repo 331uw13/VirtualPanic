@@ -1,28 +1,32 @@
 #pragma once
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <vector>
 
 #include "color.hpp"
 
 namespace VPanic {
 
-	float fade   (float t);
-	float lerp   (float start, float end, float t);
-	float norm   (float value, float min, float max);
-	float map    (float value, float src_min, float src_max, float dst_min, float dst_max);
-
+	float fade   (const float t);
+	float lerp   (const float t, const float start, const float end);
+	float norm   (const float value, const float min, const float max);
+	float map    (const float value, const float src_min, const float src_max,
+		   			const float dst_min, const float dst_max);
+	
 	float distance(const glm::vec3& p0, const glm::vec3& p1);
-
-	float random (float min, float max);
-
+	
+	float random (const float min, const float max);
+	void set_seed(const int new_seed);
 	int fast_rand();
-	void set_seed(int new_seed);
-
+	int fast_floor(const float t);
+	
 	template<typename T> void clamp(T& value, const T& min, const T& max) {
 		value = ((value > max) ? max : (value < min) ? min : value);
 	}
 
-	Color color_lerp(const Color& start, const Color& end, float t);
-
+	Color mix_color(const Color& start, const Color& end, float t);
+	//Color invert_color(const Color& color);
 
 }
+
+

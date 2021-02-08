@@ -22,40 +22,15 @@ namespace VPanic {
 
 	// this will not add any util functions for shaders.
 	// not default
-	static constexpr int NO_SHADER_UTIL { 1 << 0 };
+	static constexpr int NO_SHADER_UTIL { 1 << 3 };
 
 	// this will give you support for geometry shaders.
-	static constexpr int SUPPORT_GEOMETRY_SHADER { 1 << 1 };
+	// TODO: static constexpr int SUPPORT_GEOMETRY_SHADER { 1 << 1 };
 
 
-	// --- 'Shape::load()' && 'Shape::Shape()' ---
-
-	// tldr: dont pass normals to shaders
-	// this acheves the effect that there is no controllable light sources
-	// and everything will look very flat.
-	// It is good for testing when adding new things or debugging.
-	// not default
-	static constexpr int NO_COLORED_LIGHT { 1 << 0 };
-
-	// set color per fragment
-	static constexpr int INCLUDED_COLOR_DATA { 1 << 1 };
-	
-	// ...
-
-
-	// --- 'Shape::draw()' ---
-	
-	// draw only wireframe.
-	// not default
-	static constexpr int WIREFRAME { 1 << 0 };
 
 	// ...
-	
 
 
 }
-
-
-
-
 

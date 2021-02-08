@@ -14,11 +14,11 @@ namespace VPanic {
 		float yaw    { 0.0f };
 		float pitch  { 0.0f };
 		float roll   { 0.0f };
+		float z_near  { 0.1f };
+		float z_far   { 1000.f };
 		float aspect_ratio  { 1.0f };
-		float sensetivity   { 0.145f };
 		float move_speed    { 0.15f }; // NOTE: when creating entity class then move this
-		float z_far   { 105.f };
-		float z_near  { 0.15f };
+		float sensetivity   { 0.145f };
 
 		glm::mat4 view        { glm::mat4(1.0f) };
 		glm::mat4 projection  { glm::mat4(1.0f) };

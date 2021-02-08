@@ -87,9 +87,9 @@ namespace VPanic {
 
 		
 		glEnable(GL_MULTISAMPLE);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CW);
+		//glEnable(GL_CULL_FACE);
+		//glCullFace(GL_BACK);
+		//glFrontFace(GL_CW);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -103,8 +103,6 @@ namespace VPanic {
 		camera_active(true);
 	
 
-		// check flags
-		
 		if(t_settings & INIT_IMGUI) {
 			message(MType::INFO, "Using %6ImGui");
 

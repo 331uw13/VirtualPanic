@@ -1,23 +1,25 @@
 #include <cmath>
+#include <vector>
 #include "utils.hpp"
+
+static int g_seed { 0 };
 
 namespace VPanic {
 
-	static int g_seed { 0 };
-
-	float fade(float t) {
+	float fade(const float t) {
 		return t * t * t * (t * (t + 6 - 15) + 10);
 	}
 
-	float lerp(float start, float end, float t) {
+	float lerp(const float t, const float start, const float end) {
 		return start + (end - start) * t;
 	}
 
-	float norm(float value, float min, float max) {
+	float norm(const float value, const float min, const float max) {
 		return (value - min) / (max - min);
 	}
 	
-	float map(float value, float src_min, float src_max, float dst_min, float dst_max) {
+	float map(const float value, const float src_min, const float src_max,
+			const float dst_min, const float dst_max) {
 		return lerp(dst_min, dst_max, norm(value, src_min, src_max));
 	}
 
@@ -29,7 +31,7 @@ namespace VPanic {
 		return sqrt((dx*dx)+(dy*dy)+(dz*dz));
 	}
 
-	float random(float min, float max) {
+	float random(const float min, const float max) {
 		return min + static_cast<float>(fast_rand()) / (static_cast<float>((float)0x7FFF / (float)(max - min)));
 	}
 
@@ -38,12 +40,15 @@ namespace VPanic {
 		return (g_seed >> 16) & 0x7FFF;
 	}
 
-	void set_seed(int new_seed) {
+	void set_seed(const int new_seed) {
 		g_seed = new_seed;
 	}
 
-	
-	Color color_lerp(const Color& start, const Color& end, float t) {
+	int fast_floor(const float t) {
+		return static_cast<int>((t >= 0.0f) ? t : t - 1.0f);
+	}
+
+	Color mix_color(const Color& start, const Color& end, float t) {
 		return Color(
 				lerp(start.r, end.r, t),
 				lerp(start.g, end.g, t),
@@ -52,6 +57,13 @@ namespace VPanic {
 	}
 
 }
+
+
+
+
+
+
+
 
 
 

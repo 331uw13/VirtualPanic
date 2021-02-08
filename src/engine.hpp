@@ -20,17 +20,14 @@ namespace VPanic {
 
 		Engine();
 		~Engine();
-		
+	
+	// notes:	
 		/*struct MouseData {
-			float x, y;
+			const float x, y;
 			uint8_t rel_x, rel_y;
+		 - user can choose if engine should handle the camera movement or not
 		};*/
-
-		// TODO: 
 		// - report mouse move
-		// - user can choose if engine should handle the camera movement or not
-		// - mouse can be shown/hidden
-		// - global settings that live in stack
 
 		//void set_mouse_move_callback(void(*t_callback)(MouseData));
 		void set_mouse_wheel_callback(void(*t_callback)(uint8_t));

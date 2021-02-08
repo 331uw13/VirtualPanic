@@ -12,7 +12,7 @@ namespace VPanic {
 		};
 		
 		glm::vec2 get_pos();
-		bool button_down(int t_button);
+		bool button_down(const int t_button);
 
 	}
 }

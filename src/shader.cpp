@@ -160,12 +160,9 @@ namespace VPanic {
 	}
 
 
-	// newlines here are just because its easier to debug
-		
 	void Shader::_add_functions(const uint32_t t_glsl_version) {
 		m_fragment_source = 
-			"#version " + std::to_string(t_glsl_version) +
-			" core\n"
+			"#version " + std::to_string(t_glsl_version) + " core\n"
 			// TODO: rename stuff
 			"in vec3 i_fg_pos;\n"
 			"in vec3 i_normal;\n"
@@ -178,15 +175,35 @@ namespace VPanic {
 				" vec4 color;"
 			"};\n"
 			"uniform VPanicShape shape;"
-			"uniform VPanicCamera camera;"
-			"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float ambient, float specular, float shine) {\n"
-				" vec3 am = ambient*vec3(color)*brightness;\n"
-				" vec3 norm = normalize(i_normal);\n"
-				" vec3 ld = normalize(pos-i_fg_pos);\n"
-				" vec3 rd = reflect(-ld, norm);\n"
-				" vec3 diff = (max(dot(norm, ld), 0.0)*brightness)*vec3(color);\n"
-				" float spec = pow(max(dot(normalize(camera.pos-i_fg_pos), rd), 0.0), shine);\n"
-				" return (am+diff+spec)*vec3(shape.color);\n"
+			"uniform VPanicCamera camera;"	
+			"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float radius) {\n"
+				" vec3 ambient = 0.275*vec3(color);"
+				" vec3 norm = normalize(i_normal);"
+				" vec3 light_dir = normalize(pos - i_fg_pos);"
+				" float diff = max(dot(norm, light_dir), 0.0);"
+				" vec3 diffuse = diff*vec3(color);"
+				" vec3 view_dir = normalize(camera.pos - i_fg_pos);"
+				" vec3 reflect_dir = reflect(-light_dir, norm);"
+				" float spec = pow(max(dot(view_dir, reflect_dir), 1.0), 72);"
+				" vec3 specular = 0.01*spec*vec3(shape.color);"
+				" float d = length(pos - i_fg_pos);"
+				" float att = brightness*smoothstep(radius+d, 0, d+0.5);"
+				" ambient *= att;"
+				" diffuse *= att;"
+				" specular *= att;"
+				" return (ambient+diffuse+specular)*vec3(shape.color);\n"
+			"}"
+			"vec3 vpanic_directional_light(vec3 direction, vec4 color, float ambient_value, float diffuse_value, float specular_value) {\n"
+				" vec3 ambient = ambient_value*vec3(color);"
+				" vec3 norm = normalize(i_normal);"
+				" vec3 light_dir = normalize(-direction);"
+				" float diff = max(dot(norm, light_dir), 0.0);"
+				" vec3 diffuse = diffuse_value*diff*vec3(color);"
+				" vec3 view_dir = normalize(camera.pos - i_fg_pos);"
+				" vec3 reflect_dir = reflect(-light_dir, norm);"
+				" float spec = pow(max(dot(view_dir, reflect_dir), 1.0), 72);"
+				" vec3 specular = specular_value*spec*vec3(shape.color);"
+				" return (ambient+diffuse+specular)*vec3(shape.color);\n"
 			"}"
 			"float vpanic_fog(vec3 pos, float max, float min) {\n"
 				" float dist = distance(pos, i_fg_pos);"
@@ -197,15 +214,13 @@ namespace VPanic {
 	}
 	
 	void Shader::_safe_check_vertex_source(const uint32_t t_glsl_version) {
-		// make sure that vertex source is not empty and it starts with '#'
-		// else update it
+		// make sure that vertex source is not empty and it starts with '#' else update it
 		if(m_vertex_source.size() <= 1 && m_vertex_source.find(0x23) != 0) {	
 			m_vertex_source = 
-				"#version " + std::to_string(t_glsl_version) +
-				" core\n"
-				"in vec3 pos;\n"
-				"in vec3 normal;\n"
-				"in vec3 off;\n"
+				"#version " + std::to_string(t_glsl_version) + " core\n"
+				"layout(location = 0) in vec3 pos;\n"
+				"layout(location = 1) in vec3 normal;\n"
+				"layout(location = 2) in vec3 off;\n"
 				"out vec3 i_fg_pos;\n"
 				"out vec3 i_normal;\n"
 				"uniform mat4 proj;\n"

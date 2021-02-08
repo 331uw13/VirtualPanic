@@ -47,10 +47,6 @@ namespace VPanic {
 			glGenBuffers(1, &m_vbo);
 	   	}
 
-		//glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), NULL, GL_STATIC_DRAW);
-		//glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
 		glBindVertexArray(m_vao);
 
 		if(!t_data.empty()) {
@@ -96,7 +92,7 @@ namespace VPanic {
 		glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		size /= VEC3_SIZE;
-		return size; // returns the size not the amount of items
+		return size;
 	}
 	
 	void ShapeArray::draw(const Shader& t_shader) const {
