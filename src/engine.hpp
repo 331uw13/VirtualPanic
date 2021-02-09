@@ -51,6 +51,8 @@ namespace VPanic {
 		void camera_active(const bool b);
 		void vsync(const bool b);
 		void fullscreen(const bool b);
+		void render_back(const bool b);
+		void winding_order(const int t_order);
 
 		Color background_color   { Color(0, 0, 0) };
 		// TODO: Color cursor_color       { Color(240, 240, 240, 188) };

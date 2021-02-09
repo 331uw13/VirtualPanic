@@ -5,6 +5,8 @@
 #include "shape.hpp"
 #include "messages.hpp"
 
+#define VEC3_SIZE  0xC
+
 namespace VPanic {
 
 	bool Shape::is_loaded() const {
@@ -21,17 +23,14 @@ namespace VPanic {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*t_data.size(), &t_data[0], GL_STATIC_DRAW);
 
 		// points
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3)*2, 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, 0);
 		glEnableVertexAttribArray(0);
 	
 		// normals
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3)*2, (void*)(sizeof(glm::vec3)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, (void*)(offsetof(Vertex, normal)));
 		glEnableVertexAttribArray(1);
-		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, (void*)(sizeof(float)*3));
-		//glEnableVertexAttribArray(1);
 
 		m_draw_data_size = t_data.size();
-
 		m_loaded = true;
 	}
 

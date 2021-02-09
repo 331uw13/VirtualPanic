@@ -17,16 +17,25 @@ namespace VPanic {
 	// not default
 	static constexpr int VSYNC { 1 << 2 };
 
+	// dont call 'render_back(false)' on init
+	// not default
+	static constexpr int NO_FACE_CULLING { 1 << 3 };
+
+
+	// --- 'Engine::winding_order()' ---
+	
+	static constexpr int CLOCKWISE { 1 };
+	static constexpr int COUNTER_CLOCKWISE { 2 };
+
 
 	// --- 'Shader::load()' ---
 
 	// this will not add any util functions for shaders.
 	// not default
-	static constexpr int NO_SHADER_UTIL { 1 << 3 };
+	static constexpr int NO_SHADER_UTIL { 1 << 0 };
 
 	// this will give you support for geometry shaders.
 	// TODO: static constexpr int SUPPORT_GEOMETRY_SHADER { 1 << 1 };
-
 
 
 	// ...

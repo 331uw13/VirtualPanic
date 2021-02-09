@@ -47,7 +47,7 @@ namespace VPanic {
 	
 		// this adds things to the shader code
 		// vpanic_light(), vpanic_fog()... they just help you calculate stuff if you are feeling lazy
-		// (this is done by default. Use NO_SHADER_UTIL when loading the shader if you dont want this)
+		// (this is done by default so use NO_SHADER_UTIL when loading the shader if you dont want this)
 		void _add_functions(const uint32_t t_glsl_version);
 
 	};

@@ -85,11 +85,12 @@ namespace VPanic {
 			return;
 		}
 
-		
+		if(!(t_settings & NO_FACE_CULLING)) {
+			render_back(false);
+		}
+
+		winding_order(CLOCKWISE);
 		glEnable(GL_MULTISAMPLE);
-		//glEnable(GL_CULL_FACE);
-		//glCullFace(GL_BACK);
-		//glFrontFace(GL_CW);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -306,12 +307,21 @@ namespace VPanic {
 
 	void Engine::vsync(const bool b) {
 		if(SDL_GL_SetSwapInterval(b)) {
-			message(MType::BAD, "Error with VSync! (%s)", SDL_GetError());
+			message(MType::BAD, "Error with VSync!");
 		}
 	}
 
 	void Engine::fullscreen(const bool b) {
 		SDL_SetWindowFullscreen(m_window, b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+	}
+
+	void Engine::render_back(const bool b) {
+		b ? glDisable(GL_CULL_FACE) : glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+	}
+	
+	void Engine::winding_order(const int t_order) {
+		glFrontFace((t_order <= 1) ? GL_CW : GL_CCW);
 	}
 
 }

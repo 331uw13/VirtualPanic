@@ -6,9 +6,10 @@
 
 #define VEC3_SIZE  0xC
 
+
 namespace VPanic {
 	
-	ShapeArray::ShapeArray(const std::vector<float>& t_data) {
+	ShapeArray::ShapeArray(const std::vector<Vertex>& t_data) {
 		load(t_data);	
 	}
 	
@@ -40,7 +41,7 @@ namespace VPanic {
 		m_reserved = t_size;
 	}
 	
-	void ShapeArray::load(const std::vector<float>& t_data) {
+	void ShapeArray::load(const std::vector<Vertex>& t_data) {
 		if(!m_loaded) { 
 			glGenBuffers(1, &m_ibuffer);
 			glGenVertexArrays(1, &m_vao);
@@ -51,21 +52,24 @@ namespace VPanic {
 
 		if(!t_data.empty()) {
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-			glBufferData(GL_ARRAY_BUFFER, t_data.size() * sizeof(float), &t_data[0], GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * t_data.size(), &t_data[0], GL_STATIC_DRAW);
 		}
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, 0);
+		// points
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, 0);
 		glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, (void*)(sizeof(float)*3));
+		// normals
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, (void*)(offsetof(Vertex, normal)));
 		glEnableVertexAttribArray(1);
 
+		// position
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE, (void*)0);
 		glEnableVertexAttribArray(2);
 		glVertexAttribDivisor(2, 1);
 
-		m_draw_data_size = t_data.size()/2;
+		m_draw_data_size = t_data.size();
 		m_loaded = true;
 	}
 	

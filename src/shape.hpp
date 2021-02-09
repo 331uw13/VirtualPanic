@@ -4,6 +4,7 @@
 
 #include "color.hpp"
 #include "shader.hpp"
+#include "vertex.hpp"
 
 namespace VPanic {
 
@@ -14,20 +15,6 @@ namespace VPanic {
 	   	check out 'ShapeArray' for drawing many shapes
 
 	*/
-
-	// TODO: move this struct
-	struct Vertex {
-		glm::vec3 point;
-		glm::vec3 normal;
-
-		Vertex(float x, float y, float z,
-				float nx, float ny, float nz) {
-			point = glm::vec3(x, y, z);
-			normal = glm::vec3(nx, ny, nz);
-		}
-
-		Vertex() {}
-	};
 
 	class Shape {
 	public:

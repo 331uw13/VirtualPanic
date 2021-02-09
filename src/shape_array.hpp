@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "shader.hpp"
+#include "vertex.hpp"
 
 namespace VPanic {
 
@@ -15,13 +16,13 @@ namespace VPanic {
 		uint32_t size() const;
 		uint32_t count() const;
 
-		void load(const std::vector<float>& t_data);
+		void load(const std::vector<Vertex>& t_data);
 		void unload();
 		bool is_loaded() const;
 
 		void draw(const Shader& t_shader) const;
 		
-		ShapeArray(const std::vector<float>& t_data);
+		ShapeArray(const std::vector<Vertex>& t_data);
 		ShapeArray() {}
 		~ShapeArray();
 
