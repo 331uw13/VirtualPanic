@@ -22,8 +22,14 @@ namespace VPanic {
 
 		glm::mat4 view        { glm::mat4(1.0f) };
 		glm::mat4 projection  { glm::mat4(1.0f) };
-	
+
 		void update(const Shader& t_shader); 
+	
+		void look_at_point(const glm::vec3& t_point);
+		void look_at_cursor();
+		glm::vec3 point_from_front(const float t_distance);
+		
+
 	};
 
 }

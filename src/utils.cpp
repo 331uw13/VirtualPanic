@@ -56,14 +56,11 @@ namespace VPanic {
 				lerp(start.a, end.a, t));
 	}
 
+
+
+
+
+
 }
-
-
-
-
-
-
-
-
 
 

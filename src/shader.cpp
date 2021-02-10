@@ -35,8 +35,12 @@ namespace VPanic {
 		_compile_shaders();
 		
 		if(m_loaded) {
-			message(MType::OK, "Loaded shader %3\"%s\" %5[%ims]", t_shader_filename, timer.elapsed());
+			message(MType::OK, "Loaded shader %3\"%s\" %5[%ims]", t_shader_filename, timer.elapsed_ms());
 		}
+
+		// not needed anymore
+		m_vertex_source.clear();
+		m_fragment_source.clear();
 	}
 
 	void Shader::set_color(const char* t_name, const Color& t_color) const {
@@ -159,11 +163,12 @@ namespace VPanic {
 		return true;
 	}
 
-
 	void Shader::_add_functions(const uint32_t t_glsl_version) {
 		m_fragment_source = 
 			"#version " + std::to_string(t_glsl_version) + " core\n"
+			
 			// TODO: rename stuff
+			
 			"in vec3 i_fg_pos;\n"
 			"in vec3 i_normal;\n"
 			"struct VPanicCamera {\n"
@@ -177,6 +182,7 @@ namespace VPanic {
 			"uniform VPanicShape shape;"
 			"uniform VPanicCamera camera;"	
 			"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float radius) {\n"
+				" if(i_normal == vec3(0.0)) { return vec3(shape.color); }"
 				" vec3 ambient = 0.275*vec3(color);"
 				" vec3 norm = normalize(i_normal);"
 				" vec3 light_dir = normalize(pos - i_fg_pos);"
@@ -194,6 +200,7 @@ namespace VPanic {
 				" return (ambient+diffuse+specular)*vec3(shape.color);\n"
 			"}"
 			"vec3 vpanic_directional_light(vec3 direction, vec4 color, float ambient_value, float diffuse_value, float specular_value) {\n"
+				" if(i_normal == vec3(0.0)) { return vec3(shape.color); }"
 				" vec3 ambient = ambient_value*vec3(color);"
 				" vec3 norm = normalize(i_normal);"
 				" vec3 light_dir = normalize(-direction);"
@@ -218,18 +225,22 @@ namespace VPanic {
 		if(m_vertex_source.size() <= 1 && m_vertex_source.find(0x23) != 0) {	
 			m_vertex_source = 
 				"#version " + std::to_string(t_glsl_version) + " core\n"
+				
+				// TODO: rename stuff
+				
 				"layout(location = 0) in vec3 pos;\n"
 				"layout(location = 1) in vec3 normal;\n"
-				"layout(location = 2) in vec3 off;\n"
+				"layout(location = 2) in mat4 offset;\n"
 				"out vec3 i_fg_pos;\n"
 				"out vec3 i_normal;\n"
 				"uniform mat4 proj;\n"
 				"uniform mat4 view;\n"
 				"uniform mat4 model;\n"
+				"uniform bool use_offset;\n"
 				"void main() {\n"
 					" i_normal = normal;\n"
-					" i_fg_pos = vec3(model*vec4(pos+off, 1.0));\n"
-					" gl_Position = proj*view*model*vec4(pos+off, 1.0);\n"
+					" i_fg_pos = vec3(((use_offset) ? offset : model)*vec4(pos, 1.0));\n"
+					" gl_Position = proj*view*((use_offset) ? offset : model)*vec4(pos, 1.0);\n"
 				"}";
 		}
 	}

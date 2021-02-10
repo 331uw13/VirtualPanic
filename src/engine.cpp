@@ -124,7 +124,7 @@ namespace VPanic {
 		
 		glViewport(0, 0, m_width, m_height);
 
-		message(MType::OK, "%2Engine is ready! %5[%ims]", timer.elapsed());
+		message(MType::OK, "%2Engine is ready! %5[%ims]", timer.elapsed_ms());
 		m_init_ok = true;
 	
 	}

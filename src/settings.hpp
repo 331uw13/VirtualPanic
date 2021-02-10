@@ -28,6 +28,13 @@ namespace VPanic {
 	static constexpr int COUNTER_CLOCKWISE { 2 };
 
 
+
+	// --- 'Shape::load()' ---
+
+	// dont pass normals for shaders
+	static constexpr int NO_COLORED_LIGHT { 1 };
+
+
 	// --- 'Shader::load()' ---
 
 	// this will not add any util functions for shaders.
