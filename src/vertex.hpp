@@ -5,6 +5,8 @@ namespace VPanic {
 
 	struct Vertex {
 
+		// TODO: arbitrary attributes?
+
 		glm::vec3 point;
 		glm::vec3 normal;
 
@@ -17,6 +19,8 @@ namespace VPanic {
 
 		Vertex(const glm::vec3& t_point)
 			: point(glm::vec3(t_point.x, t_point.y, t_point.z)), normal(glm::vec3(0.0f, 0.0f, 0.0f)) {}
+	
+	
 	};
 
 }

@@ -44,23 +44,16 @@ namespace VPanic {
 		g_seed = new_seed;
 	}
 
-	int fast_floor(const float t) {
-		return static_cast<int>((t >= 0.0f) ? t : t - 1.0f);
-	}
-
 	Color mix_color(const Color& start, const Color& end, float t) {
-		return Color(
-				lerp(start.r, end.r, t),
-				lerp(start.g, end.g, t),
-				lerp(start.b, end.b, t),
-				lerp(start.a, end.a, t));
+		return Color(lerp(start.r, end.r, t), lerp(start.g, end.g, t), 
+				lerp(start.b, end.b, t), lerp(start.a, end.a, t));
 	}
 
-
-
+	Color invert_color(const Color& color) {
+		return Color(255-color.r, 255-color.g, 255-color.b);
+	}
 
 
 
 }
-
 

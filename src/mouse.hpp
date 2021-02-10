@@ -3,6 +3,13 @@
 
 namespace VPanic {
 
+	struct MouseData {
+		const float x;
+		const float y;
+		const float delta_x;
+		const float delta_y;
+	};
+
 	namespace Mouse {
 		
 		enum {

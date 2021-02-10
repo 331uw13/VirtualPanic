@@ -4,11 +4,10 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
-
 #include "mouse.hpp"
 #include "color.hpp"
 #include "utils.hpp"
-#include "camera.hpp"
+//#include "camera.hpp"
 #include "keyboard.hpp"
 #include "timer.hpp"
 #include "settings.hpp"
@@ -21,21 +20,12 @@ namespace VPanic {
 		Engine();
 		~Engine();
 	
-	// notes:	
-		/*struct MouseData {
-			const float x, y;
-			uint8_t rel_x, rel_y;
-		 - user can choose if engine should handle the camera movement or not
-		};*/
-		// - report mouse move
-
-		//void set_mouse_move_callback(void(*t_callback)(MouseData));
-		void set_mouse_wheel_callback(void(*t_callback)(uint8_t));
-		void set_update_callback(void(*t_callback)());
-		void set_keydown_callback(void(*t_callback)(uint8_t));
+		// set them 'nullptr' if you want to disable them
+		void mouse_move_callback(void(*t_callback)(const MouseData&));  // when mouse is moving
+		void mouse_wheel_callback(void(*t_callback)(uint8_t));    // when mouse wheel is turned up or down
+		void keydown_callback(void(*t_callback)(uint8_t));        // when any keyboard key is down but not good for movement
+		void update_callback(void(*t_callback)());                // every frame
 		
-		void set_camera(Camera* t_cam);
-
 		void init(const char* t_title, const glm::vec2& t_size, const int t_settings = 0);
 		void start();
 
@@ -48,11 +38,11 @@ namespace VPanic {
 		glm::vec2 get_window_size() const;
 		float get_aratio() const;
 
-		void camera_active(const bool b);
+		void lock_mouse(const bool b);
 		void vsync(const bool b);
 		void fullscreen(const bool b);
 		void render_back(const bool b);
-		void winding_order(const int t_order);
+		void winding_order(const int t_order); // VPanic::CLOCKWISE, VPanic::COUNTER_CLOCKWISE
 
 		Color background_color   { Color(0, 0, 0) };
 		// TODO: Color cursor_color       { Color(240, 240, 240, 188) };
@@ -70,10 +60,11 @@ namespace VPanic {
 		SDL_GLContext m_context  { NULL };
 
 		void(*m_update_callback)()              { nullptr };
-		void(*m_mouse_wheel_callback)(uint8_t)  { nullptr };
 		void(*m_keydown_callback)(uint8_t)      { nullptr };
-		
-		Camera* m_cam { nullptr };
+		void(*m_mouse_wheel_callback)(uint8_t)  { nullptr };
+		void(*m_mouse_move_callback)(const MouseData&) { nullptr };
+
+		//Camera* m_cam { nullptr };
 
 		bool m_using_camera  { false };
 		bool m_using_imgui   { false };

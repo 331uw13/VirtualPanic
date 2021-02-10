@@ -1,6 +1,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "camera.hpp"
+#include "utils.hpp"
 
 namespace VPanic {
 
@@ -25,10 +26,44 @@ namespace VPanic {
 		t_shader.set_mat4("view", view);
 	}
 		
+	void Camera::move(MoveDir t_direction, const float t_speed) {
+		switch(t_direction) {
+			
+			case MoveDir::UP:
+				pos.y += t_speed;
+				break;
+			
+			case MoveDir::DOWN:
+				pos.y -= t_speed;
+				break;
+			
+			case MoveDir::LEFT:
+				pos -= glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f))) * t_speed;
+				break;
+			
+			case MoveDir::RIGHT:
+				pos += glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f))) * t_speed;
+				break;
+			
+			case MoveDir::FORWARD:
+				pos += front * t_speed;
+				break;
+			
+			case MoveDir::BACK:
+				pos -= front * t_speed;
+				break;
+
+			default: break;
+		}
+	}
+		
 	void Camera::look_at_point(const glm::vec3& t_point) {
 	}
 	
-	void Camera::look_at_cursor() {
+	void Camera::look_at_mouse(const MouseData& t_data) {
+		yaw += (t_data.delta_x)*sensetivity;
+		pitch += (-t_data.delta_y)*sensetivity;
+		clamp<float>(pitch, -89.9f, 89.9f);
 	}
 	
 	glm::vec3 Camera::point_from_front(const float t_distance) {

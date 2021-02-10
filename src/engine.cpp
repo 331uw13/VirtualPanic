@@ -12,23 +12,28 @@ namespace VPanic {
 	Engine::Engine() {}
 	Engine::~Engine() { quit(); }
 
-
-	void Engine::set_update_callback(void(*t_callback)()) {
-		m_update_callback = t_callback;
+	void Engine::mouse_move_callback(void(*t_callback)(const MouseData&)) {
+		m_mouse_move_callback = t_callback;
 	}
-	
-	void Engine::set_mouse_wheel_callback(void(*t_callback)(uint8_t)) {
+
+	void Engine::mouse_wheel_callback(void(*t_callback)(uint8_t)) {
 		m_mouse_wheel_callback = t_callback;
 	}
-	
-	void Engine::set_keydown_callback(void(*t_callback)(uint8_t)) {
+
+	void Engine::keydown_callback(void(*t_callback)(uint8_t)) {
 		m_keydown_callback = t_callback;
 	}
-	
+
+	void Engine::update_callback(void(*t_callback)()) {
+		m_update_callback = t_callback;
+	}
+		
+	/*
 	void Engine::set_camera(Camera* t_cam) {
 		m_cam = t_cam;
 	}
-	
+	*/
+
 	void Engine::init(const char* t_title, const glm::vec2& t_size, const int t_settings) {
 		if(m_init_ok) { 
 			message(MType::WARNING, "Already initialized!");
@@ -101,9 +106,6 @@ namespace VPanic {
 		glClearColor(background_color.r / 255.0f, background_color.g / 255.0f, background_color.b / 255.0f, 1.0f);
 		SDL_GL_SwapWindow(m_window);
 
-		camera_active(true);
-	
-
 		if(t_settings & INIT_IMGUI) {
 			message(MType::INFO, "Using %6ImGui");
 
@@ -140,7 +142,7 @@ namespace VPanic {
 
 		message(MType::INFO, "%5Quitting...");
 
-		camera_active(false);
+		//camera_active(false);
 
 		if(m_using_imgui) {
 			// ...
@@ -159,18 +161,20 @@ namespace VPanic {
 
 		SDL_Quit();	
 		message(MType::OK, "Destroyed %6SDL2");
-
 		message(MType::INFO, "Reset settings");	
-		m_update_callback = nullptr;
-		m_keydown_callback = nullptr;
-		m_mouse_wheel_callback = nullptr;
-	   	m_window = nullptr;
-		m_context = NULL;
-		m_cam = nullptr;
+		
+		m_update_callback        = nullptr;
+		m_keydown_callback       = nullptr;
+		m_mouse_wheel_callback   = nullptr;
+		m_mouse_move_callback    = nullptr;
+		//m_cam      = nullptr;
+	   	m_window   = nullptr;
+		m_context  = NULL;
 
-		m_using_imgui = false;
-		m_using_camera = false;
-		m_init_ok = false;
+		m_using_imgui   = false;
+		m_using_camera  = false;
+		m_init_ok       = false;
+		
 		m_quit = true;
 		
 		message(MType::INFO, "Engine cleanup done!");
@@ -184,9 +188,11 @@ namespace VPanic {
 		
 		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
 		glm::vec2 p_mpos(m_width/2, m_height/2);
+		/*
 		if(m_cam != nullptr) {
 			m_cam->yaw = -90.f;
 		}
+		*/
 
 		Timer timer;
 		SDL_Event event;
@@ -204,20 +210,22 @@ namespace VPanic {
 			if(m_using_imgui) {
 				// ....
 			}
-
+			/*
 			if(m_cam != nullptr && m_using_camera) {
 				
 				if(Keyboard::keydown('w')) {
 					m_cam->pos += m_cam->front * m_cam->move_speed;
 				}
 				if(Keyboard::keydown('a')) {
-					m_cam->pos -= glm::normalize(glm::cross(m_cam->front, glm::vec3(0.0f, 1.0f, 0.0f))) * m_cam->move_speed;
+					m_cam->pos -= glm::normalize(glm::cross(m_cam->front,
+							   	glm::vec3(0.0f, 1.0f, 0.0f))) * m_cam->move_speed;
 				}
 				if(Keyboard::keydown('s')) {
 					m_cam->pos -= m_cam->front * m_cam->move_speed;
 				}
 				if(Keyboard::keydown('d')) {
-					m_cam->pos += glm::normalize(glm::cross(m_cam->front, glm::vec3(0.0f, 1.0f, 0.0f))) * m_cam->move_speed;
+					m_cam->pos += glm::normalize(glm::cross(m_cam->front,
+							   	glm::vec3(0.0f, 1.0f, 0.0f))) * m_cam->move_speed;
 				}
 				if(Keyboard::keydown(Keyboard::Mod::SPACE)) {
 					m_cam->pos.y += m_cam->move_speed;
@@ -226,6 +234,7 @@ namespace VPanic {
 					m_cam->pos.y -= m_cam->move_speed;
 				}
 			}
+			*/
 			
 			if(m_update_callback != nullptr) {
 				m_update_callback();
@@ -254,11 +263,10 @@ namespace VPanic {
 						break;
 
 					case SDL_MOUSEMOTION:
-						if(m_cam != nullptr && m_using_camera) {
-							m_cam->yaw += static_cast<float>(event.motion.xrel) * m_cam->sensetivity;
-							m_cam->pitch += static_cast<float>(-event.motion.yrel) * m_cam->sensetivity;
-							clamp<float>(m_cam->pitch, -89.0, 89.0);
-							SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
+						if(m_mouse_move_callback != nullptr) {
+							m_mouse_move_callback(MouseData{
+										static_cast<float>(event.motion.x), static_cast<float>(event.motion.y),
+										static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel)});
 						}
 						break;
 
@@ -297,12 +305,11 @@ namespace VPanic {
 		return glm::vec2(m_width, m_height);
 	}
 
-	void Engine::camera_active(const bool b) {
+	void Engine::lock_mouse(const bool b) {
 		SDL_SetWindowGrab(m_window, b ? SDL_TRUE : SDL_FALSE);
 		SDL_SetRelativeMouseMode(b ? SDL_TRUE : SDL_FALSE);
-		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
-		m_using_camera = b;
 		SDL_ShowCursor(!b);
+		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
 	}
 
 	void Engine::vsync(const bool b) {

@@ -33,7 +33,7 @@ namespace VPanic {
 			glEnableVertexAttribArray(1);
 		}
 		
-		const uint32_t data_size = t_data.size();
+		const size_t data_size = t_data.size();
 
 		if(data_size >= 3) {
 			m_type = GL_TRIANGLES;
@@ -97,6 +97,10 @@ namespace VPanic {
 	
 	void Shape::line_thickness(const float t_value) {
 		m_line_thickness = t_value;
+	}
+	
+	uint8_t Shape::get_type() const {
+		return m_type;
 	}
 
 }

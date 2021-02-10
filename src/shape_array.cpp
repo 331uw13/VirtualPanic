@@ -10,8 +10,8 @@
 
 namespace VPanic {
 	
-	ShapeArray::ShapeArray(const std::vector<Vertex>& t_data) {
-		load(t_data);	
+	ShapeArray::ShapeArray(const std::vector<Vertex>& t_data, const int t_settings) {
+		load(t_data, t_settings);
 	}
 	
 	ShapeArray::~ShapeArray() {
@@ -19,7 +19,7 @@ namespace VPanic {
 	}
 	
 	void ShapeArray::set(const uint32_t t_index, const glm::mat4& t_matrix) {
-		//if(t_index >= m_positions.size()) { return; }
+		//if(t_index >= m_reserved) { return; }
 		if(!m_loaded) { load({ }); }
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
 		glBufferSubData(GL_ARRAY_BUFFER, t_index*MATRIX_SIZE, MATRIX_SIZE, &t_matrix);		
@@ -41,7 +41,7 @@ namespace VPanic {
 		m_reserved = t_size;
 	}
 	
-	void ShapeArray::load(const std::vector<Vertex>& t_data) {
+	void ShapeArray::load(const std::vector<Vertex>& t_data, const int t_settings) {
 		if(!m_loaded) { 
 			glGenBuffers(1, &m_ibuffer);
 			glGenVertexArrays(1, &m_vao);
@@ -51,8 +51,19 @@ namespace VPanic {
 		glBindVertexArray(m_vao);
 
 		if(!t_data.empty()) {
+			const size_t data_size = t_data.size();
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*t_data.size(), &t_data[0], GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*data_size, &t_data[0], GL_STATIC_DRAW);
+			
+			if(data_size >= 3) {
+				m_type = GL_TRIANGLES;
+			}
+			else if(data_size == 2) {
+				m_type = GL_LINES;
+			}
+			else {
+				m_type = 0;
+			}
 		}
 		
 		// points
@@ -60,8 +71,10 @@ namespace VPanic {
 		glEnableVertexAttribArray(0);
 
 		// normals
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, (void*)(offsetof(Vertex, normal)));
-		glEnableVertexAttribArray(1);
+		if(t_settings != NO_COLORED_LIGHT) {
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, (void*)(offsetof(Vertex, normal)));
+			glEnableVertexAttribArray(1);
+		}
 	
 		// matrices  (4x4) 
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
@@ -87,7 +100,6 @@ namespace VPanic {
 		m_ibuffer = 0;
 		m_draw_data_size = 0;
 		m_loaded = false;
-		//m_positions.clear();
 	}
 	
 	bool ShapeArray::is_loaded() const {
@@ -104,13 +116,20 @@ namespace VPanic {
 	}
 	
 	void ShapeArray::draw(const Shader& t_shader) const {
+		if(!m_loaded) { return; }
+		if(m_type == 0) { return; }
+		
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
 		t_shader.set_mat4("model", model);
 		t_shader.set_color("shape.color", color);
 		t_shader.set_int("use_offset", 1);
 
 		glBindVertexArray(m_vao);
-		glDrawArraysInstanced(GL_TRIANGLES, 0, m_draw_data_size, m_reserved);
+		glDrawArraysInstanced(m_type, 0, m_draw_data_size, m_reserved);
+	}
+	
+	uint8_t ShapeArray::get_type() const {
+		return m_type;
 	}
 
 }

@@ -18,14 +18,13 @@ namespace VPanic {
 	float random (const float min, const float max);
 	void set_seed(const int new_seed);
 	int fast_rand();
-	int fast_floor(const float t);
 	
 	template<typename T> void clamp(T& value, const T& min, const T& max) {
 		value = ((value > max) ? max : (value < min) ? min : value);
 	}
 
 	Color mix_color(const Color& start, const Color& end, float t);
-	//Color invert_color(const Color& color);
+	Color invert_color(const Color& color);
 
 }
 
