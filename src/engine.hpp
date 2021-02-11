@@ -4,13 +4,15 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
+#include "ImGui/imgui.h"
+
 #include "mouse.hpp"
 #include "color.hpp"
 #include "utils.hpp"
-//#include "camera.hpp"
 #include "keyboard.hpp"
 #include "timer.hpp"
 #include "settings.hpp"
+
 
 namespace VPanic {
 
@@ -52,7 +54,7 @@ namespace VPanic {
 		bool m_init_ok    { false };
 		bool m_quit       { false };
 		bool m_loop       { false };
-	
+
 		int m_width   { 0 };
 		int m_height  { 0 };
 
@@ -64,9 +66,7 @@ namespace VPanic {
 		void(*m_mouse_wheel_callback)(uint8_t)  { nullptr };
 		void(*m_mouse_move_callback)(const MouseData&) { nullptr };
 
-		//Camera* m_cam { nullptr };
-
-		bool m_using_camera  { false };
+		bool m_lock_mouse    { false };
 		bool m_using_imgui   { false };
 
 	};

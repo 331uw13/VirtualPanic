@@ -31,8 +31,8 @@ namespace VPanic {
 		float sensetivity   { 0.145f };
 		bool freecam  { true };
 
-		glm::mat4 view        { glm::mat4(1.0f) }; // private?
-		glm::mat4 projection  { glm::mat4(1.0f) }; // private?
+		glm::mat4 view        { glm::mat4(1.0f) };
+		glm::mat4 projection  { glm::mat4(1.0f) };
 
 		void update(const Shader& t_shader); 
 

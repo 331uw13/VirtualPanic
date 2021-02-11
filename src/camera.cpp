@@ -38,11 +38,11 @@ namespace VPanic {
 				break;
 			
 			case MoveDir::LEFT:
-				pos -= glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f))) * t_speed;
+				pos -= glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)) * t_speed;
 				break;
 			
 			case MoveDir::RIGHT:
-				pos += glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f))) * t_speed;
+				pos += glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)) * t_speed;
 				break;
 			
 			case MoveDir::FORWARD:

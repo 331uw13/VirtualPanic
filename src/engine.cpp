@@ -1,7 +1,10 @@
-//#include <GL/glew.h>
 #include <GL/gl3w.h>
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
+
+
+#include "ImGui/imgui_impl_opengl3.h"
+#include "ImGui/imgui_impl_sdl.h"
 
 #include "engine.hpp"
 #include "messages.hpp"
@@ -28,12 +31,6 @@ namespace VPanic {
 		m_update_callback = t_callback;
 	}
 		
-	/*
-	void Engine::set_camera(Camera* t_cam) {
-		m_cam = t_cam;
-	}
-	*/
-
 	void Engine::init(const char* t_title, const glm::vec2& t_size, const int t_settings) {
 		if(m_init_ok) { 
 			message(MType::WARNING, "Already initialized!");
@@ -55,9 +52,10 @@ namespace VPanic {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 		message(MType::DEBUG, "Set attributes");
 
-		m_window = SDL_CreateWindow(t_title, 0, 0, t_size.x, t_size.y, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);	
-		message(MType::DEBUG, "Check window");
+		m_window = SDL_CreateWindow(t_title, 0, 0, t_size.x, t_size.y,
+			   	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_ALLOW_HIGHDPI*/);	
 		
+		message(MType::DEBUG, "Check window");
 		if(m_window == nullptr) {
 			message(MType::BAD, "Failed to create window! (%s)", SDL_GetError());
 			quit();
@@ -65,13 +63,11 @@ namespace VPanic {
 		}
 		
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
-	
 		message(MType::OK, "Created new window (%4%ix%i%0)", m_width, m_height);
-		
-	
 		
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		m_context = SDL_GL_CreateContext(m_window);
+		SDL_GL_MakeCurrent(m_window, m_context);
 	
 		if(m_context != NULL) {
 			message(MType::OK, "Created context");
@@ -84,11 +80,11 @@ namespace VPanic {
 		}
 
 		message(MType::OK, "Initialized %6gl3w");	
-		if(!gl3wIsSupported(3, 3)) {
-			message(MType::BAD, "OpenGL version 3.3 is not supported!!!");
+		/*if(!gl3wIsSupported(3, 3)) {
+			message(MType::BAD, "Current OpenGL version is not supported!!!");
 			quit();
 			return;
-		}
+		}*/
 
 		if(!(t_settings & NO_FACE_CULLING)) {
 			render_back(false);
@@ -103,15 +99,21 @@ namespace VPanic {
 		message(MType::INFO, "%s", glGetString(GL_VERSION));
 		message(MType::INFO, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-		glClearColor(background_color.r / 255.0f, background_color.g / 255.0f, background_color.b / 255.0f, 1.0f);
+		glClearColor(background_color.r/255.0f, background_color.g/255.0f, background_color.b/255.0f, 1.0f);
 		SDL_GL_SwapWindow(m_window);
 
 		if(t_settings & INIT_IMGUI) {
 			message(MType::INFO, "Using %6ImGui");
 
-			// ...
+			ImGui::CreateContext();
+			ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
+			ImGui_ImplOpenGL3_Init("#version 330"); // TODO: this needs option!
+		
+			ImGuiIO& io = ImGui::GetIO();
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
 			message(MType::OK, "Initialized %6ImGui");
+			m_using_imgui = true;
 		}
 
 		if(t_settings & FULLSCREEN) {
@@ -142,10 +144,10 @@ namespace VPanic {
 
 		message(MType::INFO, "%5Quitting...");
 
-		//camera_active(false);
-
 		if(m_using_imgui) {
-			// ...
+			ImGui_ImplOpenGL3_Shutdown();
+			ImGui_ImplSDL2_Shutdown();
+			ImGui::DestroyContext();
 			message(MType::OK, "Destroyed %6ImGui");
 		}
 
@@ -167,12 +169,11 @@ namespace VPanic {
 		m_keydown_callback       = nullptr;
 		m_mouse_wheel_callback   = nullptr;
 		m_mouse_move_callback    = nullptr;
-		//m_cam      = nullptr;
 	   	m_window   = nullptr;
 		m_context  = NULL;
 
 		m_using_imgui   = false;
-		m_using_camera  = false;
+		m_lock_mouse    = false;
 		m_init_ok       = false;
 		
 		m_quit = true;
@@ -187,15 +188,10 @@ namespace VPanic {
 		m_loop = true;
 		
 		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
-		glm::vec2 p_mpos(m_width/2, m_height/2);
-		/*
-		if(m_cam != nullptr) {
-			m_cam->yaw = -90.f;
-		}
-		*/
 
 		Timer timer;
 		SDL_Event event;
+
 		while(!m_quit) {
 			if(!ok()) { break; }
 
@@ -208,44 +204,23 @@ namespace VPanic {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			if(m_using_imgui) {
-				// ....
+				ImGui_ImplOpenGL3_NewFrame();
+				ImGui_ImplSDL2_NewFrame(m_window);
+				ImGui::NewFrame();
 			}
-			/*
-			if(m_cam != nullptr && m_using_camera) {
-				
-				if(Keyboard::keydown('w')) {
-					m_cam->pos += m_cam->front * m_cam->move_speed;
-				}
-				if(Keyboard::keydown('a')) {
-					m_cam->pos -= glm::normalize(glm::cross(m_cam->front,
-							   	glm::vec3(0.0f, 1.0f, 0.0f))) * m_cam->move_speed;
-				}
-				if(Keyboard::keydown('s')) {
-					m_cam->pos -= m_cam->front * m_cam->move_speed;
-				}
-				if(Keyboard::keydown('d')) {
-					m_cam->pos += glm::normalize(glm::cross(m_cam->front,
-							   	glm::vec3(0.0f, 1.0f, 0.0f))) * m_cam->move_speed;
-				}
-				if(Keyboard::keydown(Keyboard::Mod::SPACE)) {
-					m_cam->pos.y += m_cam->move_speed;
-				}
-				else if(Keyboard::keydown(Keyboard::Mod::SHIFT)) {
-					m_cam->pos.y -= m_cam->move_speed;
-				}
-			}
-			*/
 			
 			if(m_update_callback != nullptr) {
 				m_update_callback();
 			}
 
 			if(m_using_imgui) {
-				//...
+				ImGui::Render();
+				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 			}
 
 			// handle events
 			while(SDL_PollEvent(&event)) {
+				ImGui_ImplSDL2_ProcessEvent(&event);
 				switch(event.type) {
 					case SDL_QUIT:
 						quit();
@@ -267,6 +242,9 @@ namespace VPanic {
 							m_mouse_move_callback(MouseData{
 										static_cast<float>(event.motion.x), static_cast<float>(event.motion.y),
 										static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel)});
+						}
+						if(m_lock_mouse) {
+							SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
 						}
 						break;
 
@@ -310,6 +288,7 @@ namespace VPanic {
 		SDL_SetRelativeMouseMode(b ? SDL_TRUE : SDL_FALSE);
 		SDL_ShowCursor(!b);
 		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
+		m_lock_mouse = b;
 	}
 
 	void Engine::vsync(const bool b) {

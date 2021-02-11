@@ -89,7 +89,19 @@ namespace VPanic {
 		m_draw_data_size = t_data.size();
 		m_loaded = true;
 	}
-	
+		
+	void ShapeArray::update_vertex(const Vertex& t_vertex, const int t_index) {
+		if(!m_loaded) { return; }
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+		glBufferSubData(GL_ARRAY_BUFFER, t_index*sizeof(Vertex), sizeof(Vertex), &t_vertex);
+	}
+
+	void ShapeArray::update_vertices(const std::vector<Vertex>& t_vertices) {
+		if(!m_loaded) { return; }
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, t_vertices.size()*sizeof(Vertex), &t_vertices[0]);	
+	}
+
 	void ShapeArray::unload() {
 		glDeleteBuffers(1, &m_vbo);
 		glDeleteBuffers(1, &m_ibuffer);

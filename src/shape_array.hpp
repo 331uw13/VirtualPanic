@@ -20,10 +20,12 @@ namespace VPanic {
 		void load(const std::vector<Vertex>& t_data, const int t_settings = 0);
 		void unload();
 		bool is_loaded() const;
-
-		void draw(const Shader& t_shader) const;
-	
 		uint8_t get_type() const;
+	
+		void update_vertex(const Vertex& t_vertex, const int t_index);
+		void update_vertices(const std::vector<Vertex>& t_vertices);
+
+		void draw(const Shader& t_shader) const;	
 
 		ShapeArray(const std::vector<Vertex>& t_data, const int t_settings = 0);
 		ShapeArray() {}
