@@ -8,7 +8,7 @@
 #define VEC3_SIZE  0xC
 
 
-namespace VPanic {
+namespace vpanic {
 	
 	ShapeArray::ShapeArray(const std::vector<Vertex>& t_data, const int t_settings) {
 		load(t_data, t_settings);
@@ -54,7 +54,9 @@ namespace VPanic {
 			const size_t data_size = t_data.size();
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*data_size, &t_data[0], GL_STATIC_DRAW);
-			
+		
+			message(MType::DEBUG, "%2ShapeArray::load()%0: %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
+
 			if(data_size >= 3) {
 				m_type = GL_TRIANGLES;
 			}
@@ -65,22 +67,30 @@ namespace VPanic {
 				m_type = 0;
 			}
 		}
-		
+	
+		const uint32_t stride = sizeof(glm::vec3)*2+sizeof(glm::vec2);
+
 		// points
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
 		glEnableVertexAttribArray(0);
 
 		// normals
-		if(t_settings != NO_COLORED_LIGHT) {
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, (void*)(offsetof(Vertex, normal)));
+		if(!(t_settings & NO_COLORED_LIGHT)) {
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, normal)));
 			glEnableVertexAttribArray(1);
+		}
+
+		// texture coordinates
+		if(!(t_settings & NO_TEXTURE)) {
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
+			glEnableVertexAttribArray(2);	
 		}
 	
 		// matrices  (4x4) 
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
 
 		for(int i = 0; i < 4; i++) {
-			const int id = i+2;
+			const int id = i+3;
 			glVertexAttribPointer(id, 4, GL_FLOAT, GL_FALSE, MATRIX_SIZE, (void*)(sizeof(glm::vec4)*i)); // 0*x=0, 1*x=x ...
 			glEnableVertexAttribArray(id);
 			glVertexAttribDivisor(id, 1);

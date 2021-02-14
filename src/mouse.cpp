@@ -2,7 +2,7 @@
 #include "mouse.hpp"
 #include "utils.hpp"
 
-namespace VPanic {
+namespace vpanic {
 
 	glm::vec2 Mouse::get_pos() {
 		int x = 0;

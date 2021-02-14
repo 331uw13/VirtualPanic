@@ -1,6 +1,6 @@
 #pragma once
 
-namespace VPanic {
+namespace vpanic {
 	
 	namespace Info {
 	

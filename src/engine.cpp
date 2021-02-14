@@ -2,15 +2,14 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 
-
-#include "ImGui/imgui_impl_opengl3.h"
-#include "ImGui/imgui_impl_sdl.h"
+#include "libs/imgui/imgui_impl_opengl3.h"
+#include "libs/imgui/imgui_impl_sdl.h"
 
 #include "engine.hpp"
 #include "messages.hpp"
 #include "timer.hpp"
 
-namespace VPanic {
+namespace vpanic {
 	
 	Engine::Engine() {}
 	Engine::~Engine() { quit(); }
@@ -62,8 +61,7 @@ namespace VPanic {
 			return;	
 		}
 		
-		SDL_GetWindowSize(m_window, &m_width, &m_height);
-		message(MType::OK, "Created new window (%4%ix%i%0)", m_width, m_height);
+		message(MType::OK, "Created new window");
 		
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		m_context = SDL_GL_CreateContext(m_window);
@@ -117,6 +115,7 @@ namespace VPanic {
 		}
 
 		if(t_settings & FULLSCREEN) {
+			//FIXME: imgui does things i dont currently understand when enabling fullscreen on engine init
 			message(MType::INFO, "Using Fullscreen");
 			fullscreen(true);
 		}
@@ -126,6 +125,7 @@ namespace VPanic {
 			vsync(true);
 		}
 		
+		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		glViewport(0, 0, m_width, m_height);
 
 		message(MType::OK, "%2Engine is ready! %5[%ims]", timer.elapsed_ms());
@@ -192,6 +192,7 @@ namespace VPanic {
 		Timer timer;
 		SDL_Event event;
 
+
 		while(!m_quit) {
 			if(!ok()) { break; }
 
@@ -227,13 +228,11 @@ namespace VPanic {
 						break;
 
 					case SDL_WINDOWEVENT:
-						switch(event.window.event) {
-							case SDL_WINDOWEVENT_SIZE_CHANGED:
-								message(MType::DEBUG, "New window size: %ix%i", event.window.data1, event.window.data2);
-								m_width = event.window.data1;
-								m_height = event.window.data2;
-								glViewport(0, 0, m_width, m_height);
-								break;
+						if(event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+							message(MType::DEBUG, "New window size: %ix%i", event.window.data1, event.window.data2);
+							m_width = event.window.data1;
+							m_height = event.window.data2;
+							glViewport(0, 0, m_width, m_height);
 						}
 						break;
 
@@ -255,6 +254,7 @@ namespace VPanic {
 						break;
 					
 					case SDL_KEYDOWN:
+						//message(MType::DEBUG, "KEY: %s", SDL_GetKeyName(event.key.keysym.sym));	
 						if(m_keydown_callback != nullptr) {
 							m_keydown_callback(event.key.keysym.sym);
 						}
@@ -311,10 +311,5 @@ namespace VPanic {
 	}
 
 }
-
-
-
-
-
 
 

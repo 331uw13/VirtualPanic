@@ -4,7 +4,7 @@
 #include "shader.hpp"
 #include "mouse.hpp"
 
-namespace VPanic {
+namespace vpanic {
 
 	enum class MoveDir {
 		UP,
@@ -15,8 +15,8 @@ namespace VPanic {
 		BACK
 	};
 
-	struct Camera {
-
+	class Camera {
+	public:
 		glm::vec3 pos    { glm::vec3(0.0f) };
 		glm::vec3 front  { glm::vec3(0.0f, 0.0f, -1.0f) };
 		
@@ -40,7 +40,10 @@ namespace VPanic {
 		void look_at_point(const glm::vec3& t_point);
 		void look_at_mouse(const MouseData& t_data);
 		glm::vec3 point_from_front(const float t_distance);
-		
+
+	private:
+		glm::vec3 m_up { glm::vec3(0.0f, 1.0f, 0.0f) };
+		glm::vec3 _rot_xz(const float t_x, const float t_z);
 	};
 
 }

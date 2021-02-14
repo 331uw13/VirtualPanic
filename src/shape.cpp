@@ -8,13 +8,15 @@
 
 #define VEC3_SIZE  0xC
 
-namespace VPanic {
+namespace vpanic {
 	
 	bool Shape::is_loaded() const {
 		return m_loaded;
 	}
 
 	void Shape::load(const std::vector<Vertex>& t_data, const int t_settings) {
+		if(t_data.empty()) { return; }
+
 		glGenVertexArrays(1, &m_vao);
 		glGenBuffers(1, &m_vbo);
 
@@ -23,14 +25,24 @@ namespace VPanic {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*t_data.size(), &t_data[0], GL_STATIC_DRAW);
 
+		message(MType::DEBUG, "%2Shape::load()%0: %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
+
+		const uint32_t stride = sizeof(glm::vec3)*2+sizeof(glm::vec2);
+
 		// points
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
 		glEnableVertexAttribArray(0);
 	
 		// normals
-		if(t_settings != NO_COLORED_LIGHT) {
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VEC3_SIZE*2, (void*)(offsetof(Vertex, normal)));
+		if(!(t_settings & NO_COLORED_LIGHT)) {
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, normal)));
 			glEnableVertexAttribArray(1);
+		}
+
+		// texture coordinates
+		if(!(t_settings & NO_TEXTURE)) {
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
+			glEnableVertexAttribArray(2);	
 		}
 		
 		const size_t data_size = t_data.size();
@@ -70,23 +82,29 @@ namespace VPanic {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, t_vertices.size()*sizeof(Vertex), &t_vertices[0]);	
 	}
-
+		
 	void Shape::draw(const Shader& t_shader) const {
 		if(!m_loaded) { return; }	
 		if(m_type == 0) { return; }
 
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, pos);
+		model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::scale(model, scale);
-	
-		// TODO: rotation
+
 
 		t_shader.use();
 		t_shader.set_vec3("shape.pos", pos);
 		t_shader.set_color("shape.color", color);
 		t_shader.set_mat4("model", model);
 		t_shader.set_int("use_offset", 0);
-			
+		
+		if(m_texture != nullptr) {
+			m_texture->use();
+		}
+
 		if(m_type == GL_LINES) {
 			glLineWidth(m_line_thickness);
 		}
@@ -97,6 +115,10 @@ namespace VPanic {
 	
 	void Shape::line_thickness(const float t_value) {
 		m_line_thickness = t_value;
+	}
+		
+	void Shape::set_texture(Texture* t_texture) {
+		m_texture = t_texture;
 	}
 	
 	uint8_t Shape::get_type() const {

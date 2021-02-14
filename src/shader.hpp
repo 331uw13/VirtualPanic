@@ -9,7 +9,7 @@
 #include "light.hpp"
 #include "settings.hpp"
 
-namespace VPanic {
+namespace vpanic {
 
 	class Shader {
 	public:

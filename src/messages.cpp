@@ -3,7 +3,7 @@
 
 #include "messages.hpp"
 
-namespace VPanic {
+namespace vpanic {
 
 	void message(MType t_type, const char* t_msg, ...) {
 		printf(" \033[32m(VirtualPanic)\033[%im [%c] \033[90m->\033[0m ", 

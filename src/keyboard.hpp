@@ -1,8 +1,8 @@
 #pragma once
 
-namespace VPanic {
+namespace vpanic {
 
-	namespace Keyboard {
+	namespace keyboard {
 	
 		enum class Mod { // NOTE: this needs better name
 			CTRL = 64,

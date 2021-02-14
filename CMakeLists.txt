@@ -6,7 +6,7 @@ set(WARNINGS "-Wall -Wextra -Wunused-function -Wformat")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS} -lSDL2 -lGL")
 file(GLOB_RECURSE SOURCE_FILES "./src/*.cpp" "./src/*.c")
 file(GLOB_RECURSE HEADER_FILES "./src/*.hpp")
-file(GLOB_RECURSE IMGUI_HEADER_FILES "./src/ImGui/*.h")
+file(GLOB_RECURSE IMGUI_HEADER_FILES "./src/libs/imgui/*.h")
 
 find_package(OpenGL REQUIRED)
 
@@ -29,7 +29,7 @@ install(
 
 install(
 	FILES ${IMGUI_HEADER_FILES}
-	DESTINATION include/VirtualPanic/ImGui
+	DESTINATION include/VirtualPanic/libs/imgui
 )	
 
 

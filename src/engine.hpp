@@ -4,7 +4,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
-#include "ImGui/imgui.h"
+#include "libs/imgui/imgui.h"
 
 #include "mouse.hpp"
 #include "color.hpp"
@@ -13,8 +13,7 @@
 #include "timer.hpp"
 #include "settings.hpp"
 
-
-namespace VPanic {
+namespace vpanic {
 
 	class Engine {
 	public:

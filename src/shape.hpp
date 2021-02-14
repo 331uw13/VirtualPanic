@@ -5,8 +5,9 @@
 #include "color.hpp"
 #include "shader.hpp"
 #include "vertex.hpp"
+#include "texture.hpp"
 
-namespace VPanic {
+namespace vpanic {
 
 	/*
 	
@@ -36,6 +37,8 @@ namespace VPanic {
 		void draw(const Shader& t_shader) const;		
 		void line_thickness(const float t_value);
 
+		void set_texture(Texture* t_texture);
+
 		Shape(const std::vector<Vertex>& t_data, const glm::vec3& t_pos,
 			   	const Color& t_color, const int t_settings = 0)
 			: pos(t_pos), color(t_color) 
@@ -43,17 +46,17 @@ namespace VPanic {
 		
 		Shape() : m_type(0) {}
 		
-		/* Note: for testing its public */ uint32_t m_vao { 0 };
-
 	private:
-	
+
 		bool m_loaded  { false };
+		uint32_t m_vao { 0 };
 		uint32_t m_vbo { 0 };
 		uint32_t m_draw_data_size { 0 };
 
 		float m_line_thickness { 1.0f };
 		uint8_t m_type;
 
+		Texture* m_texture { nullptr };
 
 	};
 }

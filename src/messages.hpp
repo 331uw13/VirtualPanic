@@ -1,6 +1,6 @@
 #pragma once
 
-namespace VPanic {
+namespace vpanic {
 
 	enum class MType { // "message type"
 		INFO,

@@ -7,7 +7,7 @@
 #define FILENAME "/proc/self/status"
 
 
-namespace VPanic {
+namespace vpanic {
 
 	void Info::print_virtual_memory_info() {
 	}

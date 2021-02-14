@@ -1,8 +1,7 @@
 #include <chrono>
 #include "timer.hpp"
 
-namespace VPanic {
-
+namespace vpanic {
 
 	void Timer::reset() {
 		m_point = std::chrono::steady_clock::now();

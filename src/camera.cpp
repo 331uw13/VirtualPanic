@@ -3,7 +3,7 @@
 #include "camera.hpp"
 #include "utils.hpp"
 
-namespace VPanic {
+namespace vpanic {
 
 	void Camera::update(const Shader& t_shader) {
 		front = glm::normalize(glm::vec3(
@@ -25,10 +25,12 @@ namespace VPanic {
 		t_shader.set_mat4("proj", projection);
 		t_shader.set_mat4("view", view);
 	}
-		
+	glm::vec3 Camera::_rot_xz(const float t_x, const float t_z) {
+		return glm::vec3(cos(glm::radians(yaw))*cos(glm::radians(t_x)), 0, sin(glm::radians(yaw))*cos(glm::radians(t_z)));
+	}
+
 	void Camera::move(MoveDir t_direction, const float t_speed) {
-		switch(t_direction) {
-			
+		switch(t_direction) {	
 			case MoveDir::UP:
 				pos.y += t_speed;
 				break;
@@ -38,19 +40,37 @@ namespace VPanic {
 				break;
 			
 			case MoveDir::LEFT:
-				pos -= glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)) * t_speed;
+				if(freecam) {
+					pos -= glm::cross(front, m_up) * t_speed;
+				} else {
+					pos -= (glm::cross(_rot_xz(front.x, front.z), m_up) * t_speed);
+				}
 				break;
 			
 			case MoveDir::RIGHT:
-				pos += glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)) * t_speed;
+				if(freecam) {
+					pos += glm::cross(front, m_up) * t_speed;
+				} else {
+					pos += (glm::cross(_rot_xz(front.x, front.z), m_up) * t_speed);
+				}
 				break;
 			
 			case MoveDir::FORWARD:
-				pos += front * t_speed;
+				if(freecam) {
+					pos += front * t_speed;
+				} else {
+					pos.x += cos(glm::radians(yaw))*cos(glm::radians(front.x)) * t_speed;
+					pos.z += sin(glm::radians(yaw))*cos(glm::radians(front.z)) * t_speed;
+				}
 				break;
 			
 			case MoveDir::BACK:
-				pos -= front * t_speed;
+				if(freecam) {
+					pos -= front * t_speed;
+				} else {
+					pos.x -= cos(glm::radians(yaw))*cos(glm::radians(front.x)) * t_speed;
+					pos.z -= sin(glm::radians(yaw))*cos(glm::radians(front.z)) * t_speed;
+				}
 				break;
 
 			default: break;

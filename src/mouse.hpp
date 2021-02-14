@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/vec2.hpp>
 
-namespace VPanic {
+namespace vpanic {
 
 	struct MouseData {
 		const float x;

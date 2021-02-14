@@ -1,6 +1,6 @@
 #pragma once
 
-namespace VPanic {
+namespace vpanic {
 
 	
 	// --- 'Engine::init()' ---
@@ -32,7 +32,12 @@ namespace VPanic {
 	// --- 'Shape::load()' ---
 
 	// dont pass normals for shaders
-	static constexpr int NO_COLORED_LIGHT { 1 };
+	// not default
+	static constexpr int NO_COLORED_LIGHT { 1 << 0 };
+
+	// dont pass texture coordinates for shaders
+	// not default
+	static constexpr int NO_TEXTURE { 1 << 1 };
 
 
 	// --- 'Shader::load()' ---
@@ -44,6 +49,10 @@ namespace VPanic {
 	// this will give you support for geometry shaders.
 	// TODO: static constexpr int SUPPORT_GEOMETRY_SHADER { 1 << 1 };
 
+
+	// --- 'find_all()' ---
+
+	static constexpr int INCLUDE_SUB_DIRECTORIES { 1 };
 
 	// ...
 

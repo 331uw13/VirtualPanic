@@ -4,7 +4,7 @@
 
 typedef std::chrono::steady_clock::time_point chrono_tp;
 
-namespace VPanic {
+namespace vpanic {
 
 	class Timer {
 	public:

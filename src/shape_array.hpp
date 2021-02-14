@@ -5,7 +5,7 @@
 #include "shader.hpp"
 #include "vertex.hpp"
 
-namespace VPanic {
+namespace vpanic {
 
 	class ShapeArray {
 	public:

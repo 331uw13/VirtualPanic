@@ -1,9 +1,10 @@
 #pragma once
 #include <stdint.h>
 
-namespace VPanic {
+namespace vpanic {
 
 	struct Color {
+	
 		uint8_t r;
 		uint8_t g;
 		uint8_t b;
@@ -16,5 +17,7 @@ namespace VPanic {
 			: r(t_rgb), g(t_rgb), b(t_rgb), a(t_a) {}
 	
 		Color() : r(0), g(0), b(0), a(255) {}
+
 	};
+
 }
