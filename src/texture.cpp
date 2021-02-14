@@ -1,4 +1,5 @@
 #include <GL/gl3w.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "libs/stb_image.h"
 
@@ -26,12 +27,15 @@ namespace vpanic {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		int width, height, num_channels;
+		int width = 0;
+		int height = 0;
+	   	int num_channels = 0;
 
 		stbi_set_flip_vertically_on_load(true);
 		uint8_t* data = stbi_load(t_filename, &width, &height, &num_channels, 0);
 		if(!data) {
 			message(MType::BAD, "Cannot load texture from file: \"%s\" | %s", t_filename, stbi_failure_reason());
+			stbi_image_free(data);
 			return false;
 		}
 
@@ -64,9 +68,13 @@ namespace vpanic {
 		return m_loaded;
 	}
 
-	void Texture::use() {
+	void Texture::enable() {
 		if(!m_loaded) { return; }
 		glBindTexture(GL_TEXTURE_2D, m_id);
+	}
+	
+	void Texture::disable() {
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 

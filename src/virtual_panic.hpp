@@ -10,4 +10,6 @@
 #include "texture.hpp"
 #include "theme.hpp"
 #include "file.hpp"
+#include "skybox.hpp"
+
 

@@ -81,10 +81,10 @@ namespace vpanic {
 		}
 
 		// texture coordinates
-		if(!(t_settings & NO_TEXTURE)) {
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
-			glEnableVertexAttribArray(2);	
-		}
+		//if(!(t_settings & NO_TEXTURE)) {
+		//}
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
+		glEnableVertexAttribArray(2);	
 	
 		// matrices  (4x4) 
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);

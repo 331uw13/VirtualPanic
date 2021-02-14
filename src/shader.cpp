@@ -170,6 +170,7 @@ namespace vpanic {
 				" vec3 pos;\n"
 				" vec3 normal;\n"
 				" vec2 texcoord;\n"
+				" vec3 texcoord3d;\n"
 			"};\n"
 			"struct VPanicCamera {\n"
 				" vec3 pos;"
@@ -237,6 +238,7 @@ namespace vpanic {
 					" vec3 pos;\n"
 					" vec3 normal;\n"
 					" vec2 texcoord;\n"
+					" vec3 texcoord3d;\n"
 				"};\n"
 				"out Fragment fragment;\n"
 				"uniform mat4 proj;\n"
@@ -246,6 +248,7 @@ namespace vpanic {
 				"void main() {\n"
 					" fragment.normal = normal;\n"
 					" fragment.texcoord = texcoord;\n"
+					" fragment.texcoord3d = pos;\n"
 					" fragment.pos = vec3(((use_offset) ? offset : model)*vec4(pos, 1.0));\n"
 					" gl_Position = proj*view*((use_offset) ? offset : model)*vec4(pos, 1.0);\n"
 				"}";

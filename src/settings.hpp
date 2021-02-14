@@ -37,7 +37,7 @@ namespace vpanic {
 
 	// dont pass texture coordinates for shaders
 	// not default
-	static constexpr int NO_TEXTURE { 1 << 1 };
+	//static constexpr int NO_TEXCOORDS { 1 << 1 };
 
 
 	// --- 'Shader::load()' ---
@@ -51,7 +51,8 @@ namespace vpanic {
 
 
 	// --- 'find_all()' ---
-
+	// dont ignore sub directories
+	// not default
 	static constexpr int INCLUDE_SUB_DIRECTORIES { 1 };
 
 	// ...

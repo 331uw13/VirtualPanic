@@ -40,10 +40,10 @@ namespace vpanic {
 		}
 
 		// texture coordinates
-		if(!(t_settings & NO_TEXTURE)) {
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
-			glEnableVertexAttribArray(2);	
-		}
+		//if(!(t_settings & NO_TEXTURE)) {
+		//}
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
+		glEnableVertexAttribArray(2);	
 		
 		const size_t data_size = t_data.size();
 
@@ -94,17 +94,12 @@ namespace vpanic {
 		model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::scale(model, scale);
 
-
 		t_shader.use();
 		t_shader.set_vec3("shape.pos", pos);
 		t_shader.set_color("shape.color", color);
 		t_shader.set_mat4("model", model);
 		t_shader.set_int("use_offset", 0);
 		
-		if(m_texture != nullptr) {
-			m_texture->use();
-		}
-
 		if(m_type == GL_LINES) {
 			glLineWidth(m_line_thickness);
 		}
@@ -117,10 +112,6 @@ namespace vpanic {
 		m_line_thickness = t_value;
 	}
 		
-	void Shape::set_texture(Texture* t_texture) {
-		m_texture = t_texture;
-	}
-	
 	uint8_t Shape::get_type() const {
 		return m_type;
 	}

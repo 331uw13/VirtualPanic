@@ -37,8 +37,6 @@ namespace vpanic {
 		void draw(const Shader& t_shader) const;		
 		void line_thickness(const float t_value);
 
-		void set_texture(Texture* t_texture);
-
 		Shape(const std::vector<Vertex>& t_data, const glm::vec3& t_pos,
 			   	const Color& t_color, const int t_settings = 0)
 			: pos(t_pos), color(t_color) 
@@ -55,8 +53,6 @@ namespace vpanic {
 
 		float m_line_thickness { 1.0f };
 		uint8_t m_type;
-
-		Texture* m_texture { nullptr };
 
 	};
 }

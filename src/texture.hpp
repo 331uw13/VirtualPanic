@@ -15,7 +15,8 @@ namespace vpanic {
 		void unload();
 		bool is_loaded() const;
 
-		void use();
+		void enable();
+		void disable();
 
 	private:
 

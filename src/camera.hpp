@@ -41,6 +41,8 @@ namespace vpanic {
 		void look_at_mouse(const MouseData& t_data);
 		glm::vec3 point_from_front(const float t_distance);
 
+		// TODO: point in radius from front?
+
 	private:
 		glm::vec3 m_up { glm::vec3(0.0f, 1.0f, 0.0f) };
 		glm::vec3 _rot_xz(const float t_x, const float t_z);
