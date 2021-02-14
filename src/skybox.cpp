@@ -12,12 +12,12 @@ namespace vpanic {
 
 		int width = 0;
 		int height = 0;
-		int channels = 0;
+		int num_channels = 0;
 
 		message(MType::INFO, "Loading skybox...");
 
 		for(uint32_t i = 0; i < t_filenames.size(); i++) {
-			uint8_t* data = stbi_load(t_filenames[i].c_str(), &width, &height, &channels, 0);
+			uint8_t* data = stbi_load(t_filenames[i].c_str(), &width, &height, &num_channels, 0);
 			
 			if(!data) {
 				message(MType::BAD, "Cannot load texture from file: \"%s\"", t_filenames[i].c_str());
@@ -25,8 +25,17 @@ namespace vpanic {
 				return false;
 			}
 
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_RGB, width, height, 0, 
-					GL_RGB, GL_UNSIGNED_BYTE, data);
+			const uint32_t channel = [num_channels]() {
+				switch(num_channels) {
+					case 2: return GL_RG;
+					case 3: return GL_RGB;
+					case 4: return GL_RGBA;
+					default: return GL_RGB;
+				}
+			}();
+
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, channel, width, height, 0, channel,
+				   	GL_UNSIGNED_BYTE, data);
 			
 			stbi_image_free(data);
 
