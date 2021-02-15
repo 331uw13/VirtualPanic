@@ -3,7 +3,6 @@
 
 #include "shader.hpp"
 #include "messages.hpp"
-#include "timer.hpp"
 
 namespace vpanic {
 
@@ -14,14 +13,12 @@ namespace vpanic {
 
 	void Shader::load(const char* t_shader_filename, const uint32_t t_glsl_version, const int t_settings) {
 
-		Timer timer;
-
-		// TODO: check if the any source is changed, if it is then delete and load else gtfo
+		// TODO: check if the any source is changed, if it is then delete and load else just return
 		if(m_loaded) {
 		   	unload();
 	   	}
 
-		if(!(t_settings & NO_SHADER_UTIL)) {
+		if(t_settings != NO_SHADER_UTIL) {
 			_add_functions(t_glsl_version);
 		}
 		
@@ -34,9 +31,39 @@ namespace vpanic {
 
 		_compile_shaders();
 		
+		// not needed anymore
+		m_vertex_source.clear();
+		m_fragment_source.clear();
+	}
+	
+	void Shader::load(const char* t_vertex_filename, const char* t_fragment_filename) {
+		
+		// TODO: check if the any source is changed, if it is then delete and load else just return
 		if(m_loaded) {
-			message(MType::OK, "Loaded shader %3\"%s\" %5[%ims]", t_shader_filename, timer.elapsed_ms());
-		}
+		   	unload();
+	   	}
+		
+		_read_sources(t_vertex_filename, m_vertex_source);
+		_read_sources(t_fragment_filename, m_fragment_source);
+
+		_compile_shaders();
+		
+		// not needed anymore
+		m_vertex_source.clear();
+		m_fragment_source.clear();
+	}
+	
+	void Shader::load_from_memory(const char* t_vertex_src, const char* t_fragment_src) {
+
+		// TODO: check if the any source is changed, if it is then delete and load else just return
+		if(m_loaded) {
+		   	unload();
+	   	}
+
+		m_vertex_source = t_vertex_src;
+		m_fragment_source = t_fragment_src;
+
+		_compile_shaders();
 
 		// not needed anymore
 		m_vertex_source.clear();
@@ -44,7 +71,7 @@ namespace vpanic {
 	}
 
 	void Shader::set_color(const char* t_name, const Color& t_color) const {
-		glUniform4f(glGetUniformLocation(m_id, t_name), 
+		glUniform4f(glGetUniformLocation(id, t_name), 
 				t_color.r/255.0f, 
 				t_color.g/255.0f,
 			   	t_color.b/255.0f,
@@ -52,23 +79,23 @@ namespace vpanic {
 	}
 	
 	void Shader::set_vec3(const char* t_name, const glm::vec3& t_v3) const {
-		glUniform3f(glGetUniformLocation(m_id, t_name), t_v3.x, t_v3.y, t_v3.z);
+		glUniform3f(glGetUniformLocation(id, t_name), t_v3.x, t_v3.y, t_v3.z);
 	}
 	
 	void Shader::set_vec2(const char* t_name, const glm::vec2& t_v2) const {
-		glUniform2f(glGetUniformLocation(m_id, t_name), t_v2.x, t_v2.y);
+		glUniform2f(glGetUniformLocation(id, t_name), t_v2.x, t_v2.y);
 	}
 
 	void Shader::set_mat4(const char* t_name, const glm::mat4& t_m) const {
-		glUniformMatrix4fv(glGetUniformLocation(m_id, t_name), 1, GL_FALSE, &t_m[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(id, t_name), 1, GL_FALSE, &t_m[0][0]);
 	}
 	
 	void Shader::set_int(const char* t_name, const int t_i) const {
-		glUniform1i(glGetUniformLocation(m_id, t_name), t_i);
+		glUniform1i(glGetUniformLocation(id, t_name), t_i);
 	}
 	
 	void Shader::set_float(const char* t_name, const float t_f) const {
-		glUniform1f(glGetUniformLocation(m_id, t_name), t_f);		
+		glUniform1f(glGetUniformLocation(id, t_name), t_f);		
 	}
 
 	bool Shader::is_loaded() const {
@@ -76,12 +103,12 @@ namespace vpanic {
 	}
 	
 	void Shader::use() const {
-		glUseProgram(m_id);
+		glUseProgram(id);
 	}
 
 	void Shader::unload() {
-		glDeleteProgram(m_id);
-		m_id = 0;
+		glDeleteProgram(id);
+		id = 0;
 		m_loaded = false;
 	}
 
@@ -125,11 +152,11 @@ namespace vpanic {
 			char msg[1024];
 			glGetProgramInfoLog(program, 1024, NULL, msg);
 			message(MType::BAD, "%1(Shader Program Link Error):%0 %s", msg);
-			m_id = program;
+			id = program;
 			m_loaded = false;
 			return;
 		}
-		m_id = program;
+		id = program;
 		m_loaded = true;
 	}
 	
@@ -172,17 +199,15 @@ namespace vpanic {
 				" vec2 texcoord;\n"
 				" vec3 texcoord3d;\n"
 			"};\n"
-			"struct VPanicCamera {\n"
-				" vec3 pos;"
-				" vec3 front;"
-			"};\n"
 			"struct VPanicShape {\n"
 				" vec3 pos;"
 				" vec4 color;"
 			"};\n"
+			"layout (std140) uniform fragment_data {"
+				" vec3 camera_pos;"
+			"};"
 			"in Fragment fragment;\n"
 			"uniform VPanicShape shape;"
-			"uniform VPanicCamera camera;"	
 			"uniform sampler2D texture0;" // NOTE: array of textures?
 			"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float radius) {\n"
 				" if(fragment.normal == vec3(0.0)) { return vec3(shape.color); }"
@@ -191,8 +216,7 @@ namespace vpanic {
 				" vec3 light_dir = normalize(pos - fragment.pos);"
 				" float diff = max(dot(norm, light_dir), 0.0);"
 				" vec3 diffuse = diff*vec3(color);"
-				" vec3 view_dir = normalize(camera.pos - fragment.pos);"
-				//" vec3 reflect_dir = reflect(-light_dir, norm);"
+				" vec3 view_dir = normalize(camera_pos - fragment.pos);"
 				" vec3 half_dir = normalize(view_dir+light_dir);"
 				" float spec = pow(max(dot(view_dir, half_dir), 0.0), 26.0);"
 				" vec3 specular = spec*vec3(shape.color);"
@@ -211,7 +235,7 @@ namespace vpanic {
 				" vec3 light_dir = normalize(-direction);"
 				" float diff = max(dot(norm, light_dir), 0.0);"
 				" vec3 diffuse = diffuse_value*diff*vec3(color);"
-				" vec3 view_dir = normalize(camera.pos - fragment.pos);"
+				" vec3 view_dir = normalize(camera_pos - fragment.pos);"
 				" vec3 reflect_dir = reflect(-light_dir, norm);"
 				" float spec = pow(max(dot(view_dir, reflect_dir), 1.0), 72);"
 				" vec3 specular = specular_value*spec*vec3(shape.color);"
@@ -240,11 +264,14 @@ namespace vpanic {
 					" vec2 texcoord;\n"
 					" vec3 texcoord3d;\n"
 				"};\n"
-				"out Fragment fragment;\n"
-				"uniform mat4 proj;\n"
-				"uniform mat4 view;\n"
+				"layout (std140) uniform vertex_data {"
+					" uniform mat4 view;\n"
+					" uniform mat4 proj;\n"
+				"};"
 				"uniform mat4 model;\n"
 				"uniform bool use_offset;\n"
+				"out Fragment fragment;\n"	
+				
 				"void main() {\n"
 					" fragment.normal = normal;\n"
 					" fragment.texcoord = texcoord;\n"

@@ -2,6 +2,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 
+#include "libs/stb_image.h"
 #include "libs/imgui/imgui_impl_opengl3.h"
 #include "libs/imgui/imgui_impl_sdl.h"
 
@@ -18,7 +19,7 @@ namespace vpanic {
 		m_mouse_move_callback = t_callback;
 	}
 
-	void Engine::mouse_wheel_callback(void(*t_callback)(uint8_t)) {
+	void Engine::mouse_wheel_callback(void(*t_callback)(int8_t)) {
 		m_mouse_wheel_callback = t_callback;
 	}
 
@@ -46,13 +47,12 @@ namespace vpanic {
 		message(MType::OK, "Initialized %6SDL");
 
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	
-		//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);	
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 		message(MType::DEBUG, "Set attributes");
 
 		m_window = SDL_CreateWindow(t_title, 0, 0, t_size.x, t_size.y,
-			   	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_ALLOW_HIGHDPI*/);	
+			   	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);	
 		
 		message(MType::DEBUG, "Check window");
 		if(m_window == nullptr) {
@@ -105,7 +105,7 @@ namespace vpanic {
 
 			ImGui::CreateContext();
 			ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
-			ImGui_ImplOpenGL3_Init("#version 330"); // TODO: this needs option!
+			ImGui_ImplOpenGL3_Init("#version 330");
 		
 			ImGuiIO& io = ImGui::GetIO();
 			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -115,7 +115,7 @@ namespace vpanic {
 		}
 
 		if(t_settings & FULLSCREEN) {
-			//FIXME: imgui does things i dont currently understand when enabling fullscreen on engine init
+			//FIXME: imgui does things i dont currently understand when enabling fullscreen on init
 			message(MType::INFO, "Using Fullscreen");
 			fullscreen(true);
 		}
@@ -204,12 +204,30 @@ namespace vpanic {
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			// update camera and set its view, projection and position for everyone to use
+			camera.update();
+			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+			// NOTE: projection probably doesnt change that much, create event for it?
+			// NOTE: i can have array of stuff what should be updated here
+			glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &camera.view[0][0]);
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::mat4),   &camera.projection[0][0]);
+			glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4),   sizeof(glm::vec3),   &camera.pos);
+
+			glDepthMask(GL_FALSE);
+			m_skybox.shader.use();
+			m_skybox.shader.set_mat4("proj", camera.projection);
+			m_skybox.shader.set_mat4("view", glm::mat4(glm::mat3(camera.view))); // removes translation
+			m_skybox.shape.draw(m_skybox.shader);
+			glDepthMask(GL_TRUE);
+			glUseProgram(0);
+
+
 			if(m_using_imgui) {
 				ImGui_ImplOpenGL3_NewFrame();
 				ImGui_ImplSDL2_NewFrame(m_window);
 				ImGui::NewFrame();
 			}
-			
+
 			if(m_update_callback != nullptr) {
 				m_update_callback();
 			}
@@ -283,6 +301,92 @@ namespace vpanic {
 		return glm::vec2(m_width, m_height);
 	}
 
+	bool Engine::load_skybox(const std::vector<const char*> t_files) {
+		
+		if(t_files.empty()) { return false; }
+		if(m_skybox.loaded) {
+			glDeleteTextures(1, &m_skybox.id);
+			m_skybox.id = 0;
+		}
+
+		glGenTextures(1, &m_skybox.id);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_skybox.id);
+
+		int width = 0;
+		int height = 0;
+		int num_channels = 0;
+
+		message(MType::INFO, "Loading skybox...");
+
+		for(uint32_t i = 0; i < t_files.size(); i++) {
+			uint8_t* data = stbi_load(t_files[i], &width, &height, &num_channels, 0);
+			
+			if(!data) {
+				message(MType::BAD, "Cannot load texture from file: \"%s\"", t_files[i]);
+				stbi_image_free(data);
+				return false;
+			}
+
+			const uint32_t channel = [num_channels]() {
+				switch(num_channels) {
+					case 2: return GL_RG;
+					case 3: return GL_RGB;
+					case 4: return GL_RGBA;
+					default: return GL_RGB;
+				}
+			}();
+
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, channel, width, height, 0, channel,
+				   	GL_UNSIGNED_BYTE, data);
+			
+			stbi_image_free(data);
+
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		}
+		
+		message(MType::OK, "Loaded skybox %i images", t_files.size());
+
+		std::vector<Vertex> data;
+		add_box_data(&data);
+		m_skybox.shape.load(data);
+
+		const char* vertex_src = 
+			"#version 330 core\n"
+			"layout (location = 0) in vec3 pos;"
+			"uniform mat4 model;"
+			"uniform mat4 view;"
+			"uniform mat4 proj;"
+			"out vec3 texcoord;"
+
+			"void main() {"
+				" texcoord = pos;"
+				" gl_Position = proj*model*view*vec4(pos, 1.0);"
+			"}"
+			
+			;
+		
+		const char* fragment_src = 
+			"#version 330 core\n"
+			"uniform samplerCube skybox;"
+			"in vec3 texcoord;"
+			"void main() {"
+				//" gl_FragColor = vec4(1.0f);"
+				" gl_FragColor = texture(skybox, texcoord);"
+			"}"
+			;
+		
+		m_skybox.shader.load_from_memory(vertex_src, fragment_src);
+		return true;
+	}
+
+	void Engine::unload_skybox() {
+	}
+	
 	void Engine::lock_mouse(const bool b) {
 		SDL_SetWindowGrab(m_window, b ? SDL_TRUE : SDL_FALSE);
 		SDL_SetRelativeMouseMode(b ? SDL_TRUE : SDL_FALSE);
@@ -308,6 +412,27 @@ namespace vpanic {
 	
 	void Engine::winding_order(const int t_order) {
 		glFrontFace((t_order <= 1) ? GL_CW : GL_CCW);
+	}
+	
+	void Engine::setup_shaders(const std::vector<Shader*>& t_shaders) {
+
+		// TODO: check if this was already setup
+
+		for(size_t i = 0; i < t_shaders.size(); i++) {
+			if(!t_shaders[i]->is_loaded()) { continue; }
+			const uint32_t block_index = glGetUniformBlockIndex(t_shaders[i]->id, "vertex_data");
+			const uint32_t block_index2 = glGetUniformBlockIndex(t_shaders[i]->id, "fragment_data");
+			glUniformBlockBinding(t_shaders[i]->id, block_index, 0);
+			glUniformBlockBinding(t_shaders[i]->id, block_index2, 0);
+		}
+
+		// camera view, projection and position
+		const uint32_t size = 2*sizeof(glm::mat4) + sizeof(glm::vec3);
+
+		glGenBuffers(1, &m_ubo);
+		glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+		glBufferData(GL_UNIFORM_BUFFER, size, NULL, GL_STATIC_DRAW);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_ubo, 0, size);
 	}
 
 }

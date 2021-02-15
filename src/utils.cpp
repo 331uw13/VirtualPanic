@@ -62,6 +62,9 @@ namespace vpanic {
 	}
 	
 	Color illuminate(const Color& color, const int8_t t) {
+		
+		// NOTE: this is bad because if for example 'color.r+t' goes negative value
+		// it will go back to 255 because im using unsigned
 		uint8_t r = color.r+t;
 		uint8_t g = color.g+t;
 		uint8_t b = color.b+t;
@@ -145,6 +148,53 @@ namespace vpanic {
 		style.Colors[ImGuiCol_ResizeGripHovered]  = color_to_imvec4(illuminate(resize_grip, hovered));
 		style.Colors[ImGuiCol_ResizeGripActive]   = color_to_imvec4(illuminate(resize_grip, active));
 
+	}
+
+	void add_box_data(std::vector<Vertex>* out) {	
+		if(out == nullptr) { return; }
+		*out = {
+			Vertex(-0.5f, -0.5f, -0.5f),
+			Vertex( 0.5f, -0.5f, -0.5f),
+			Vertex( 0.5f,  0.5f, -0.5f),
+			Vertex( 0.5f,  0.5f, -0.5f),
+			Vertex(-0.5f,  0.5f, -0.5f),
+			Vertex(-0.5f, -0.5f, -0.5f),
+
+			Vertex(-0.5f, -0.5f,  0.5f),
+			Vertex( 0.5f,  0.5f,  0.5f),
+			Vertex( 0.5f, -0.5f,  0.5f),
+			Vertex( 0.5f,  0.5f,  0.5f),
+			Vertex(-0.5f, -0.5f,  0.5f),
+			Vertex(-0.5f,  0.5f,  0.5f),
+
+			Vertex(-0.5f,  0.5f,  0.5f),
+			Vertex(-0.5f, -0.5f, -0.5f), 
+			Vertex(-0.5f,  0.5f, -0.5f), 
+			Vertex(-0.5f, -0.5f, -0.5f), 
+			Vertex(-0.5f,  0.5f,  0.5f), 
+			Vertex(-0.5f, -0.5f,  0.5f), 
+
+			Vertex( 0.5f,  0.5f,  0.5f),
+			Vertex( 0.5f,  0.5f, -0.5f),
+			Vertex( 0.5f, -0.5f, -0.5f),
+			Vertex( 0.5f, -0.5f, -0.5f),
+			Vertex( 0.5f, -0.5f,  0.5f),
+			Vertex( 0.5f,  0.5f,  0.5f),
+
+			Vertex(-0.5f, -0.5f, -0.5f),
+			Vertex( 0.5f, -0.5f,  0.5f),
+			Vertex( 0.5f, -0.5f, -0.5f),
+			Vertex( 0.5f, -0.5f,  0.5f),
+			Vertex(-0.5f, -0.5f, -0.5f),
+			Vertex(-0.5f, -0.5f,  0.5f),
+		
+			Vertex(-0.5f,  0.5f, -0.5f),
+			Vertex( 0.5f,  0.5f, -0.5f),
+			Vertex( 0.5f,  0.5f,  0.5f),
+			Vertex( 0.5f,  0.5f,  0.5f),
+			Vertex(-0.5f,  0.5f,  0.5f),
+			Vertex(-0.5f,  0.5f, -0.5f)
+		};
 	}
 
 }

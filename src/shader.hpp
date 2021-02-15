@@ -17,7 +17,16 @@ namespace vpanic {
 		Shader() {}
 		~Shader();
 
+		// you get control over fragment shader only and there are built in things to help you
+		// you dont have access to vertex shader this way
 		void load(const char* t_shader_filename, const uint32_t t_glsl_version, const int t_settings = 0);
+		
+		// lets you do more things
+		// see wiki how to set up vertex shader with this: <link to wiki page when its completed>
+		void load(const char* t_vertex_filename, const char* t_fragment_filename);
+		void load_from_memory(const char* t_vertex_src, const char* t_fragment_src);
+	
+
 		void unload();
 		bool is_loaded() const;
 
@@ -32,6 +41,8 @@ namespace vpanic {
 		void set_int    (const char* t_name, const int t_i)    const;
 		void set_float  (const char* t_name, const float t_f)  const;
 		
+		uint32_t id { 0 };
+		
 	private:
 
 		void _compile_shaders();
@@ -42,12 +53,12 @@ namespace vpanic {
 		std::string m_vertex_source    { "" };
 		std::string m_fragment_source  { "" };
 
-		uint32_t m_id { 0 };
 		bool m_loaded { false };
 	
 		// this adds things to the shader code
 		// vpanic_light(), vpanic_fog()... they just help you calculate stuff if you are feeling lazy
-		// (this is done by default so use NO_SHADER_UTIL when loading the shader if you dont want this)
+		// (this is done by default so use NO_SHADER_UTIL when loading the shader if you dont want this
+		// or pass vertex shader to load function too, see above)
 		void _add_functions(const uint32_t t_glsl_version);
 
 	};

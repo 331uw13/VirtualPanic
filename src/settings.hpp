@@ -44,7 +44,7 @@ namespace vpanic {
 
 	// this will not add any util functions for shaders.
 	// not default
-	static constexpr int NO_SHADER_UTIL { 1 << 0 };
+	static constexpr int NO_SHADER_UTIL { 1 };
 
 	// this will give you support for geometry shaders.
 	// TODO: static constexpr int SUPPORT_GEOMETRY_SHADER { 1 << 1 };
