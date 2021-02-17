@@ -2,13 +2,14 @@
 #include <SDL2/SDL_opengl.h>
 #include <glm/glm.hpp>
 
-#include "libs/stb_image.h"
 #include "libs/imgui/imgui_impl_opengl3.h"
 #include "libs/imgui/imgui_impl_sdl.h"
 
 #include "engine.hpp"
 #include "messages.hpp"
 #include "timer.hpp"
+#include "console.hpp"
+
 
 namespace vpanic {
 	
@@ -41,10 +42,10 @@ namespace vpanic {
 		message(MType::INFO, "Hello!");
 
 		if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-			message(MType::BAD, "Failed to initialize %6SDL%0! (%s)", SDL_GetError());
+			message(MType::ERROR, "Failed to initialize SDL (%s)", SDL_GetError());
 			return;
 		}	
-		message(MType::OK, "Initialized %6SDL");
+		message(MType::OK, "Initialized SDL");
 
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -56,7 +57,7 @@ namespace vpanic {
 		
 		message(MType::DEBUG, "Check window");
 		if(m_window == nullptr) {
-			message(MType::BAD, "Failed to create window! (%s)", SDL_GetError());
+			message(MType::ERROR, "Failed to create window! (%s)", SDL_GetError());
 			quit();
 			return;	
 		}
@@ -72,12 +73,12 @@ namespace vpanic {
 		}
 
 		if(gl3wInit()) {
-			message(MType::BAD, "Failed to initialize %6gl3w!");
+			message(MType::ERROR, "Failed to initialize gl3w!");
 			quit();
 			return;		
 		}
 
-		message(MType::OK, "Initialized %6gl3w");	
+		message(MType::OK, "Initialized gl3w");	
 		/*if(!gl3wIsSupported(3, 3)) {
 			message(MType::BAD, "Current OpenGL version is not supported!!!");
 			quit();
@@ -85,7 +86,11 @@ namespace vpanic {
 		}*/
 
 		if(!(t_settings & NO_FACE_CULLING)) {
-			render_back(false);
+			_render_back(false);
+			m_face_culling_enabled = false;
+		}
+		else {
+			m_face_culling_enabled = true;
 		}
 
 		winding_order(CLOCKWISE);
@@ -100,19 +105,14 @@ namespace vpanic {
 		glClearColor(background_color.r/255.0f, background_color.g/255.0f, background_color.b/255.0f, 1.0f);
 		SDL_GL_SwapWindow(m_window);
 
-		if(t_settings & INIT_IMGUI) {
-			message(MType::INFO, "Using %6ImGui");
-
-			ImGui::CreateContext();
-			ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
-			ImGui_ImplOpenGL3_Init("#version 330");
+		ImGui::CreateContext();
+		ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
+		ImGui_ImplOpenGL3_Init("#version 330");
 		
-			ImGuiIO& io = ImGui::GetIO();
-			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		message(MType::OK, "Initialized ImGui");
 
-			message(MType::OK, "Initialized %6ImGui");
-			m_using_imgui = true;
-		}
 
 		if(t_settings & FULLSCREEN) {
 			//FIXME: imgui does things i dont currently understand when enabling fullscreen on init
@@ -128,9 +128,9 @@ namespace vpanic {
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		glViewport(0, 0, m_width, m_height);
 
-		message(MType::OK, "%2Engine is ready! %5[%ims]", timer.elapsed_ms());
+		message(MType::OK, "Engine is ready! [%ims]", timer.elapsed_ms());
 		m_init_ok = true;
-	
+
 	}
 
 	void Engine::request_shutdown() {
@@ -142,14 +142,14 @@ namespace vpanic {
 
 		// cleanup some memory,  TODO: check for memory leaks
 
-		message(MType::INFO, "%5Quitting...");
+		message(MType::INFO, "Quitting...");
 
-		if(m_using_imgui) {
-			ImGui_ImplOpenGL3_Shutdown();
-			ImGui_ImplSDL2_Shutdown();
-			ImGui::DestroyContext();
-			message(MType::OK, "Destroyed %6ImGui");
-		}
+		unload_skybox();
+
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplSDL2_Shutdown();
+		ImGui::DestroyContext();
+		message(MType::OK, "Unloaded ImGui");
 
 		if(m_context != NULL) {
 			SDL_GL_DeleteContext(m_context);
@@ -162,7 +162,7 @@ namespace vpanic {
 		}
 
 		SDL_Quit();	
-		message(MType::OK, "Destroyed %6SDL2");
+		message(MType::OK, "Destroyed SDL");
 		message(MType::INFO, "Reset settings");	
 		
 		m_update_callback        = nullptr;
@@ -172,7 +172,6 @@ namespace vpanic {
 	   	m_window   = nullptr;
 		m_context  = NULL;
 
-		m_using_imgui   = false;
 		m_lock_mouse    = false;
 		m_init_ok       = false;
 		
@@ -191,7 +190,6 @@ namespace vpanic {
 
 		Timer timer;
 		SDL_Event event;
-
 
 		while(!m_quit) {
 			if(!ok()) { break; }
@@ -213,29 +211,30 @@ namespace vpanic {
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::mat4),   &camera.projection[0][0]);
 			glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4),   sizeof(glm::vec3),   &camera.pos);
 
-			glDepthMask(GL_FALSE);
-			m_skybox.shader.use();
-			m_skybox.shader.set_mat4("proj", camera.projection);
-			m_skybox.shader.set_mat4("view", glm::mat4(glm::mat3(camera.view))); // removes translation
-			m_skybox.shape.draw(m_skybox.shader);
-			glDepthMask(GL_TRUE);
-			glUseProgram(0);
-
-
-			if(m_using_imgui) {
-				ImGui_ImplOpenGL3_NewFrame();
-				ImGui_ImplSDL2_NewFrame(m_window);
-				ImGui::NewFrame();
+			if(m_skybox.texture.is_loaded()) { 
+				glDepthMask(GL_FALSE);
+				_render_back(true);
+				m_skybox.shader.use();
+				m_skybox.shader.set_mat4("proj", camera.projection);
+				m_skybox.shader.set_mat4("view", glm::mat4(glm::mat3(camera.view))); // removes translation
+				m_skybox.texture.enable();
+				m_skybox.shape.draw(m_skybox.shader);
+				m_skybox.texture.disable();
+				glDepthMask(GL_TRUE);
+				glUseProgram(0);
+				_render_back(m_face_culling_enabled);
 			}
+
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplSDL2_NewFrame(m_window);
+			ImGui::NewFrame();
 
 			if(m_update_callback != nullptr) {
 				m_update_callback();
 			}
 
-			if(m_using_imgui) {
-				ImGui::Render();
-				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-			}
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 			// handle events
 			while(SDL_PollEvent(&event)) {
@@ -282,7 +281,6 @@ namespace vpanic {
 					default: break;
 				}
 			}
-
 			SDL_GL_SwapWindow(m_window);
 		}
 		m_loop = false;
@@ -302,54 +300,12 @@ namespace vpanic {
 	}
 
 	bool Engine::load_skybox(const std::vector<const char*> t_files) {
-		
+
 		if(t_files.empty()) { return false; }
-		if(m_skybox.loaded) {
-			glDeleteTextures(1, &m_skybox.id);
-			m_skybox.id = 0;
+
+		if(!m_skybox.texture.load_cube(t_files)) {
+			return false;
 		}
-
-		glGenTextures(1, &m_skybox.id);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_skybox.id);
-
-		int width = 0;
-		int height = 0;
-		int num_channels = 0;
-
-		message(MType::INFO, "Loading skybox...");
-
-		for(uint32_t i = 0; i < t_files.size(); i++) {
-			uint8_t* data = stbi_load(t_files[i], &width, &height, &num_channels, 0);
-			
-			if(!data) {
-				message(MType::BAD, "Cannot load texture from file: \"%s\"", t_files[i]);
-				stbi_image_free(data);
-				return false;
-			}
-
-			const uint32_t channel = [num_channels]() {
-				switch(num_channels) {
-					case 2: return GL_RG;
-					case 3: return GL_RGB;
-					case 4: return GL_RGBA;
-					default: return GL_RGB;
-				}
-			}();
-
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, channel, width, height, 0, channel,
-				   	GL_UNSIGNED_BYTE, data);
-			
-			stbi_image_free(data);
-
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		}
-		
-		message(MType::OK, "Loaded skybox %i images", t_files.size());
 
 		std::vector<Vertex> data;
 		add_box_data(&data);
@@ -375,7 +331,6 @@ namespace vpanic {
 			"uniform samplerCube skybox;"
 			"in vec3 texcoord;"
 			"void main() {"
-				//" gl_FragColor = vec4(1.0f);"
 				" gl_FragColor = texture(skybox, texcoord);"
 			"}"
 			;
@@ -385,6 +340,9 @@ namespace vpanic {
 	}
 
 	void Engine::unload_skybox() {
+		m_skybox.shape.unload();
+		m_skybox.texture.unload();
+		message(MType::INFO, "Unloaded skybox");
 	}
 	
 	void Engine::lock_mouse(const bool b) {
@@ -397,7 +355,7 @@ namespace vpanic {
 
 	void Engine::vsync(const bool b) {
 		if(SDL_GL_SetSwapInterval(b)) {
-			message(MType::BAD, "Error with VSync!");
+			message(MType::ERROR, "Error with VSync!");
 		}
 	}
 
@@ -405,7 +363,8 @@ namespace vpanic {
 		SDL_SetWindowFullscreen(m_window, b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 	}
 
-	void Engine::render_back(const bool b) {
+	void Engine::_render_back(const bool b) {
+		if(m_face_culling_enabled && b) { return; }
 		b ? glDisable(GL_CULL_FACE) : glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 	}
@@ -413,10 +372,8 @@ namespace vpanic {
 	void Engine::winding_order(const int t_order) {
 		glFrontFace((t_order <= 1) ? GL_CW : GL_CCW);
 	}
-	
-	void Engine::setup_shaders(const std::vector<Shader*>& t_shaders) {
 
-		// TODO: check if this was already setup
+	void Engine::setup_shaders(const std::vector<Shader*>& t_shaders) {
 
 		for(size_t i = 0; i < t_shaders.size(); i++) {
 			if(!t_shaders[i]->is_loaded()) { continue; }

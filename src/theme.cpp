@@ -14,7 +14,7 @@ namespace vpanic {
 
 		std::fstream f(t_filename);
 		if(!f.is_open()) {
-			message(MType::BAD, "Cannot open file \"%s\"", t_filename);
+			message(MType::ERROR, "Cannot open file \"%s\"", t_filename);
 			return false;
 		}
 
@@ -34,9 +34,7 @@ namespace vpanic {
 			std::string value = line.substr(value_start, value_end);
 
 			std::transform(value.begin(), value.end(), value.begin(), 
-					[](const uint8_t c) {
-						return std::toupper(c);
-					});
+					[](const uint8_t c) { return std::toupper(c); });
 
 			if(!_test(value)) { continue; }
 

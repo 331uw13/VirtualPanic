@@ -19,22 +19,68 @@ namespace vpanic {
 	bool Texture::load(const char* t_filename) {
 		if(m_loaded) { return false; }
 
+		m_type = GL_TEXTURE_2D;
+
 		glGenTextures(1, &m_id);
-		glBindTexture(GL_TEXTURE_2D, m_id);
+		glBindTexture(m_type, m_id);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		int width = 0;
-		int height = 0;
-	   	int num_channels = 0;
+		glTexParameteri(m_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(m_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(m_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(m_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		stbi_set_flip_vertically_on_load(true);
-		uint8_t* data = stbi_load(t_filename, &width, &height, &num_channels, 0);
-		if(!data) {
-			message(MType::BAD, "Cannot load texture from file: \"%s\" | %s", t_filename, stbi_failure_reason());
+		if(!_generate_image(t_filename, m_type)) {
+			return false;
+		}
+		
+		glGenerateMipmap(m_type);
+		
+		message(MType::OK, "Loaded texture: \"%s\"", t_filename);
+		m_loaded = true;
+
+		return true;
+	}
+	
+	bool Texture::load_cube(const std::vector<const char*>& t_filenames) {
+		if(m_loaded) { return false; }
+
+		m_type = GL_TEXTURE_CUBE_MAP;
+
+		glGenTextures(1, &m_id);
+		glBindTexture(m_type, m_id);
+
+		for(uint32_t i = 0; i < t_filenames.size(); i++) {
+	
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+			if(!_generate_image(t_filenames[i], GL_TEXTURE_CUBE_MAP_POSITIVE_X+i)) {
+				return false;
+			}
+			
+			glGenerateMipmap(m_type);
+		}
+		m_loaded = true;
+		return true;
+	}
+	
+	bool Texture::load_cube(const char* t_filename) {
+		return load_cube({ t_filename, t_filename, t_filename, t_filename, t_filename, t_filename }); // lol
+	}
+
+	bool Texture::_generate_image(const char* t_filename, const int t_type) {
+		int width = 0;
+		int height = 0;
+		int num_channels = 0;
+		uint8_t* data = nullptr;
+
+		data = stbi_load(t_filename, &width, &height, &num_channels, 0);
+		if(data == nullptr) {
+			message(MType::ERROR, "Cannot load texture from file: \"%s\" | reason: \"%s\"", t_filename, stbi_failure_reason());
 			stbi_image_free(data);
 			return false;
 		}
@@ -47,18 +93,14 @@ namespace vpanic {
 				default: return GL_RGB;
 			}
 		}();
-		glTexImage2D(GL_TEXTURE_2D, 0, channel, width, height, 0, channel, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
+		
+		glTexImage2D(t_type, 0, channel, width, height, 0, channel, GL_UNSIGNED_BYTE, data);
 		stbi_image_free(data);
-
-		message(MType::OK, "Loaded texture %3\"%s\"", t_filename);
-		m_loaded = true;
+		
 		return true;
 	}
 
 	void Texture::unload() {
-		message(MType::INFO, "Unload texture");
 		glDeleteTextures(1, &m_id);
 		m_id = 0;
 		m_loaded = false;
@@ -67,14 +109,18 @@ namespace vpanic {
 	bool Texture::is_loaded() const {
 		return m_loaded;
 	}
+	
+	uint8_t Texture::get_type() const {
+		return m_type;
+	}
 
 	void Texture::enable() {
 		if(!m_loaded) { return; }
-		glBindTexture(GL_TEXTURE_2D, m_id);
+		glBindTexture(m_type, m_id);
 	}
 	
 	void Texture::disable() {
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(m_type, 0);
 	}
 
 

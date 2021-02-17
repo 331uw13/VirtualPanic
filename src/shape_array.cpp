@@ -55,7 +55,7 @@ namespace vpanic {
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*data_size, &t_data[0], GL_STATIC_DRAW);
 		
-			message(MType::DEBUG, "%2ShapeArray::load()%0: %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
+			message(MType::DEBUG, "ShapeArray::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
 
 			if(data_size >= 3) {
 				m_type = GL_TRIANGLES;

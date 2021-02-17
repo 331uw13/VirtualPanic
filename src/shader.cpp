@@ -8,7 +8,6 @@ namespace vpanic {
 
 	Shader::~Shader() {
 		unload();
-		message(MType::DEBUG, "Deleted shader");
 	}
 
 	void Shader::load(const char* t_shader_filename, const uint32_t t_glsl_version, const int t_settings) {
@@ -122,7 +121,7 @@ namespace vpanic {
 		
 		// check if shader has been compiled succesfully
 		if(!_shader_ok(vertex_shader)) { 
-			message(MType::BAD, "Vertex shader failed");
+			message(MType::ERROR, "Vertex shader failed");
 			return;
 	   	}
 
@@ -132,7 +131,7 @@ namespace vpanic {
 		
 		// check if shader has been compiled succesfully
 		if(!_shader_ok(fragment_shader)) {
-			message(MType::BAD, "Fragment shader failed");
+			message(MType::ERROR, "Fragment shader failed");
 			return;
 	   	}
 		
@@ -151,7 +150,7 @@ namespace vpanic {
 		if(linked == 0) {
 			char msg[1024];
 			glGetProgramInfoLog(program, 1024, NULL, msg);
-			message(MType::BAD, "%1(Shader Program Link Error):%0 %s", msg);
+			message(MType::ERROR, "(Shader Program Link Error): %s", msg);
 			id = program;
 			m_loaded = false;
 			return;
@@ -165,7 +164,7 @@ namespace vpanic {
 		std::string full, line;
 		f.open(t_filename);
 		if(!f.is_open()) {
-			message(MType::BAD, "Failed to open file: \"%s\"!", t_filename);
+			message(MType::ERROR, "Failed to open file: \"%s\"!", t_filename);
 			t_src_ref = {};
 		}
 		while(getline(f, line)) {
@@ -183,7 +182,7 @@ namespace vpanic {
 
 			char msg[1024];
 			glGetShaderInfoLog(t_id, 1024, NULL, msg);
-			message(MType::BAD, "%1(Shader Compile Error):%0 %s", msg);
+			message(MType::ERROR, "(Shader Compile Error): %s", msg);
 			m_loaded = false;
 			return false;
 		}

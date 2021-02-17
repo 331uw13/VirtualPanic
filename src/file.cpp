@@ -16,7 +16,7 @@ namespace vpanic {
 		struct dirent* dir;
 		DIR* d = opendir(t_directory);
 		if(!d) { 
-			message(MType::BAD, "Cannot open directory \"%s\"", t_directory);
+			message(MType::ERROR, "Cannot open directory \"%s\"", t_directory);
 			return;
 	   	}
 

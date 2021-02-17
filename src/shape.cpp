@@ -25,7 +25,7 @@ namespace vpanic {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*t_data.size(), &t_data[0], GL_STATIC_DRAW);
 
-		message(MType::DEBUG, "%2Shape::load()%0: %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
+		message(MType::DEBUG, "Shape::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
 
 		const uint32_t stride = sizeof(glm::vec3)*2+sizeof(glm::vec2);
 
