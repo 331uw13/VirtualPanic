@@ -6,7 +6,8 @@
 
 #include "utils.hpp"
 #include "theme.hpp"
-
+#include "settings.hpp"
+#include "console.hpp"
 
 static int g_seed { 0 };
 
@@ -149,10 +150,54 @@ namespace vpanic {
 		style.Colors[ImGuiCol_ResizeGripActive]   = color_to_imvec4(illuminate(resize_grip, active));
 
 	}
+	
+	void add_triangle_data(std::vector<Vertex>& out) {
+	}
 
-	void add_box_data(std::vector<Vertex>* out) {	
-		if(out == nullptr) { return; }
-		*out = {
+	void add_plane_data(std::vector<Vertex>& out, const int t_settings) {
+		
+		std::vector<Vertex> tmp = [t_settings]() {
+			
+			if(t_settings == DOUBLE_SIDE) {
+				return std::vector<Vertex> {
+					Vertex(-0.5f, -0.5f,  0.0f),
+					Vertex( 0.5f,  0.5f,  0.0f),
+					Vertex( 0.5f, -0.5f,  0.0f),
+					Vertex( 0.5f,  0.5f,  0.0f),
+					Vertex(-0.5f, -0.5f,  0.0f),
+					Vertex(-0.5f,  0.5f,  0.0f),
+	
+					Vertex(-0.5f, -0.5f, 0.0f),
+					Vertex( 0.5f, -0.5f, 0.0f),
+					Vertex( 0.5f,  0.5f, 0.0f),
+					Vertex( 0.5f,  0.5f, 0.0f),
+					Vertex(-0.5f,  0.5f, 0.0f),
+					Vertex(-0.5f, -0.5f, 0.0f),
+				};
+			}
+			else {
+				return std::vector<Vertex> {
+					Vertex(-0.5f, -0.5f,  0.0f),
+					Vertex( 0.5f,  0.5f,  0.0f),
+					Vertex( 0.5f, -0.5f,  0.0f),
+					Vertex( 0.5f,  0.5f,  0.0f),
+					Vertex(-0.5f, -0.5f,  0.0f),
+					Vertex(-0.5f,  0.5f,  0.0f),
+				};
+			}
+
+		}();
+
+		out.resize(out.size()+tmp.size());
+		out.assign(tmp.begin(), tmp.end());
+
+	}
+
+	void add_sphere_data(std::vector<Vertex>& out) {
+	}
+	
+	void add_box_data(std::vector<Vertex>& out) {	
+		std::vector<Vertex> tmp = {
 			Vertex(-0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f, -0.5f),
@@ -191,11 +236,44 @@ namespace vpanic {
 			Vertex(-0.5f,  0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f,  0.5f),
+			
 			Vertex( 0.5f,  0.5f,  0.5f),
 			Vertex(-0.5f,  0.5f,  0.5f),
 			Vertex(-0.5f,  0.5f, -0.5f)
 		};
+
+		out.resize(out.size()+tmp.size());
+		out.assign(tmp.begin(), tmp.end());
 	}
+
+	void set_normals(std::vector<Vertex>& out) {
+		if(out.empty() || out.size() < 3) { return; }
+
+		glm::vec3 triangle[3];
+
+		for(uint32_t i = 0; i < out.size(); i+=3) {
+			triangle[0] = out[i].point;
+			triangle[1] = out[i+1].point;
+			triangle[2] = out[i+2].point;
+
+			glm::vec3 normal = glm::cross(triangle[1]-triangle[0], triangle[2]-triangle[0]);	
+			normal = -(normal/glm::length(normal));
+
+			out[i].normal = normal;
+			out[i+1].normal = normal;
+			out[i+2].normal = normal;
+
+			Console::instance().print("Normal: %1.2f, %1.2f, %1.2f", normal.x, normal.y, normal.z);
+			Console::instance().print("Normal: %1.2f, %1.2f, %1.2f", normal.x, normal.y, normal.z);
+			Console::instance().print("Normal: %1.2f, %1.2f, %1.2f", normal.x, normal.y, normal.z);
+			Console::instance().print("---------------------------------");
+		}
+
+	}
+
+	void invert_normals(std::vector<Vertex>& out) {
+	}
+
 
 }
 

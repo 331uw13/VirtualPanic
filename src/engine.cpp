@@ -308,7 +308,7 @@ namespace vpanic {
 		}
 
 		std::vector<Vertex> data;
-		add_box_data(&data);
+		add_box_data(data);
 		m_skybox.shape.load(data);
 
 		const char* vertex_src = 
@@ -378,9 +378,7 @@ namespace vpanic {
 		for(size_t i = 0; i < t_shaders.size(); i++) {
 			if(!t_shaders[i]->is_loaded()) { continue; }
 			const uint32_t block_index = glGetUniformBlockIndex(t_shaders[i]->id, "vertex_data");
-			const uint32_t block_index2 = glGetUniformBlockIndex(t_shaders[i]->id, "fragment_data");
 			glUniformBlockBinding(t_shaders[i]->id, block_index, 0);
-			glUniformBlockBinding(t_shaders[i]->id, block_index2, 0);
 		}
 
 		// camera view, projection and position

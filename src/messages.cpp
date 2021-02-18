@@ -19,7 +19,7 @@ namespace vpanic {
 		buf[sizeof(buf)-1] = '\0';
 		
 		printf(" (VirtualPanic) -> [%s]: %s\n", _msg_types[static_cast<int>(t_type)], buf);
-		Console::get_instance().print(_msg_colors[(int)t_type], "[%s]: %s\n", _msg_types[static_cast<int>(t_type)], buf);
+		Console::instance().print(_msg_colors[(int)t_type], "[%s]: %s\n", _msg_types[static_cast<int>(t_type)], buf);
 		
 		va_end(ap);
 	}

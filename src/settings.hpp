@@ -38,6 +38,11 @@ namespace vpanic {
 	// TODO: static constexpr int SUPPORT_GEOMETRY_SHADER { 1 << 1 };
 
 
+	// --- 'add_plane_data()' ---
+	// do you need to see both sides of the plane?
+	// not default
+	static constexpr int DOUBLE_SIDE { 1 };
+
 	// --- 'find_all()' ---
 	// dont ignore sub directories
 	// not default

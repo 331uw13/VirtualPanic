@@ -34,13 +34,13 @@ namespace vpanic {
 	ImVec4 color_to_imvec4(const Color& color);
 	void read_imgui_theme(const char* filename);
 	
-	void add_triangle_data(std::vector<Vertex>* out);
-	void add_plane_data(std::vector<Vertex>* out);
-	void add_box_data(std::vector<Vertex>* out);
-	void add_sphere_data(std::vector<Vertex>* out);
+	void add_triangle_data(std::vector<Vertex>& out);
+	void add_plane_data(std::vector<Vertex>& out, const int t_settings = 0);
+	void add_box_data(std::vector<Vertex>& out);
+	void add_sphere_data(std::vector<Vertex>& out);
 	
-	void set_normals(std::vector<Vertex>* out);
-	void invert_normals(std::vector<Vertex>* out);
+	void set_normals(std::vector<Vertex>& out);
+	void invert_normals(std::vector<Vertex>& out);
 
 }
 

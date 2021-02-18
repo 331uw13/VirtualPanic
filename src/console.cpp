@@ -14,6 +14,8 @@ namespace vpanic {
 		ImGui::Begin("Console");
 		ImVec2 size = ImGui::GetWindowSize();
 
+
+
 		ImGui::BeginChild("##scoll", ImVec2(size.x-20, size.y-58), false, ImGuiWindowFlags_HorizontalScrollbar);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1, 1));
 		
