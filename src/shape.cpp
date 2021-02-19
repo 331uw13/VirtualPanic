@@ -8,6 +8,7 @@
 
 #define VEC3_SIZE  0xC
 
+
 namespace vpanic {
 	
 	bool Shape::is_loaded() const {

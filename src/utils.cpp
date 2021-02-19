@@ -30,6 +30,10 @@ namespace vpanic {
 		return lerp(dst_min, dst_max, norm(value, src_min, src_max));
 	}
 
+	float angle_between(const glm::vec2& p0, const glm::vec2& p1) {
+		return atan2(p1.x-p0.x, p1.y-p0.y);
+	}
+
 	float distance(const glm::vec3& p0, const glm::vec3& p1) {
 		const float dx = p1.x - p0.x;
 		const float dy = p1.y - p0.y;
@@ -40,6 +44,10 @@ namespace vpanic {
 
 	float random(const float min, const float max) {
 		return min + static_cast<float>(fast_rand()) / (static_cast<float>((float)0x7FFF / (float)(max - min)));
+	}
+	
+	glm::vec3 random_point(const glm::vec3& min, const glm::vec3& max) {
+		return glm::vec3(random(min.x, max.x), random(min.y, max.y), random(min.z, max.z));
 	}
 
 	int fast_rand() {
@@ -246,7 +254,7 @@ namespace vpanic {
 		out.assign(tmp.begin(), tmp.end());
 	}
 
-	void set_normals(std::vector<Vertex>& out) {
+	void set_normals(std::vector<Vertex>& out, const int t_settings) {
 		if(out.empty() || out.size() < 3) { return; }
 
 		glm::vec3 triangle[3];
@@ -259,16 +267,14 @@ namespace vpanic {
 			glm::vec3 normal = glm::cross(triangle[1]-triangle[0], triangle[2]-triangle[0]);	
 			normal = -(normal/glm::length(normal));
 
+			if(t_settings == SMOOTH_NORMALS) {
+				normal = -normal;
+			}
+
 			out[i].normal = normal;
 			out[i+1].normal = normal;
 			out[i+2].normal = normal;
-
-			Console::instance().print("Normal: %1.2f, %1.2f, %1.2f", normal.x, normal.y, normal.z);
-			Console::instance().print("Normal: %1.2f, %1.2f, %1.2f", normal.x, normal.y, normal.z);
-			Console::instance().print("Normal: %1.2f, %1.2f, %1.2f", normal.x, normal.y, normal.z);
-			Console::instance().print("---------------------------------");
 		}
-
 	}
 
 	void invert_normals(std::vector<Vertex>& out) {

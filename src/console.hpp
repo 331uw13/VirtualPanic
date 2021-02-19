@@ -30,7 +30,7 @@ namespace vpanic {
 	
 		Console() {}
 
-		float m_font_size { 1.3f };
+		float m_font_size { 1.10f };
 		char m_input_buffer[600];
 		std::vector<std::pair<const char*, Color>> m_text;
 		void(*m_callback)(const std::vector<std::string>&) { nullptr };

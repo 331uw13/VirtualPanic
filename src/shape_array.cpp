@@ -141,8 +141,8 @@ namespace vpanic {
 		if(!m_loaded) { return; }
 		if(m_type == 0) { return; }
 		
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
-		t_shader.set_mat4("model", model);
+		t_shader.use();
+		t_shader.set_mat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)));
 		t_shader.set_color("shape.color", color);
 		t_shader.set_int("use_offset", 1);
 

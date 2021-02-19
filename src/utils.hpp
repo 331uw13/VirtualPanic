@@ -15,10 +15,12 @@ namespace vpanic {
 	float norm   (const float value, const float min, const float max);
 	float map    (const float value, const float src_min, const float src_max,
 		   			const float dst_min, const float dst_max);
-	
+
+	float angle_between(const glm::vec2& p0, const glm::vec2& p1);
 	float distance(const glm::vec3& p0, const glm::vec3& p1);
 
 	float random (const float min, const float max);
+	glm::vec3 random_point(const glm::vec3& min, const glm::vec3& max);
 	void set_seed(const int new_seed);
 	int fast_rand();
 
@@ -33,13 +35,13 @@ namespace vpanic {
 
 	ImVec4 color_to_imvec4(const Color& color);
 	void read_imgui_theme(const char* filename);
-	
+
 	void add_triangle_data(std::vector<Vertex>& out);
 	void add_plane_data(std::vector<Vertex>& out, const int t_settings = 0);
 	void add_box_data(std::vector<Vertex>& out);
 	void add_sphere_data(std::vector<Vertex>& out);
 	
-	void set_normals(std::vector<Vertex>& out);
+	void set_normals(std::vector<Vertex>& out, const int t_settings = 0);
 	void invert_normals(std::vector<Vertex>& out);
 
 }

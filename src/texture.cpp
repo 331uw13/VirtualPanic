@@ -30,20 +30,12 @@ namespace vpanic {
 		glTexParameteri(m_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		stbi_set_flip_vertically_on_load(true);
-		if(!_generate_image(t_filename, m_type)) {
-			return false;
-		}
-		
-		glGenerateMipmap(m_type);
-		
-		message(MType::OK, "Loaded texture: \"%s\"", t_filename);
-		m_loaded = true;
-
-		return true;
+		return _generate_image(t_filename, m_type);
 	}
 	
 	bool Texture::load_cube(const std::vector<const char*>& t_filenames) {
 		if(m_loaded) { return false; }
+		
 
 		m_type = GL_TEXTURE_CUBE_MAP;
 
@@ -51,20 +43,16 @@ namespace vpanic {
 		glBindTexture(m_type, m_id);
 
 		for(uint32_t i = 0; i < t_filenames.size(); i++) {
-	
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		
+
 			if(!_generate_image(t_filenames[i], GL_TEXTURE_CUBE_MAP_POSITIVE_X+i)) {
 				return false;
 			}
-			
-			glGenerateMipmap(m_type);
 		}
-		m_loaded = true;
 		return true;
 	}
 	
@@ -82,7 +70,7 @@ namespace vpanic {
 		if(data == nullptr) {
 			message(MType::ERROR, "Cannot load texture from file: \"%s\" | reason: \"%s\"", t_filename, stbi_failure_reason());
 			stbi_image_free(data);
-			return false;
+			return true;
 		}
 
 		const uint32_t channel = [num_channels]() {
@@ -93,10 +81,14 @@ namespace vpanic {
 				default: return GL_RGB;
 			}
 		}();
-		
+
 		glTexImage2D(t_type, 0, channel, width, height, 0, channel, GL_UNSIGNED_BYTE, data);
 		stbi_image_free(data);
 		
+		glGenerateMipmap(m_type);
+		
+		message(MType::OK, "Loaded texture: \"%s\"", t_filename);
+		m_loaded = true;
 		return true;
 	}
 
