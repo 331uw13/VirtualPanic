@@ -5,6 +5,10 @@
 #include "timer.hpp"
 #include "camera.hpp"
 
+// NOTES:
+// - remove '_find_next_dead' doesnt how i want and think better solution for this
+// - save color in vertex with 'ShapeArray'
+
 namespace vpanic {
 
 	struct Particle {
