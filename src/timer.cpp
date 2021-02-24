@@ -19,7 +19,7 @@ namespace vpanic {
 		return std::chrono::duration_cast<std::chrono::nanoseconds>(_now() - m_point).count();
 	}
 	
-	chrono_tp Timer::_now() {
+	time_point Timer::_now() {
 		return std::chrono::steady_clock::now();
 	}
 

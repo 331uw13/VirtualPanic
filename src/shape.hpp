@@ -26,6 +26,13 @@ namespace vpanic {
 
 		Color color         { Color(5, 240, 5) };
 
+		void enable_outline(Shader* t_shader_ptr);
+		void disable_outline();
+		bool is_outline_enabled() const;
+
+		mutable float outline_thickness { 1.16f };
+		float line_thickness { 1.1f };
+
 		void load(const std::vector<Vertex>& t_data, const int t_settings = 0);
 		void unload();
 		bool is_loaded() const;
@@ -35,7 +42,6 @@ namespace vpanic {
 		void update_vertices(const std::vector<Vertex>& t_vertices);
 		
 		void draw(const Shader& t_shader) const;		
-		void line_thickness(const float t_value);
 
 		Shape(const std::vector<Vertex>& t_data, const glm::vec3& t_pos,
 			   	const Color& t_color, const int t_settings = 0)
@@ -50,9 +56,10 @@ namespace vpanic {
 		uint32_t m_vao { 0 };
 		uint32_t m_vbo { 0 };
 		uint32_t m_draw_data_size { 0 };
-
-		float m_line_thickness { 1.0f };
 		uint8_t m_type;
+		
+		bool m_outline { false };
+		Shader* m_outline_shader { nullptr };
 
 	};
 }

@@ -2,9 +2,9 @@
 #include <chrono>
 #include <cstdint>
 
-typedef std::chrono::steady_clock::time_point chrono_tp;
-
 namespace vpanic {
+
+	typedef std::chrono::steady_clock::time_point time_point;
 
 	class Timer {
 	public:
@@ -20,8 +20,8 @@ namespace vpanic {
 
 	private:
 
-		chrono_tp m_point;
-		chrono_tp _now();
+		time_point m_point;
+		time_point _now();
 
 	};
 

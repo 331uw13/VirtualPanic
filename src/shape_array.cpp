@@ -4,7 +4,7 @@
 #include "shape_array.hpp"
 #include "messages.hpp"
 
-#define MATRIX_SIZE  0x40
+//#define MATRIX_SIZE  0x40
 #define VEC3_SIZE  0xC
 
 
@@ -17,30 +17,40 @@ namespace vpanic {
 	ShapeArray::~ShapeArray() {
 		unload();
 	}
-	
+	/*
+	void ShapeArray::place(const std::vector<glm::mat4>& t_matrices) {
+		if(!m_loaded) { load({ }); }
+		const size_t size = t_matrices.size();
+		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
+		glBufferData(GL_ARRAY_BUFFER, size*MATRIX_SIZE, &t_matrices[0], GL_DYNAMIC_DRAW);
+		m_reserved = size;
+	}
+	*/
+	/*
 	void ShapeArray::set(const uint32_t t_index, const glm::mat4& t_matrix) {
 		//if(t_index >= m_reserved) { return; }
 		if(!m_loaded) { load({ }); }
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
 		glBufferSubData(GL_ARRAY_BUFFER, t_index*MATRIX_SIZE, MATRIX_SIZE, &t_matrix);		
 	}
-	
-	void ShapeArray::place(const std::vector<glm::mat4>& t_matrices) {
+	*/
+
+	void ShapeArray::set_pos(const uint32_t t_index, const glm::vec3& t_pos) {
 		if(!m_loaded) { load({ }); }
-		const size_t size = t_matrices.size();
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
-		glBufferData(GL_ARRAY_BUFFER, size*MATRIX_SIZE, &t_matrices[0], GL_STATIC_DRAW);
-		m_reserved = size;
+		glBufferSubData(GL_ARRAY_BUFFER, t_index*sizeof(glm::vec3), sizeof(glm::vec3), &t_pos);		
 	}
 	
 	void ShapeArray::reserve(const uint32_t t_size) {
 		if(!m_loaded) { load({ }); }
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
-		glBufferData(GL_ARRAY_BUFFER, t_size*MATRIX_SIZE, NULL, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, t_size*sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_reserved = t_size;
 	}
 	
+	// ------------------------------
+
 	void ShapeArray::load(const std::vector<Vertex>& t_data, const int t_settings) {
 		if(!m_loaded) { 
 			glGenBuffers(1, &m_ibuffer);
@@ -53,7 +63,7 @@ namespace vpanic {
 		if(!t_data.empty()) {
 			const size_t data_size = t_data.size();
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*data_size, &t_data[0], GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, data_size*sizeof(Vertex), &t_data[0], GL_DYNAMIC_DRAW);
 		
 			message(MType::DEBUG, "ShapeArray::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
 
@@ -86,16 +96,21 @@ namespace vpanic {
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
 		glEnableVertexAttribArray(2);	
 	
-		// matrices  (4x4) 
+		
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
 
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
+		glEnableVertexAttribArray(3);
+		glVertexAttribDivisor(3, 1);
+		
+		/*
 		for(int i = 0; i < 4; i++) {
 			const int id = i+3;
 			glVertexAttribPointer(id, 4, GL_FLOAT, GL_FALSE, MATRIX_SIZE, (void*)(sizeof(glm::vec4)*i)); // 0*x=0, 1*x=x ...
 			glEnableVertexAttribArray(id);
 			glVertexAttribDivisor(id, 1);
 		}
-
+		*/
 		m_draw_data_size = t_data.size();
 		m_loaded = true;
 	}
@@ -133,7 +148,7 @@ namespace vpanic {
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
 		glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		size /= MATRIX_SIZE;
+		size /= sizeof(glm::vec3);
 		return size;
 	}
 	

@@ -250,7 +250,7 @@ namespace vpanic {
 				"layout(location = 0) in vec3 pos;\n"
 				"layout(location = 1) in vec3 normal;\n"
 				"layout(location = 2) in vec2 texcoord;\n"
-				"layout(location = 3) in mat4 offset;\n"
+				"layout(location = 3) in vec3 offset;\n"
 				"struct Fragment {\n"
 					" vec3 pos;\n"
 					" vec3 normal;\n"
@@ -258,8 +258,9 @@ namespace vpanic {
 					" vec3 texcoord3d;\n"
 				"};\n"
 				"layout (std140) uniform vertex_data {"
-					" uniform mat4 view;\n"
-					" uniform mat4 proj;\n"
+					//" uniform mat4 view;\n"
+					//" uniform mat4 proj;\n"
+					" uniform mat4 matrix;\n"
 					" uniform vec3 cam_pos;\n"
 				"};"
 				"uniform mat4 model;\n"
@@ -273,8 +274,9 @@ namespace vpanic {
 					" camera_pos = cam_pos;"
 					" fragment.texcoord = texcoord;\n"
 					" fragment.texcoord3d = pos;\n"
-					" fragment.pos = vec3(((use_offset) ? offset : model)*vec4(pos, 1.0));\n"
-					" gl_Position = proj*view*((use_offset) ? offset : model)*vec4(pos, 1.0);\n"
+					" fragment.pos = vec3(model*vec4(pos+offset, 1.0));\n"
+					" gl_Position = matrix*model*vec4(pos+offset, 1.0);\n"
+					//" gl_Position = proj*view*model*vec4(pos+offset, 1.0);\n"
 				"}";
 		}
 	}

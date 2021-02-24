@@ -93,6 +93,14 @@ namespace vpanic {
 				static_cast<float>(color.a)/255.0f);
 	}
 
+	Color imvec4_to_color(const ImVec4& v4) {
+		return Color(
+				static_cast<uint8_t>(v4.x*255.0f),
+				static_cast<uint8_t>(v4.y*255.0f),
+				static_cast<uint8_t>(v4.z*255.0f),
+				static_cast<uint8_t>(v4.w*255.0f));
+	}
+
 	void read_imgui_theme(const char* filename) {
 
 		Theme theme(filename);
@@ -255,7 +263,7 @@ namespace vpanic {
 	}
 
 	void set_normals(std::vector<Vertex>& out, const int t_settings) {
-		if(out.empty() || out.size() < 3) { return; }
+		if(out.empty()) { return; }
 
 		glm::vec3 triangle[3];
 
@@ -268,7 +276,7 @@ namespace vpanic {
 			normal = -(normal/glm::length(normal));
 
 			if(t_settings == SMOOTH_NORMALS) {
-				normal = -normal;
+				normal = -(normal*3.5f);
 			}
 
 			out[i].normal = normal;

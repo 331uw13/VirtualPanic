@@ -11,12 +11,11 @@
 namespace vpanic {
 
 	void Console::update() {
-		ImGui::Begin("Console");
+		ImGui::Begin("Console", (bool*)NULL, ImGuiWindowFlags_NoScrollbar);
 		ImVec2 size = ImGui::GetWindowSize();
 
 
-
-		ImGui::BeginChild("##scoll", ImVec2(size.x-20, size.y-58), false, ImGuiWindowFlags_HorizontalScrollbar);
+		ImGui::BeginChild("##scoll", ImVec2(size.x-20, size.y-67), false, ImGuiWindowFlags_HorizontalScrollbar);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1, 1));
 		
 		float old_font_size = ImGui::GetFont()->Scale;
@@ -54,7 +53,7 @@ namespace vpanic {
 			m_input_needs_focus = false;
 		}
 
-		ImGui::SetScrollHereY(1.0f);
+		//ImGui::SetScrollHereY(1.0f);
 
 		ImGui::End();
 	}

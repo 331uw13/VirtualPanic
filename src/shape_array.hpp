@@ -12,10 +12,12 @@ namespace vpanic {
 
 		Color color { Color(5, 240, 5) };
 
-		void place(const std::vector<glm::mat4>& t_matrices);
-		void set(const uint32_t t_index, const glm::mat4& t_matrix);
+		//void place(const std::vector<glm::mat4>& t_matrices);
+		void set_pos(const uint32_t t_index, const glm::vec3& t_pos);
 		void reserve(const uint32_t t_size);
 		uint32_t size() const;
+
+		// -------------------
 
 		void load(const std::vector<Vertex>& t_data, const int t_settings = 0);
 		void unload();

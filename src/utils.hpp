@@ -34,6 +34,7 @@ namespace vpanic {
 	void invert_color(Color& color);
 
 	ImVec4 color_to_imvec4(const Color& color);
+	Color imvec4_to_color(const ImVec4& v4);
 	void read_imgui_theme(const char* filename);
 
 	void add_triangle_data(std::vector<Vertex>& out);

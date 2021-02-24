@@ -77,10 +77,8 @@ namespace vpanic {
 
 		} m_skybox;
 
-
 		uint32_t m_ubo { 0 };  // "uniform buffer object"
-	
-
+		
 		bool m_init_ok    { false };
 		bool m_quit       { false };
 		bool m_loop       { false };

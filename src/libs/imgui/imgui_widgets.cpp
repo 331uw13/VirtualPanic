@@ -1096,8 +1096,11 @@ bool ImGui::Checkbox(const char* label, bool* v)
     }
     else if (*v)
     {
-        const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 6.0f));
-        RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
+        //const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 6.0f));
+        ImVec2 pad(ImMax(1.0f, IM_FLOOR(square_sz / 5.7f)), ImMax(1.0f, IM_FLOOR(square_sz / 5.7f)));
+        window->DrawList->AddRectFilled(check_bb.Min + pad, check_bb.Max - pad, check_col, style.FrameRounding);
+		//RenderRectFilledRangeH(window->DrawList, ImRect());
+		//RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
     }
 
     ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
@@ -7941,6 +7944,7 @@ void ImGui::TabItemLabelAndCloseButton(ImDrawList* draw_list, const ImRect& bb, 
     if (out_just_closed)
         *out_just_closed = close_button_pressed;
 }
+
 
 
 #endif // #ifndef IMGUI_DISABLE

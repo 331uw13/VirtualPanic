@@ -5,6 +5,7 @@
 
 #include "shape.hpp"
 #include "messages.hpp"
+#include "utils.hpp"
 
 #define VEC3_SIZE  0xC
 
@@ -83,17 +84,39 @@ namespace vpanic {
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, t_vertices.size()*sizeof(Vertex), &t_vertices[0]);	
 	}
-		
+	
+	void Shape::enable_outline(Shader* t_shader_ptr) {
+		m_outline = true;
+		m_outline_shader = t_shader_ptr;
+	}
+
+	void Shape::disable_outline() {
+		m_outline = false;
+		if(m_outline_shader != nullptr) {
+			m_outline_shader->unload();
+			m_outline_shader = nullptr;
+		}
+	}
+
+	bool Shape::is_outline_enabled() const {
+		return m_outline;
+	}
+	
 	void Shape::draw(const Shader& t_shader) const {
 		if(!m_loaded) { return; }	
 		if(m_type == 0) { return; }
 
 		glm::mat4 model(1.0f);
+		
 		model = glm::translate(model, pos);
-		model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::scale(model, scale);
+		if(rotation != glm::vec3(0.0f)) {
+			model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+		}
+		if(scale != glm::vec3(0.0f)) {
+			model = glm::scale(model, scale);
+		}
 
 		t_shader.use();
 		t_shader.set_vec3("shape.pos", pos);
@@ -102,17 +125,42 @@ namespace vpanic {
 		t_shader.set_int("use_offset", 0);
 		
 		if(m_type == GL_LINES) {
-			glLineWidth(m_line_thickness);
+			glLineWidth(line_thickness);
 		}
 
+		const bool use_outline = (m_outline && m_outline_shader != nullptr);
+
+		if(use_outline) {
+			glStencilFunc(GL_ALWAYS, 1, 255);
+			glStencilMask(255);
+		}
+		
 		glBindVertexArray(m_vao);
 		glDrawArrays(m_type, 0, m_draw_data_size);
+
+		if(use_outline) {
+			
+			clamp<float>(outline_thickness, 1.02f, 2.0f);
+			
+			m_outline_shader->use();
+			m_outline_shader->set_vec3("shape.pos", pos);
+			m_outline_shader->set_color("shape.color", color);
+			m_outline_shader->set_mat4("model", glm::scale(model, glm::vec3(outline_thickness)));
+			m_outline_shader->set_int("use_offset", 0);
+
+			glDepthFunc(GL_ALWAYS);
+			glStencilFunc(GL_NOTEQUAL, 1, 255);
+			glStencilMask(0);
+		
+			glBindVertexArray(m_vao);
+			glDrawArrays(m_type, 0, m_draw_data_size);
+
+			glDepthFunc(GL_LESS);
+			glStencilFunc(GL_ALWAYS, 1, 255);
+			glStencilMask(255);
+		}
 	}
 	
-	void Shape::line_thickness(const float t_value) {
-		m_line_thickness = t_value;
-	}
-		
 	uint8_t Shape::get_type() const {
 		return m_type;
 	}

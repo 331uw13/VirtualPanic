@@ -50,6 +50,7 @@ namespace vpanic {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		message(MType::DEBUG, "Set attributes");
 
 		m_window = SDL_CreateWindow(t_title, 0, 0, t_size.x, t_size.y,
@@ -64,7 +65,7 @@ namespace vpanic {
 		
 		message(MType::OK, "Created new window");
 		
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		m_context = SDL_GL_CreateContext(m_window);
 		SDL_GL_MakeCurrent(m_window, m_context);
 	
@@ -93,11 +94,22 @@ namespace vpanic {
 			m_face_culling_enabled = true;
 		}
 
-		winding_order(CLOCKWISE);
-		glEnable(GL_MULTISAMPLE);
+	
+		//glEnable(GL_MULTISAMPLE);
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_STENCIL_TEST);
 		glEnable(GL_BLEND);
+
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		winding_order(CLOCKWISE);
+
+		glStencilFunc(GL_ALWAYS, 1, 255);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilMask(0);
+
+//		/* for test */ glEnable(GL_PROGRAM_POINT_SIZE);
+//		/* for test */ glPointSize(1.0f);
+
 
 		message(MType::INFO, "%s", glGetString(GL_VERSION));
 		message(MType::INFO, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -115,7 +127,6 @@ namespace vpanic {
 
 
 		if(t_settings & FULLSCREEN) {
-			//FIXME: imgui does things i dont currently understand when enabling fullscreen on init
 			message(MType::INFO, "Using Fullscreen");
 			fullscreen(true);
 		}
@@ -200,39 +211,48 @@ namespace vpanic {
 				   	background_color.b / 255.0f,
 				   	1.0f);
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			// update camera and set its view, projection and position for everyone to use
 			camera.update();
 			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
 			// NOTE: projection probably doesnt change that much, create event for it?
 			// NOTE: i can have array of stuff what should be updated here
-			glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &camera.view[0][0]);
-			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::mat4),   &camera.projection[0][0]);
-			glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4),   sizeof(glm::vec3),   &camera.pos);
+			//glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &camera.view[0][0]);
+			//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::mat4),   &camera.projection[0][0]);
+			//glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4),   sizeof(glm::vec3),   &camera.pos);
+			glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &(camera.projection*camera.view)[0][0]);
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::vec3),   &camera.pos);
 
-			if(m_skybox.texture.is_loaded()) { 
-				glDepthMask(GL_FALSE);
-				_render_back(true);
-				m_skybox.shader.use();
-				m_skybox.shader.set_mat4("proj", camera.projection);
-				m_skybox.shader.set_mat4("view", glm::mat4(glm::mat3(camera.view))); // removes translation
-				m_skybox.texture.enable();
-				m_skybox.shape.draw(m_skybox.shader);
-				m_skybox.texture.disable();
-				glDepthMask(GL_TRUE);
-				glUseProgram(0);
-				_render_back(m_face_culling_enabled);
-			}
-
+			
+			
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplSDL2_NewFrame(m_window);
 			ImGui::NewFrame();
+		
+			glStencilMask(0);
+
+			if(m_skybox.texture.is_loaded()) { 
+				
+				glDepthFunc(GL_LEQUAL);
+				_render_back(true);
+
+				m_skybox.shader.use();
+				//m_skybox.shader.set_mat4("proj", camera.projection);
+				m_skybox.shader.set_mat4("matrix", camera.projection*glm::mat4(glm::mat3(camera.view)));
+				m_skybox.texture.enable();
+				m_skybox.shape.draw(m_skybox.shader);
+				glUseProgram(0);
+				m_skybox.texture.disable();
+			
+				_render_back(m_face_culling_enabled);	
+				glDepthFunc(GL_LESS);
+			}
 
 			if(m_update_callback != nullptr) {
 				m_update_callback();
 			}
-
+			
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -315,16 +335,13 @@ namespace vpanic {
 			"#version 330 core\n"
 			"layout (location = 0) in vec3 pos;"
 			"uniform mat4 model;"
-			"uniform mat4 view;"
-			"uniform mat4 proj;"
+			"uniform mat4 matrix;"
 			"out vec3 texcoord;"
 
 			"void main() {"
 				" texcoord = pos;"
-				" gl_Position = proj*model*view*vec4(pos, 1.0);"
-			"}"
-			
-			;
+				" gl_Position = (model*matrix*vec4(pos, 1.0)).xyww;"
+			"}";
 		
 		const char* fragment_src = 
 			"#version 330 core\n"
@@ -332,8 +349,7 @@ namespace vpanic {
 			"in vec3 texcoord;"
 			"void main() {"
 				" gl_FragColor = texture(skybox, texcoord);"
-			"}"
-			;
+			"}";
 		
 		m_skybox.shader.load_from_memory(vertex_src, fragment_src);
 		return true;
@@ -361,6 +377,9 @@ namespace vpanic {
 
 	void Engine::fullscreen(const bool b) {
 		SDL_SetWindowFullscreen(m_window, b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+		SDL_GetWindowSize(m_window, &m_width, &m_height);
+		glViewport(0, 0, m_width, m_height);
+		camera.aspect_ratio = get_aratio();
 	}
 
 	void Engine::_render_back(const bool b) {
@@ -382,7 +401,7 @@ namespace vpanic {
 		}
 
 		// camera view, projection and position
-		const uint32_t size = 2*sizeof(glm::mat4) + sizeof(glm::vec3);
+		const uint32_t size = /*2**/sizeof(glm::mat4) + sizeof(glm::vec3);
 
 		glGenBuffers(1, &m_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
