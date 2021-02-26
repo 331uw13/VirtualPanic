@@ -20,7 +20,6 @@ namespace vpanic {
 	private:
 
 		std::unordered_map<std::string, Color> m_table;
-		bool _test(const std::string& t_str);
 
 	};
 

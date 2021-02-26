@@ -1,5 +1,6 @@
 #include "shader_editor.hpp"
 #include "utils.hpp"
+#include "imgui_extension.hpp"
 
 #include "libs/imgui/imgui.h"
 #include "libs/imgui/imgui_internal.h"
@@ -30,19 +31,26 @@ namespace vpanic {
 	void ShaderEditor::update() {
 	
 		// NOTE: MenuBar looks bad!
+		/*
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.2f, 2.1f));
-		
+		*/
+
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, color_to_imvec4(Color(0, 46, 50, 185)));
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, color_to_imvec4(Color(0, 32, 38, 165)));
 		ImGui::PushStyleColor(ImGuiCol_Text, color_to_imvec4(Color(220, 220, 230)));
 		ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, color_to_imvec4(Color(200, 60, 180)));
+		//ImGui::PushStyleColor(ImGuiCol_Button, color_to_imvec4(Color(5, 10, 30)));
 
 		//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.2f, 0.2f));
 		
-		ImGui::Begin("Shader Editor", (bool*)NULL, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar);
+		ImGui::Begin("Shader Editor", (bool*)NULL, ImGuiWindowFlags_NoScrollbar/* | ImGuiWindowFlags_MenuBar*/);
 
+		ImGui::VPanic::TextRGB("<FFFFFF>This should be white and <FF0000>Is this red? <00FF00>Is this green? <0000FF>Is this blue?\n");
+		//ImGui::VPanic::TextEditor();
+		
+		/*
 		if(ImGui::BeginMenuBar()) {
 
 			if(ImGui::BeginMenu("File")) {
@@ -56,27 +64,29 @@ namespace vpanic {
 			}
 
 			ImGui::Separator();
-			
-			if(ImGui::MenuItem("Compile")) {
+		
+			if(ImGui::Button("Compile")) {
 			}
 			
 			ImGui::EndMenuBar();
 		}
-
+*/
 		if(m_editor_font != nullptr) {
 			ImGui::PushFont(m_editor_font);
 		}
+/*
 		ImVec2 win_size = ImGui::GetWindowSize();
 		win_size.y -= 50.f;
 		win_size.x -= 50.f;
 
 		ImGui::TextEdit("##source-edit", &m_source, win_size);
 
-		ImGui::PopStyleVar(3);
+		//ImGui::PopStyleVar(3);
+*/
 		ImGui::PopStyleColor(4);
 		ImGui::PopFont();
 		ImGui::End();
-
+		
 	}
 
 	void ShaderEditor::open(Shader* t_shader_ptr) {

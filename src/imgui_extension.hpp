@@ -1,9 +1,20 @@
 #pragma once
+#include <cstdint>
+
+struct ImVec2;
 
 namespace ImGui {
-	namespace VPanicExt {
+	namespace VPanic {
 
-		// i will have to make custom 'InputTextMultiline' for text editting because it doest do all stuff i want
+		// TODO: move console here ?
+	
+		// %z  vpanic::Color(r, g, b, a)
+		bool TextRGB(const char* text, ...);
+		bool TextEditor(const char* label, char* buf, int buf_size, const ImVec2& size_arg);
+
+		// TODO:
+		// bool ColorEdit();
+		// bool ColorPicker();
 
 	}
 }

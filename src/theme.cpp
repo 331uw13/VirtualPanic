@@ -3,6 +3,7 @@
 
 #include "theme.hpp"
 #include "messages.hpp"
+#include "utils.hpp"
 
 namespace vpanic {
 
@@ -36,7 +37,7 @@ namespace vpanic {
 			std::transform(value.begin(), value.end(), value.begin(), 
 					[](const uint8_t c) { return std::toupper(c); });
 
-			if(!_test(value)) { continue; }
+			if(!is_hex_string(value)) { continue; }
 
 			const uint32_t hex = std::stoi(value, nullptr, 16);
 			const uint8_t red    = hex/0x10000;
@@ -46,13 +47,16 @@ namespace vpanic {
 			m_table[label] = Color(red, green, blue);
 		}
 
+
 		f.close();
 		return true;
 	}
 
+	/*
 	bool Theme::_test(const std::string& t_str) {
 		return (t_str.find_first_not_of("X0123456789ABCDEF") == std::string::npos) && !t_str.empty();
 	}
+	*/
 
 	void Theme::clear() {
 		m_table.clear();

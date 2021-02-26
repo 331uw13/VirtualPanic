@@ -106,6 +106,7 @@ namespace vpanic {
 	}
 
 	void Shader::unload() {
+		if(!m_loaded) { return; }
 		glDeleteProgram(id);
 		id = 0;
 		m_loaded = false;

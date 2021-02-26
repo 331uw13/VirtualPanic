@@ -356,9 +356,12 @@ namespace vpanic {
 	}
 
 	void Engine::unload_skybox() {
-		m_skybox.shape.unload();
-		m_skybox.texture.unload();
-		message(MType::INFO, "Unloaded skybox");
+		if(m_skybox.shape.is_loaded()) {
+			m_skybox.shape.unload();
+		}
+		if(m_skybox.texture.is_loaded()) { 
+			m_skybox.texture.unload();
+		}
 	}
 	
 	void Engine::lock_mouse(const bool b) {

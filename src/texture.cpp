@@ -93,6 +93,7 @@ namespace vpanic {
 	}
 
 	void Texture::unload() {
+		if(!m_loaded) { return; }
 		glDeleteTextures(1, &m_id);
 		m_id = 0;
 		m_loaded = false;

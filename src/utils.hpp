@@ -2,11 +2,14 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <vector>
+#include <string>
+#include <functional>
 
 #include "color.hpp"
 #include "vertex.hpp"
 
 struct ImVec4;
+
 
 namespace vpanic {
 
@@ -43,7 +46,17 @@ namespace vpanic {
 	void add_sphere_data(std::vector<Vertex>& out);
 	
 	void set_normals(std::vector<Vertex>& out, const int t_settings = 0);
-	void invert_normals(std::vector<Vertex>& out);
+
+	// TODO: Color fade_colors(blabla);
+	// TODO: uint32_t color_to_hex(const Color& t_color);
+	// TODO: Color hex_to_color(const uint32_t);
+
+	Color hex_to_color(const uint32_t hex);
+	bool is_hex_string(const std::string& t_str);		
+
 
 }
+
+
+
 

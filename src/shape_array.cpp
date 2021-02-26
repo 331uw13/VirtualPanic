@@ -128,6 +128,7 @@ namespace vpanic {
 	}
 
 	void ShapeArray::unload() {
+		if(!m_loaded) { return; }
 		glDeleteBuffers(1, &m_vbo);
 		glDeleteBuffers(1, &m_ibuffer);
 		glDeleteVertexArrays(1, &m_vao);

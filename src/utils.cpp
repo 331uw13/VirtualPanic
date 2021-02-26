@@ -285,7 +285,17 @@ namespace vpanic {
 		}
 	}
 
-	void invert_normals(std::vector<Vertex>& out) {
+	uint32_t color_to_hex(const Color& color) {
+		return (color.r<<16)|(color.g<<8)|color.b;
+	}
+
+	Color hex_to_color(const uint32_t hex) {
+		return Color(hex/0x10000, (hex/0x100)%0x100, hex%0x100);
+	}
+
+	bool is_hex_string(const std::string& t_str) {
+		const size_t find_result = t_str.find_first_not_of("0123456789ABCDEFabcdefxX");
+		return (find_result == std::string::npos) && !t_str.empty();
 	}
 
 
