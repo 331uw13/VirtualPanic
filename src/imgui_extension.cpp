@@ -14,10 +14,7 @@
 bool ImGui::VPanic::TextRGB(const char* text, ...) {
 	
 	ImGuiWindow* window = GetCurrentWindow();
-	const float wrap_pos_x = window->DC.TextWrapPos;
-    const bool wrap_enabled = (wrap_pos_x >= 0.0f);
-	const float wrap_width = wrap_enabled ? CalcWrapWidthForPos(window->DC.CursorPos, wrap_pos_x) : 0.0f;
-
+	
 	char buf[600];
 	va_list ap;
 	va_start(ap, text);
@@ -39,18 +36,17 @@ bool ImGui::VPanic::TextRGB(const char* text, ...) {
 	float cursor_x = window->DC.CursorPos.x;
 
 	auto text_sameline = [&](const char* t_text_part) {
-				
 		const char* text_end = t_text_part+strlen(t_text_part);
 		const ImVec2 text_pos(cursor_x, cursor_y);
-        const ImVec2 text_size = CalcTextSize(t_text_part, text_end, false, wrap_width);
+		const ImVec2 text_size = CalcTextSize(t_text_part, text_end, false, 0);
 
-        ImRect bb(text_pos, ImVec2(text_pos.x+text_size.x, text_pos.y+text_size.y));
-        ItemSize(text_size, 0.0f);
-        if (!ItemAdd(bb, 0)) {
-            return;
+		ImRect bb(text_pos, ImVec2(text_pos.x+text_size.x, text_pos.y+text_size.y));
+		ItemSize(text_size, 0.0f);
+		if (!ItemAdd(bb, 0)) {
+			return;
 		}
     
-        RenderTextWrapped(bb.Min, t_text_part, text_end, wrap_width);
+		RenderTextWrapped(bb.Min, t_text_part, text_end, 0);
 
 		cursor_x += text_size.x;
 	};
