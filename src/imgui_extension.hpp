@@ -8,8 +8,10 @@ namespace ImGui {
 
 		// TODO: move console here ?
 	
-		// %z  vpanic::Color(r, g, b, a)
+		// Example: "<00FF00>this text is green <0000FF>but this is blue!"
 		bool TextRGB(const char* text, ...);
+		
+		// TODO
 		bool TextEditor(const char* label, char* buf, int buf_size, const ImVec2& size_arg);
 
 		// TODO:
