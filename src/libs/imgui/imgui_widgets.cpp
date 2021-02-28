@@ -4578,7 +4578,12 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 			// TODO: remove these "ifdef" kinda useless because this is going to be used only in this project i think
 #ifdef IMGUI_INCLUDE_VIRTUALPANIC
 			if(syntax_highlight >= 0) {
-				
+
+
+				// i will get back to this later...
+
+
+				/*
 				// TODO:
 				// Optimization:
 				// - useless to try find syntax for parts what dont get rendered
@@ -4586,7 +4591,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 
 
 				// Second attempt using regex and making a big mess......... but! it works
-
+				// Problem: can use only 1 color for everything if not 1 extra loop and more regex things
 	
 				std::string_view view(buf_display);
 				const size_t buf_length = view.size();//strlen(buf_display);
@@ -4610,18 +4615,17 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 						colored.insert(b+added_length+pos+i, color_tag[i]);
 					}
 					
-					colored.insert(b+added_length+pos, '{');
-					colored.insert(b+added_length+pos+7, '}');
+					colored.insert(b+added_length+pos, '<');
+					colored.insert(b+added_length+pos+7, '>');
+					added_length += 8;
+
 
 					// back to default color
-					/*
-					const uint32_t real_length = length+added_length;
-
-					colored.insert(b+pos+real_length, '{');
-					colored.insert(b+pos+real_length+1, '/');
-					colored.insert(b+pos+real_length+2, '}');
-					*/
-					added_length += 8;
+					
+					colored.insert(b+pos+length+added_length, '<');
+					colored.insert(b+pos+length+added_length+1, '/');
+					colored.insert(b+pos+length+added_length+2, '>');
+					added_length += 3;
 				};
 
 
@@ -4642,6 +4646,12 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 					it++;
 				}
 
+				const size_t final_size = colored.size();
+				char tmp_buf[final_size];
+				memmove(tmp_buf, &colored[0], final_size);
+				
+				VPanic::TextRGB(tmp_buf);
+				*/
 
 
 				/*
@@ -4653,14 +4663,6 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 					buf_display = m.suffix().str().c_str();
 				}
 				*/
-
-				const size_t final_size = colored.size();
-				char tmp_buf[final_size];
-				memmove(tmp_buf, &colored[0], final_size);
-				
-				VPanic::TextRGB(tmp_buf);
-
-
 				/*
 				
 				// First attempt without including std::regex
@@ -4822,6 +4824,9 @@ void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 
 	float cursor_y = window->DC.CursorPos.y;
 	float cursor_x = window->DC.CursorPos.x;
+	float old_cursor_x = cursor_x;
+
+	bool had_newline = false;
 
 	auto text_sameline = [&](const char* t_text_part) {
 		const char* text_end = t_text_part+strlen(t_text_part);
@@ -4835,12 +4840,18 @@ void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 		}
     
 		RenderText(text_pos, t_text_part, text_end);
-		cursor_x += text_size.x;
+		if(had_newline) {
+			cursor_x = old_cursor_x+g.Style.FramePadding.x;
+			cursor_y += text_size.y+g.Style.FramePadding.y;
+			had_newline = false;
+		}
+		else {
+			cursor_x += text_size.x;
+		}
 	};
 
 
 	for(uint32_t i = 0; i < len; i++) {
-		
 		if(buf[i] == '>') {
 			write_color = false;
 			if(color_index > 0) {
@@ -4880,6 +4891,9 @@ void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 		else {
 			text_buffer[text_index] = buf[i];
 			text_index++;
+		}
+		if(buf[i] == '\n') {
+			had_newline = true;
 		}
 
 	}

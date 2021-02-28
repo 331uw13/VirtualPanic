@@ -50,8 +50,11 @@ namespace vpanic {
 			ImGui::PushFont(m_editor_font);
 		}
 		
-		//ImGui::VPanic::TextRGB("<FF00FF>This should be purple and <FF0000>Is this red? <00FF00>Is this green? <0000FF>Is this blue?\n");
-		
+		// this should be purple and Is this red?
+		// Is this green?
+		// Is this blue?
+	//	ImGui::VPanic::TextRGB("<FF00FF>This should be purple and <FF0000>Is this red?\n <00FF00>Is this green?\n <0000FF>Is this blue?");
+	/*	
 		{ // test
 			
 			static char buf[1024*2] {
@@ -60,6 +63,7 @@ namespace vpanic {
 
 			ImGui::VPanic::CodeEditor("##TESTING_TEXT_EDITOR", buf, 64, ImGui::VPanic::GLSL_SyntaxHighlight, ImGui::GetWindowSize());
 		}
+	*/	
 
 		if(m_editor_font != nullptr) {
 			ImGui::PopFont();

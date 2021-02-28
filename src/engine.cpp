@@ -203,15 +203,14 @@ namespace vpanic {
 		Timer timer;
 		SDL_Event event;
 
-		const uint32_t res_x = 260;
-		const uint32_t res_y = 195;
+		const uint32_t res_x = 250*2;
+		const uint32_t res_y = 190*2;
 
 
 		while(!m_quit) {
 			if(!ok()) { break; }
 
-			glEnable(GL_DEPTH_TEST);
-			
+
 			glClearColor(
 					background_color.r / 255.0f,
 				   	background_color.g / 255.0f,
@@ -231,7 +230,8 @@ namespace vpanic {
 			glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &(camera.projection*camera.view)[0][0]);
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::vec3),   &camera.pos);
 
-			
+			// this will give the effect that every pixel looks big
+					
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplSDL2_NewFrame(m_window);
 			ImGui::NewFrame();
@@ -255,22 +255,30 @@ namespace vpanic {
 				glDepthFunc(GL_LESS);
 			}
 
+			
 			if(m_update_callback != nullptr) {
 				m_update_callback();
 			}
 
-
-			// this will give the effect that every pixel looks big
 			
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 1);
+			glViewport(0, 0, res_x, res_y);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			glBlitFramebuffer(0, 0, res_x, res_y, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+
+			/*
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			// srcX and srcY are res_x and res_y so it fixed the small window
 			// this way we can juse use 1 framebuffer
-			glBlitFramebuffer(res_x, res_y, m_width, m_height, 0, 0, res_x, res_y, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-			
+			// but there is problems with higher values
+
+			glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, res_x, res_y, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glBlitFramebuffer(0, 0, res_x, res_y, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+			*/
 
 
+		
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
