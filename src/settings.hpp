@@ -28,6 +28,11 @@ namespace vpanic {
 	// not default
 	static constexpr int NO_COLORED_LIGHT { 1 << 0 };
 
+	// --- 'Shape::disable_outline()' ---
+	// unloads the current outline shader if loaded
+	// by default it sets the outline shader to nullptr but doesnt unload it
+	static constexpr int UNLOAD_ON_DISABLE { 1 };
+
 
 	// --- 'Shader::load()' ---
 	// this will not add any util functions for shaders.

@@ -93,7 +93,6 @@ namespace vpanic {
 	void Shape::disable_outline() {
 		m_outline = false;
 		if(m_outline_shader != nullptr) {
-			m_outline_shader->unload();
 			m_outline_shader = nullptr;
 		}
 	}

@@ -85,16 +85,20 @@ namespace vpanic {
 		glUniform2f(glGetUniformLocation(id, t_name), t_v2.x, t_v2.y);
 	}
 
-	void Shader::set_mat4(const char* t_name, const glm::mat4& t_m) const {
-		glUniformMatrix4fv(glGetUniformLocation(id, t_name), 1, GL_FALSE, &t_m[0][0]);
+	void Shader::set_mat4(const char* t_name, const glm::mat4& t_value) const {
+		glUniformMatrix4fv(glGetUniformLocation(id, t_name), 1, GL_FALSE, &t_value[0][0]);
 	}
 	
-	void Shader::set_int(const char* t_name, const int t_i) const {
-		glUniform1i(glGetUniformLocation(id, t_name), t_i);
+	void Shader::set_int(const char* t_name, const int t_value) const {
+		glUniform1i(glGetUniformLocation(id, t_name), t_value);
 	}
 	
-	void Shader::set_float(const char* t_name, const float t_f) const {
-		glUniform1f(glGetUniformLocation(id, t_name), t_f);		
+	void Shader::set_bool(const char* t_name, const bool t_value) const {
+		set_int(t_name, t_value);
+	}
+	
+	void Shader::set_float(const char* t_name, const float t_value) const {
+		glUniform1f(glGetUniformLocation(id, t_name), t_value);
 	}
 
 	bool Shader::is_loaded() const {
@@ -209,31 +213,34 @@ namespace vpanic {
 			"uniform sampler2D texture0;" // NOTE: array of textures?
 			"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float radius) {\n"
 				" if(fragment.normal == vec3(0.0f, 0.0f, 0.0f)) { return vec3(shape.color); }"
+				" vec3 light_color = vec3(color);"
+				" vec3 shape_color = vec3(shape.color);"
 				" vec3 light_dir = normalize(pos - fragment.pos);"
 				" vec3 norm = normalize(fragment.normal);"
-				" vec3 ambient = vec3(color);"
+				" vec3 ambient = light_color;" // TODO
 				" float diff = max(dot(norm, light_dir), 0.0f);"
-				" vec3 diffuse = diff * vec3(color);"
+				" vec3 diffuse = diff*light_color;"
 				" vec3 view_dir = normalize(camera_pos-fragment.pos);"
 				" float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);"
-				" vec3 specular = spec*vec3(color);"
+				" vec3 specular = spec*light_color;"
 				" float d = length(pos-fragment.pos);"
 				" float att = smoothstep(radius+d, 0.0, d);"
-				" vec3 res = vec3((ambient*att)+(diffuse*att)+(specular*att)) * vec3(shape.color);"
-				" return vec3(1.0)-exp(-(res*vec3(shape.color)*brightness));"
+				" vec3 res = vec3((ambient*att)+(diffuse*att)+(specular*att))*shape_color;"
+				" return vec3(1.0)-exp(-(res*shape_color*brightness));"
 			"}"
 			"vec3 vpanic_directional_light(vec3 direction, vec4 color, float ambient_value, float diffuse_value, float specular_value) {\n"
 				" if(fragment.normal == vec3(0.0f, 0.0f, 0.0f)) { return vec3(shape.color); }"
-				" vec3 ambient = ambient_value*vec3(color);"
-				" vec3 norm = normalize(fragment.normal);"
-				" vec3 light_dir = normalize(-direction);"
-				" float diff = max(dot(norm, light_dir), 0.0f);"
-				" vec3 diffuse = diffuse_value*diff*vec3(color);"
+				" vec3 light_color = vec3(color);"
+				" vec3 shape_color = vec3(shape.color);"
+				" vec3 light_dir = normalize(direction);"
 				" vec3 view_dir = normalize(camera_pos-fragment.pos);"
-				" vec3 reflect_dir = reflect(-light_dir, norm);"
-				" float spec = pow(max(dot(view_dir, reflect_dir), 1.0f), 72.0f);"
-				" vec3 specular = specular_value*spec*vec3(shape.color);"
-				" return (ambient+diffuse+specular)*vec3(shape.color);\n"
+				" vec3 norm = normalize(fragment.normal);"
+				" vec3 ambient = ambient_value*light_color;" // TODO
+				" float diff = max(dot(norm, light_dir), 0.0f);"
+				" vec3 diffuse = diffuse_value*diff*light_color;"
+				" float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);"
+				" vec3 specular = spec*light_color;"
+				"return (ambient+diffuse+specular)*shape_color;"
 			"}"
 			"float vpanic_fog(vec3 pos, float max, float min) {\n"
 				" float dist = distance(pos, fragment.pos);"
