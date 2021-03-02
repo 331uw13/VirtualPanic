@@ -38,6 +38,7 @@ namespace vpanic {
 		bool is_loaded() const;
 		uint8_t get_type() const;
 
+		void set_model_matrix(const glm::mat4& t_matrix);
 		void update_vertex(const Vertex& t_vertex, const int t_index);
 		void update_vertices(const std::vector<Vertex>& t_vertices);
 		
@@ -60,6 +61,9 @@ namespace vpanic {
 		
 		bool m_outline { false };
 		Shader* m_outline_shader { nullptr };
+
+		mutable bool m_has_user_model_matrix { false };
+		glm::mat4 m_user_model_matrix { glm::mat4(1.0f) };
 
 	};
 }

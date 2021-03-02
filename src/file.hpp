@@ -12,6 +12,7 @@ namespace vpanic {
 
 	void find_all(const char* t_directory, std::vector<File>* t_out, const int t_settings = 0);
 
+	// NOTE: move file reading here?
 
 }
 

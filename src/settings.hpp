@@ -7,15 +7,11 @@ namespace vpanic {
 	
 	// window mode will be set to fullscreen after engine is ready to use.
 	// not default
-	static constexpr int FULLSCREEN { 1 << 1 };
+	static constexpr int FULLSCREEN { 1 << 0 };
 
 	// vertical sync will be used when engine is ready to use.
 	// not default
-	static constexpr int VSYNC { 1 << 2 };
-
-	// dont call 'render_back(false)' on init
-	// not default
-	static constexpr int NO_FACE_CULLING { 1 << 3 };
+	static constexpr int VSYNC { 1 << 1 };
 
 
 	// --- 'Engine::winding_order()' ---

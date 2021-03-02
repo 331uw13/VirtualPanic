@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <vector>
 #include <string>
 #include <functional>
@@ -19,6 +20,7 @@ namespace vpanic {
 	float map    (const float value, const float src_min, const float src_max,
 		   			const float dst_min, const float dst_max);
 
+	void rotate_matrix_to_matrix(glm::mat4& m0, const glm::mat4& m1);
 	float angle_between(const glm::vec2& p0, const glm::vec2& p1);
 	float distance(const glm::vec3& p0, const glm::vec3& p1);
 

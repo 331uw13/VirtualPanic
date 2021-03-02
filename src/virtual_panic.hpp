@@ -9,8 +9,7 @@
 #include "texture.hpp"
 #include "theme.hpp"
 #include "file.hpp"
-
 #include "console.hpp"
-#include "shader_editor.hpp"
+
 
 

@@ -447,13 +447,7 @@ namespace ImGui
 #ifdef IMGUI_INCLUDE_VIRTUALPANIC
 	// Widgets: VirtualPanic stuff
 	namespace VPanic {
-		enum {
-			GLSL_SyntaxHighlight,
-			LUA_SyntaxHighlight
-		};
 		IMGUI_API void          TextRGB(const char* fmt, ...);
-    	IMGUI_API bool          CodeEditor(const char* label, char* buf, size_t buf_size, const int syntax_type,
-				const ImVec2& size = ImVec2(0, 0), ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = NULL, void* user_data = NULL);
 	}
 #endif
 

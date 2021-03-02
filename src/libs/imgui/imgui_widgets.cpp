@@ -48,11 +48,6 @@ Index of this file:
 #include <stdint.h>     // intptr_t
 #endif
 
-#ifdef IMGUI_INCLUDE_VIRTUALPANIC
-#include <regex>          // for syntax stuff
-#include <string_view>    // for syntax stuff
-//#include <vector>
-#endif
 
 //-------------------------------------------------------------------------
 // Warnings
@@ -3830,8 +3825,7 @@ static bool InputTextFilterCharacter(unsigned int* p_char, ImGuiInputTextFlags f
 // - If you want to use ImGui::InputText() with std::string, see misc/cpp/imgui_stdlib.h
 // (FIXME: Rather confusing and messy function, among the worse part of our codebase, expecting to rewrite a V2 at some point.. Partly because we are
 //  doing UTF8 > U16 > UTF8 conversions on the go to easily interface with stb_textedit. Ideally should stay in UTF-8 all the time. See https://github.com/nothings/stb/issues/188)
-bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, 
-		ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data, const int syntax_highlight)
+bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -4493,8 +4487,6 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
                 text_size = ImVec2(inner_size.x, line_count * g.FontSize);
         }
 
-		const char* visible_text = nullptr;
-
         // Scroll
         if (render_cursor && state->CursorFollow)
         {
@@ -4575,152 +4567,8 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         // We test for 'buf_display_max_length' as a way to avoid some pathological cases (e.g. single-line 1 MB string) which would make ImDrawList crash.
         if (is_multiline || (buf_display_end - buf_display) < buf_display_max_length)
         {
-			// TODO: remove these "ifdef" kinda useless because this is going to be used only in this project i think
-#ifdef IMGUI_INCLUDE_VIRTUALPANIC
-			if(syntax_highlight >= 0) {
-
-
-				// i will get back to this later...
-
-
-				/*
-				// TODO:
-				// Optimization:
-				// - useless to try find syntax for parts what dont get rendered
-				//
-
-
-				// Second attempt using regex and making a big mess......... but! it works
-				// Problem: can use only 1 color for everything if not 1 extra loop and more regex things
-	
-				std::string_view view(buf_display);
-				const size_t buf_length = view.size();//strlen(buf_display);
-				std::vector<char> colored(buf_display_max_length);
-
-				memmove(&colored[0], buf_display, buf_length);
-				colored.push_back(0);
-
-
-				const char* const tests = "void|float|int"; // TODO: get this as some kind of input somewhere.
-
-				size_t added_length = 0;
-
-				auto fill_tag = [&](const size_t pos, const uint32_t length, const char* color_tag) {
-					// NOTE: color_tag's length should always be 6 !
-
-					if(length == 0 || color_tag == nullptr) { return; }
-					const auto b = colored.begin();
-
-					for(uint32_t i = 0; i < 6; i++) {
-						colored.insert(b+added_length+pos+i, color_tag[i]);
-					}
-					
-					colored.insert(b+added_length+pos, '<');
-					colored.insert(b+added_length+pos+7, '>');
-					added_length += 8;
-
-
-					// back to default color
-					
-					colored.insert(b+pos+length+added_length, '<');
-					colored.insert(b+pos+length+added_length+1, '/');
-					colored.insert(b+pos+length+added_length+2, '>');
-					added_length += 3;
-				};
-
-
-				std::regex rgx(tests);
-				std::regex_iterator<std::string_view::iterator> it(view.begin(), view.end(), rgx);
-				std::cregex_iterator it_end;
-
-				while(it != it_end) {
-
-					std::cmatch m = *it;
-					const char* match_str = m.str().c_str();
-					const size_t mpos = m.position();
-					const uint32_t mlen = m.length();
-					//printf("[%li][%li] \"%s\"\n", mpos, mlen, match_str);
-
-					fill_tag(mpos, mlen, "00FF00");
-
-					it++;
-				}
-
-				const size_t final_size = colored.size();
-				char tmp_buf[final_size];
-				memmove(tmp_buf, &colored[0], final_size);
-				
-				VPanic::TextRGB(tmp_buf);
-				*/
-
-
-				/*
-				while(std::regex_search(buf_display, m, rgx)) {
-					for (const auto& f : m) {
-						const char* match_str = f.str().c_str();
-						fill_tag(, strlen(match_str), "00FF00");
-					}
-					buf_display = m.suffix().str().c_str();
-				}
-				*/
-				/*
-				
-				// First attempt without including std::regex
-				// Problem: only splits things by spaces
-
-
-
-				std::string_view view(buf_display);
-				const size_t buf_length = view.size();
-
-				char write_buf[buf_display_max_length];
-				size_t write_index = 0;
-				size_t first = 0;
-				size_t last_pos = 0;
-
-				while(first < buf_length) {
-					size_t pos = view.find_first_of(" ", first);
-					if(pos != first) {
-						bool quit = false;
-
-						if(pos == std::string_view::npos) {
-							pos = buf_length;
-							first = last_pos;
-							quit = true;
-						}
-
-						const int part_size = pos-first;
-						char* str = strdup(view.substr(first, part_size).data());
-
-						// -----------
-						// here you could check stuff from table with some kind of tag
-						// if it matches then you add the color then actual content and finally you add default color tag
-						// -----------
-
-						memmove(write_buf+first, str, part_size+1);
-						write_index += part_size+1;
-						
-						if(quit) { break; }
-						last_pos = pos;
-					}
-					if(pos == std::string_view::npos) {
-						break;
-					}
-					first = pos+1;
-				}
-				write_buf[write_index] = 0;
-
-				VPanic::TextRGB(write_buf);
-				*/
-			}
-			else {
-            	ImU32 col = GetColorU32(is_displaying_hint ? ImGuiCol_TextDisabled : ImGuiCol_Text);
-            	draw_window->DrawList->AddText(g.Font, g.FontSize, draw_pos - draw_scroll, col, buf_display, buf_display_end, 0.0f, is_multiline ? NULL : &clip_rect);
-			}
-#else
             ImU32 col = GetColorU32(is_displaying_hint ? ImGuiCol_TextDisabled : ImGuiCol_Text);
             draw_window->DrawList->AddText(g.Font, g.FontSize, draw_pos - draw_scroll, col, buf_display, buf_display_end, 0.0f, is_multiline ? NULL : &clip_rect);
-#endif
 		}
 
         // Draw blinking cursor
@@ -4818,7 +4666,7 @@ void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 	uint32_t text_index = 0;
 	uint32_t color_index = 0;
 
-	bool color_was_set = false;
+	bool pop_color = false;
 	bool write_color = false;
 	const uint32_t len = strlen(buf);
 
@@ -4835,21 +4683,22 @@ void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 
 		ImRect bb(text_pos, ImVec2(text_pos.x+text_size.x, text_pos.y+text_size.y));
 		ItemSize(ImVec2(text_size.x, g.Style.FramePadding.y), 0.0f);
+		
 		if (!ItemAdd(bb, 0)) {
 			return;
 		}
-    
+		
 		RenderText(text_pos, t_text_part, text_end);
+		
 		if(had_newline) {
-			cursor_x = old_cursor_x+g.Style.FramePadding.x;
-			cursor_y += text_size.y+g.Style.FramePadding.y;
+			cursor_x = old_cursor_x;
+			cursor_y += text_size.y;
 			had_newline = false;
 		}
 		else {
 			cursor_x += text_size.x;
 		}
 	};
-
 
 	for(uint32_t i = 0; i < len; i++) {
 		if(buf[i] == '>') {
@@ -4858,16 +4707,16 @@ void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 				color_buffer[color_index] = '\0';
 				const bool can_use_color = vpanic::is_hex_string(color_buffer);
 
-				if(color_was_set) {
+				if(pop_color) {
 					PopStyleColor();
 				}
 				if(can_use_color) {
 					PushStyleColor(ImGuiCol_Text, vpanic::color_to_imvec4(vpanic::hex_to_color(std::stoi(color_buffer, nullptr, 16))));
-					color_was_set = true;
+					pop_color = true;
 				}
 				else if(color_buffer[0] == '/') { // "</>" sets back to default color
 					PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_Text));
-					color_was_set = true;
+					pop_color = true;
 				}
 
 				strcpy(color_buffer, ""); // yes, all color values should be the same length but just to be more safe
@@ -4878,7 +4727,6 @@ void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 			write_color = true;
 			if(text_index > 0) {
 				text_buffer[text_index] = '\0';
-				
 				text_sameline(text_buffer);
 				strcpy(text_buffer, "");
 				text_index = 0;
@@ -4892,6 +4740,7 @@ void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 			text_buffer[text_index] = buf[i];
 			text_index++;
 		}
+
 		if(buf[i] == '\n') {
 			had_newline = true;
 		}
@@ -4904,148 +4753,10 @@ void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 		text_sameline(text_buffer);
 	}
 
-	if(color_was_set) {
+	if(pop_color) {
 		PopStyleColor();
 	}
 }
-
-bool ImGui::VPanic::CodeEditor(const char* label, char* buf, size_t buf_size, const int syntax_type, const ImVec2& size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data) {
-	return InputTextEx(label, NULL, buf, buf_size, size, flags | ImGuiInputTextFlags_Multiline | ImGuiInputTextFlags_AllowTabInput, callback, user_data, syntax_type);
-}
-
-/*
-bool ImGui::VPanic::TextEditor(const char* label, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data) {
-
-	return InputTextEx(label, NULL, buf, buf_size, size, flags | ImGuiInputTextFlags_Multiline, callback, callback_user_data, ImGuiVPanic_TextInputSyntax);
-	
-	ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems) {
-		return false;
-	}
-	
-    
-	ImGuiContext& g = *GImGui;
-	ImGuiIO& io = g.IO;
-	const ImGuiStyle& style = g.Style;
-	
-	BeginGroup();
-	
-    const ImGuiID id = window->GetID(label);
-	const ImVec2 label_size = CalcTextSize(label, NULL, true);
-	const ImVec2 frame_size = CalcItemSize(size_arg, CalcItemWidth(), g.FontSize * 8.0f + style.FramePadding.y * 2.0f);
-	const ImVec2 total_size = ImVec2(frame_size.x + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), frame_size.y);
-
-	const ImRect frame_bb(window->DC.CursorPos, ImVec2(window->DC.CursorPos.x+frame_size.x, window->DC.CursorPos.y+frame_size.y));
-    const ImRect total_bb(frame_bb.Min, ImVec2(frame_bb.Min.x+total_size.x, frame_bb.Min.y+total_size.y));
-
-    ImGuiWindow* draw_window = window;
-    ImVec2 inner_size = frame_size;
-   
-    if (!ItemAdd(total_bb, id, &frame_bb))
-	{
-		ItemSize(total_bb, style.FramePadding.y);
-		EndGroup();
-		return false;
-	}
-
-    PushStyleColor(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]);
-    PushStyleVar(ImGuiStyleVar_ChildRounding, style.FrameRounding);
-    PushStyleVar(ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize);
-    bool child_visible = BeginChildEx(label, id, frame_bb.GetSize(), true, ImGuiWindowFlags_NoMove);
-    PopStyleVar(2);
-    PopStyleColor();
-    if (!child_visible)
-    {
-        EndChild();
-        EndGroup();
-        return false;
-    }
-    draw_window = g.CurrentWindow; // Child window
-    draw_window->DC.NavLayerActiveMaskNext |= (1 << draw_window->DC.NavLayerCurrent); // This is to ensure that EndChild() will display a navigation highlight so we can "enter" into it.
-    draw_window->DC.CursorPos += style.FramePadding;
-    //draw_window->DC.CursorPos.y += style.FramePadding.y;
-    inner_size.x -= draw_window->ScrollbarSizes.x;
-
-
-	const bool hovered = ItemHoverable(frame_bb, id);
-	const bool user_clicked = (hovered && io.MouseClicked[0]);
-	if(hovered) {
-		g.MouseCursor = ImGuiMouseCursor_TextInput;
-	}
-
-	ImGuiInputTextState* state = GetInputTextState(id);
-
-
-    const bool focus_requested = FocusableItemRegister(window, id);
-    const bool focus_requested_by_code = focus_requested && (g.FocusRequestCurrWindow == window && g.FocusRequestCurrCounterRegular == window->DC.FocusCounterRegular);
-    const bool focus_requested_by_tab = focus_requested && !focus_requested_by_code;
-	
-	const bool user_nav_input_start = (g.ActiveId != id) && ((g.NavInputId == id) || (g.NavActivateId == id && g.NavInputSource == ImGuiInputSource_NavKeyboard));
-    const bool user_scroll_finish = state != NULL && g.ActiveId == 0 && g.ActiveIdPreviousFrame == GetWindowScrollbarID(draw_window, ImGuiAxis_Y);
-    const bool user_scroll_active = state != NULL && g.ActiveId == GetWindowScrollbarID(draw_window, ImGuiAxis_Y);
-
-	bool select_all = (g.ActiveId != id) && ((flags & ImGuiInputTextFlags_AutoSelectAll) != 0 || user_nav_input_start);
-    float scroll_y = draw_window->Scroll.y;
-
-    const bool init_changed_specs = (state != NULL && !state->Stb.single_line); // NOTE: always false
-    const bool init_make_active = (focus_requested || user_clicked || user_scroll_finish || user_nav_input_start);
-    const bool init_state = (init_make_active || user_scroll_active);
-
-	bool clear_active_id = false;
-
-	//printf("state: %p\n", state);
-
-	if(init_state && g.ActiveId != id) {
-    	state = &g.InputTextState;
-		state->CursorAnimReset();
-		
-		// copy buffer to text state
-		const uint32_t buf_len = strlen(buf);
-		state->InitialTextA.resize(buf_len+1);
-		memcpy(state->InitialTextA.Data, buf, buf_len+1);
-
-		const char* buf_end = nullptr;
-		state->TextW.resize(buf_size+1);
-		state->TextA.resize(0);
-		state->TextAIsValid = false;
-		state->CurLenW = ImTextStrFromUtf8(state->TextW.Data, buf_size, buf, NULL, &buf_end);
-		state->CurLenA = static_cast<int>(buf_end-buf);
-
-		const bool recycle_state = (state->ID == id);
-		if(recycle_state) {
-			state->CursorClamp();
-		}
-		else {
-			state->ID = id;
-			state->ScrollX = 0.0f;
-			stb_textedit_initialize_state(&state->Stb, 0);		
-		}
-
-		if(flags & ImGuiInputTextFlags_AlwaysInsertMode) {
-			state->Stb.insert_mode = 1;
-		}
-
-	}
-
-	if(g.ActiveId != id && init_make_active) {
-        IM_ASSERT(state && state->ID == id);
-		
-		SetActiveID(id, window);
-		SetFocusID(id, window);
-		FocusWindow(window);
-
-
-		
-	}
-
-	//TextRGB("Hovered: <22FF22>%s", (hovered ? "Yes" :"No"));
-
-	EndChild();
-	EndGroup();
-	return true;
-	
-}
-*/
 #endif
 
 //-------------------------------------------------------------------------

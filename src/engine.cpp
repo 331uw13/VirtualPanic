@@ -32,12 +32,30 @@ namespace vpanic {
 		m_update_callback = t_callback;
 	}
 		
+	EngineState Engine::copy_state() const {
+		return m_state;
+	}
+
+	EngineState& Engine::get_state_ref() {
+		return m_state;
+	}
+
+	void Engine::_update_engine_ok_state() {
+		if(m_window == nullptr || m_context == NULL) {
+			m_state.unset(EngineState::OK);
+		}
+		else {
+			m_state.set(EngineState::OK);
+		}
+	}
+
 	void Engine::init(const char* t_title, const glm::vec2& t_size, const int t_settings) {
-		if(m_init_ok) { 
-			message(MType::WARNING, "Already initialized!");
+		if(m_state[EngineState::INIT_OK]) { 
+			message(MType::WARNING, "Already initialized?!");
 			return;
 	   	}
 
+		m_state.clear();
 		Timer timer;
 		message(MType::INFO, "Hello!");
 
@@ -51,12 +69,10 @@ namespace vpanic {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		message(MType::DEBUG, "Set attributes");
 
 		m_window = SDL_CreateWindow(t_title, 0, 0, t_size.x, t_size.y,
 			   	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);	
 		
-		message(MType::DEBUG, "Check window");
 		if(m_window == nullptr) {
 			message(MType::ERROR, "Failed to create window! (%s)", SDL_GetError());
 			quit();
@@ -86,14 +102,6 @@ namespace vpanic {
 			return;
 		}*/
 
-		if(!(t_settings & NO_FACE_CULLING)) {
-			_render_back(false);
-			m_face_culling_enabled = false;
-		}
-		else {
-			m_face_culling_enabled = true;
-		}
-
 	
 		//glEnable(GL_MULTISAMPLE);
 		glEnable(GL_DEPTH_TEST);
@@ -106,10 +114,6 @@ namespace vpanic {
 		glStencilFunc(GL_ALWAYS, 1, 255);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 		glStencilMask(0);
-
-//		/* for test */ glEnable(GL_PROGRAM_POINT_SIZE);
-//		/* for test */ glPointSize(1.0f);
-
 
 		message(MType::INFO, "%s", glGetString(GL_VERSION));
 		message(MType::INFO, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -139,25 +143,25 @@ namespace vpanic {
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		glViewport(0, 0, m_width, m_height);
 
-
 		message(MType::OK, "Engine is ready! [%ims]", timer.elapsed_ms());
-		m_init_ok = true;
-
+		m_state.set(EngineState::INIT_OK);
+		_update_engine_ok_state();
 	}
 
 	void Engine::request_shutdown() {
-		m_quit = true;
+		m_state.set(EngineState::QUIT);
 	}
 
 	void Engine::quit() {
-		if(m_quit && !m_init_ok) { return; }
+		if(!m_state[EngineState::QUIT] && !m_state[EngineState::KEEP_LOOP]) {
+			return;
+	   	}
 
 		// cleanup some memory,  TODO: check for memory leaks
 
 		message(MType::INFO, "Quitting...");
 
 		unload_skybox();
-
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplSDL2_Shutdown();
 		ImGui::DestroyContext();
@@ -175,7 +179,7 @@ namespace vpanic {
 
 		SDL_Quit();	
 		message(MType::OK, "Destroyed SDL");
-		message(MType::INFO, "Reset settings");	
+		message(MType::INFO, "Reset settings and state");	
 		
 		m_update_callback        = nullptr;
 		m_keydown_callback       = nullptr;
@@ -184,32 +188,28 @@ namespace vpanic {
 	   	m_window   = nullptr;
 		m_context  = NULL;
 
-		m_lock_mouse    = false;
-		m_init_ok       = false;
-		
-		m_quit = true;
-		
+		m_state.clear();
 		message(MType::INFO, "Engine cleanup done!");
 		// NOTE: some stuff may have calls in their destructor when exiting!
 	}
 
 	void Engine::start() {
-		if(!ok()) { return; }
-		if(m_loop) { return; }
-		m_loop = true;
+		if(!m_state[EngineState::OK]) { return; }
+		if(m_state[EngineState::KEEP_LOOP]) { return; }
+		m_state.set(EngineState::KEEP_LOOP);
 		
 		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
 
 		Timer timer;
 		SDL_Event event;
 
-		const uint32_t res_x = 250*2;
-		const uint32_t res_y = 190*2;
+		const uint32_t res_x = 230*2;
+		const uint32_t res_y = 170*2;
 
 
-		while(!m_quit) {
-			if(!ok()) { break; }
-
+		while(!m_state[EngineState::QUIT]) {
+			_update_engine_ok_state();
+			if(!m_state[EngineState::OK]) { break; }
 
 			glClearColor(
 					background_color.r / 255.0f,
@@ -230,8 +230,6 @@ namespace vpanic {
 			glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &(camera.projection*camera.view)[0][0]);
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::vec3),   &camera.pos);
 
-			// this will give the effect that every pixel looks big
-					
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplSDL2_NewFrame(m_window);
 			ImGui::NewFrame();
@@ -241,17 +239,16 @@ namespace vpanic {
 			if(m_skybox.texture.is_loaded()) { 
 				
 				glDepthFunc(GL_LEQUAL);
-				_render_back(true);
+				_needs_render_back(true);
 
 				m_skybox.shader.use();
-				//m_skybox.shader.set_mat4("proj", camera.projection);
 				m_skybox.shader.set_mat4("matrix", camera.projection*glm::mat4(glm::mat3(camera.view)));
 				m_skybox.texture.enable();
 				m_skybox.shape.draw(m_skybox.shader);
 				glUseProgram(0);
 				m_skybox.texture.disable();
 			
-				_render_back(m_face_culling_enabled);	
+				_needs_render_back(false);	
 				glDepthFunc(GL_LESS);
 			}
 
@@ -260,25 +257,13 @@ namespace vpanic {
 				m_update_callback();
 			}
 
-			
+			/*
 			glViewport(0, 0, res_x, res_y);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-			glBlitFramebuffer(0, 0, res_x, res_y, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
-
-			/*
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			// srcX and srcY are res_x and res_y so it fixed the small window
-			// this way we can juse use 1 framebuffer
-			// but there is problems with higher values
-
-			glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, res_x, res_y, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-	
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glBlitFramebuffer(0, 0, res_x, res_y, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+			glBlitFramebuffer(0, 0, res_x, res_y, 0, 0, m_width, m_height, 
+					GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
 			*/
 
-
-		
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -305,7 +290,7 @@ namespace vpanic {
 										static_cast<float>(event.motion.x), static_cast<float>(event.motion.y),
 										static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel)});
 						}
-						if(m_lock_mouse) {
+						if(m_state[EngineState::LOCK_MOUSE]) {
 							SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
 						}
 						break;
@@ -330,14 +315,10 @@ namespace vpanic {
 			SDL_GL_SwapWindow(m_window);
 		}
 
-		m_loop = false;
+		m_state.unset(EngineState::KEEP_LOOP);
 		quit();
 	}
 
-	bool Engine::ok() const {
-		return (m_init_ok && m_window != nullptr && m_context != NULL && !m_quit);
-	}
-	
 	float Engine::get_aratio() const {
 		return static_cast<float>(m_width) / static_cast<float>(m_height);
 	}
@@ -347,9 +328,7 @@ namespace vpanic {
 	}
 
 	bool Engine::load_skybox(const std::vector<const char*> t_files) {
-
 		if(t_files.empty()) { return false; }
-
 		if(!m_skybox.texture.load_cube(t_files)) {
 			return false;
 		}
@@ -396,12 +375,24 @@ namespace vpanic {
 		SDL_SetRelativeMouseMode(b ? SDL_TRUE : SDL_FALSE);
 		SDL_ShowCursor(!b);
 		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
-		m_lock_mouse = b;
+		if(b) {
+			m_state.set(EngineState::LOCK_MOUSE);
+		}
+		else {
+			m_state.unset(EngineState::LOCK_MOUSE);
+		}
+
 	}
 
 	void Engine::vsync(const bool b) {
 		if(SDL_GL_SetSwapInterval(b)) {
-			message(MType::ERROR, "Error with VSync!");
+			message(MType::ERROR, "Error with VSync! %s", SDL_GetError());
+		}
+		if(b) {
+			m_state.set(EngineState::VSYNC_ENABLED);
+		}
+		else {
+			m_state.unset(EngineState::VSYNC_ENABLED);
 		}
 	}
 
@@ -410,10 +401,15 @@ namespace vpanic {
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		glViewport(0, 0, m_width, m_height);
 		camera.aspect_ratio = get_aratio();
+		if(b) {
+			m_state.set(EngineState::FULLSCREEN_ENABLED);
+		}
+		else {
+			m_state.unset(EngineState::FULLSCREEN_ENABLED);
+		}
 	}
 
-	void Engine::_render_back(const bool b) {
-		if(m_face_culling_enabled && b) { return; }
+	void Engine::_needs_render_back(const bool b) {
 		b ? glDisable(GL_CULL_FACE) : glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 	}
@@ -423,7 +419,6 @@ namespace vpanic {
 	}
 
 	void Engine::setup_shaders(const std::vector<Shader*>& t_shaders) {
-
 		for(size_t i = 0; i < t_shaders.size(); i++) {
 			if(!t_shaders[i]->is_loaded()) { continue; }
 			const uint32_t block_index = glGetUniformBlockIndex(t_shaders[i]->id, "vertex_data");
@@ -431,7 +426,7 @@ namespace vpanic {
 		}
 
 		// camera view, projection and position
-		const uint32_t size = /*2**/sizeof(glm::mat4) + sizeof(glm::vec3);
+		const uint32_t size = sizeof(glm::mat4) + sizeof(glm::vec3);
 
 		glGenBuffers(1, &m_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);

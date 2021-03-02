@@ -73,6 +73,12 @@ namespace vpanic {
 		m_loaded = false;
 	}
 		
+		
+	void Shape::set_model_matrix(const glm::mat4& t_matrix) {
+		m_has_user_model_matrix = true;
+		m_user_model_matrix = t_matrix;
+	}
+
 	void Shape::update_vertex(const Vertex& t_vertex, const int t_index) {
 		if(!m_loaded) { return; }
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
@@ -104,23 +110,31 @@ namespace vpanic {
 	void Shape::draw(const Shader& t_shader) const {
 		if(!m_loaded) { return; }	
 		if(m_type == 0) { return; }
+		
+		t_shader.use();
 
 		glm::mat4 model(1.0f);
-		
-		model = glm::translate(model, pos);
-		if(rotation != glm::vec3(0.0f)) {
-			model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		if(!m_has_user_model_matrix) {
+			model = glm::translate(model, pos);
+			if(rotation != glm::vec3(0.0f)) {
+				model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+				model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+				model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+			}
+			if(scale != glm::vec3(0.0f)) {
+				model = glm::scale(model, scale);
+			}
 		}
-		if(scale != glm::vec3(0.0f)) {
-			model = glm::scale(model, scale);
+		else {
+			model = m_user_model_matrix;
+			m_has_user_model_matrix = false;
+			//t_shader.set_mat4("model", m_user_model_matrix);
 		}
 
-		t_shader.use();
 		t_shader.set_vec3("shape.pos", pos);
-		t_shader.set_color("shape.color", color);
 		t_shader.set_mat4("model", model);
+		t_shader.set_color("shape.color", color);
 		t_shader.set_int("use_offset", 0);
 		
 		if(m_type == GL_LINES) {

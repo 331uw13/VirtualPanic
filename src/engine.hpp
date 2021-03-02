@@ -15,6 +15,7 @@
 #include "shader.hpp"
 #include "camera.hpp"
 #include "shape.hpp"
+#include "state.hpp"
 
 
 namespace vpanic {
@@ -35,39 +36,32 @@ namespace vpanic {
 
 		void request_shutdown(); // use this instead of 'quit' when wanting to quit from event callback
 		void quit();
+	
 
-		// check engine status
-		bool ok() const;
-		
 		glm::vec2 get_window_size() const;
-		float get_aratio() const;
+		float get_aratio() const; // aspect ratio
 		
 		Camera camera; // <-- temporary solution!
 
+		// it needs to know what shaders wants to know camera matrix
 		void setup_shaders(const std::vector<Shader*>& t_shaders);
+
 		bool load_skybox(const std::vector<const char*> t_files);
 		void unload_skybox();
 		void lock_mouse(const bool b);
 		void vsync(const bool b);
 		void fullscreen(const bool b);
 		void winding_order(const int t_order); // vpanic::CLOCKWISE, vpanic::COUNTER_CLOCKWISE
+		//void center_mouse();
+	
+		EngineState copy_state() const;
+		EngineState& get_state_ref();
 
 		Color background_color   { Color(0) };
 
 	private:
-
-/*
-		enum {
-			INIT_OK = 0,
-			QUIT = 1,
-			KEEP_LOOP = 2,
-			LOCK_MOUSE = 3,
-			USING_IMGUI = 4,
-		};
-
-		bool m_switches[5];
-*/
-		void _render_back(const bool b);
+		
+		EngineState m_state;
 
 		struct Skybox {
 		
@@ -79,13 +73,6 @@ namespace vpanic {
 
 		uint32_t m_ubo { 0 };  // "uniform buffer object"
 		
-		bool m_init_ok    { false };
-		bool m_quit       { false };
-		bool m_loop       { false };
-		
-		bool m_lock_mouse    { false };
-		bool m_face_culling_enabled { false };
-
 		int m_width    { 0 };
 		int m_height   { 0 };
 
@@ -93,7 +80,10 @@ namespace vpanic {
 		void(*m_keydown_callback)(uint8_t)      { nullptr };
 		void(*m_mouse_wheel_callback)(int8_t)   { nullptr };
 		void(*m_mouse_move_callback)(const MouseData&) { nullptr };
-		
+
+		void _update_engine_ok_state();
+		void _needs_render_back(const bool b);
+
 		SDL_Window* m_window     { nullptr };
 		SDL_GLContext m_context  { NULL };
 
