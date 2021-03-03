@@ -202,18 +202,21 @@ namespace vpanic {
 		if(m_state[EngineState::KEEP_LOOP]) { return; }
 		m_state.set(EngineState::KEEP_LOOP);
 		
-		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
+		mouse_to_window_center();
 
 		Timer timer;
 		SDL_Event event;
 
-		const uint32_t res_x = 230*2;
-		const uint32_t res_y = 170*2;
-
+		float previous_count = 0.0f;
+		float current_count = 0.0f;
 
 		while(!m_state[EngineState::QUIT]) {
 			_update_engine_ok_state();
 			if(!m_state[EngineState::OK]) { break; }
+
+			previous_count = current_count;
+			current_count = SDL_GetPerformanceCounter();
+			m_delta_time = (current_count-previous_count)/SDL_GetPerformanceFrequency();
 
 			glClearColor(
 					background_color.r / 255.0f,
@@ -225,9 +228,10 @@ namespace vpanic {
 
 			if(m_cam != nullptr) {
 				// update camera and set its view, projection and position for everyone to use
+				m_cam->delta_time = m_delta_time;
 				m_cam->update();
 				glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
-				// NOTE: projection probably doesnt change that much, create event for it?
+				// NOTE: projection probably doesnt change at much, create event for it?
 				// NOTE: i can have array of stuff what should be updated here
 				glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &(m_cam->projection*m_cam->view)[0][0]);
 				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::vec3),   &m_cam->pos);
@@ -248,24 +252,17 @@ namespace vpanic {
 				m_skybox.shader.set_mat4("matrix", m_cam->projection*glm::mat4(glm::mat3(m_cam->view)));
 				m_skybox.texture.enable();
 				m_skybox.shape.draw(m_skybox.shader);
-				glUseProgram(0);
 				m_skybox.texture.disable();
+				glUseProgram(0);
 			
-				_needs_render_back(false);	
 				glDepthFunc(GL_LESS);
 			}
+			_needs_render_back(false);	
 
 			
 			if(m_update_callback != nullptr) {
 				m_update_callback();
 			}
-
-			/*
-			glViewport(0, 0, res_x, res_y);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-			glBlitFramebuffer(0, 0, res_x, res_y, 0, 0, m_width, m_height, 
-					GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
-			*/
 
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -294,7 +291,7 @@ namespace vpanic {
 										static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel)});
 						}
 						if(m_state[EngineState::LOCK_MOUSE]) {
-							SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
+							mouse_to_window_center();
 						}
 						break;
 
@@ -315,6 +312,7 @@ namespace vpanic {
 					default: break;
 				}
 			}
+		
 			SDL_GL_SwapWindow(m_window);
 		}
 
@@ -324,6 +322,10 @@ namespace vpanic {
 
 	float Engine::get_aratio() const {
 		return static_cast<float>(m_width) / static_cast<float>(m_height);
+	}
+	
+	float Engine::delta_time() const {
+		return m_delta_time;
 	}
 		
 	glm::vec2 Engine::get_window_size() const {
@@ -377,7 +379,7 @@ namespace vpanic {
 		SDL_SetWindowGrab(m_window, b ? SDL_TRUE : SDL_FALSE);
 		SDL_SetRelativeMouseMode(b ? SDL_TRUE : SDL_FALSE);
 		SDL_ShowCursor(!b);
-		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
+		mouse_to_window_center();
 		if(b) {
 			m_state.set(EngineState::LOCK_MOUSE);
 		}
@@ -422,7 +424,7 @@ namespace vpanic {
 	void Engine::winding_order(const int t_order) {
 		glFrontFace((t_order <= 1) ? GL_CW : GL_CCW);
 	}
-
+	
 	void Engine::setup_shaders(const std::vector<Shader*>& t_shaders) {
 		for(size_t i = 0; i < t_shaders.size(); i++) {
 			if(!t_shaders[i]->is_loaded()) { continue; }
@@ -437,6 +439,10 @@ namespace vpanic {
 		glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
 		glBufferData(GL_UNIFORM_BUFFER, size, NULL, GL_STATIC_DRAW);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_ubo, 0, size);
+	}
+	
+	void Engine::mouse_to_window_center() {
+		SDL_WarpMouseInWindow(m_window, m_width/2, m_height/2);
 	}
 
 }

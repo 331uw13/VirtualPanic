@@ -45,9 +45,6 @@ namespace vpanic {
 	static constexpr int DOUBLE_SIDE { 1 };
 
 
-	// --- 'set_normals()' ---
-	static constexpr int SMOOTH_NORMALS { 1 };
-
 	// --- 'find_all()' ---
 	// dont ignore sub directories
 	// not default

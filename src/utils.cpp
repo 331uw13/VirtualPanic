@@ -98,15 +98,13 @@ namespace vpanic {
 	
 	Color illuminate(const Color& color, const int8_t t) {
 		
-		// NOTE: this is bad because if for example 'color.r+t' goes negative value
-		// it will go back to 255 because im using unsigned
-		uint8_t r = color.r+t;
-		uint8_t g = color.g+t;
-		uint8_t b = color.b+t;
+		int8_t r = color.r+t;
+		int8_t g = color.g+t;
+		int8_t b = color.b+t;
 
-		clamp<uint8_t>(r, 0, 255);
-		clamp<uint8_t>(g, 0, 255);
-		clamp<uint8_t>(b, 0, 255);
+		clamp<int8_t>(r, 0, 255);
+		clamp<int8_t>(g, 0, 255);
+		clamp<int8_t>(b, 0, 255);
 
 		return Color(r, g, b);
 	}
@@ -300,10 +298,6 @@ namespace vpanic {
 
 			glm::vec3 normal = glm::cross(triangle[1]-triangle[0], triangle[2]-triangle[0]);	
 			normal = -(normal/glm::length(normal));
-
-			if(t_settings == SMOOTH_NORMALS) {
-				normal = -(normal*3.5f);
-			}
 
 			out[i].normal = normal;
 			out[i+1].normal = normal;

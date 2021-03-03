@@ -30,7 +30,7 @@ namespace vpanic {
 		void mouse_wheel_callback(void(*t_callback)(int8_t));    // when mouse wheel is turned up or down
 		void keydown_callback(void(*t_callback)(uint8_t));       // when any keyboard key is down but not good for movement
 		void update_callback(void(*t_callback)());               // every frame
-		
+
 		void init(const char* t_title, const glm::vec2& t_size, const int t_settings = 0);
 		void start();
 
@@ -40,6 +40,7 @@ namespace vpanic {
 
 		glm::vec2 get_window_size() const;
 		float get_aratio() const; // aspect ratio
+		float delta_time() const;
 
 		// it needs to know what shaders wants to know camera matrix
 		void setup_shaders(const std::vector<Shader*>& t_shaders);
@@ -51,12 +52,12 @@ namespace vpanic {
 		void vsync(const bool b);
 		void fullscreen(const bool b);
 		void winding_order(const int t_order); // vpanic::CLOCKWISE, vpanic::COUNTER_CLOCKWISE
-		//void center_mouse();
-	
+		void mouse_to_window_center();
+
 		EngineState copy_state() const;
 		EngineState& get_state_ref();
 
-		Color background_color   { Color(0) };
+		Color background_color   { Color(0, 0, 0) };
 
 	private:
 		
@@ -74,6 +75,7 @@ namespace vpanic {
 		
 		int m_width    { 0 };
 		int m_height   { 0 };
+		float m_delta_time { 0.0f };
 
 		void(*m_update_callback)()              { nullptr };
 		void(*m_keydown_callback)(uint8_t)      { nullptr };

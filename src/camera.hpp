@@ -27,7 +27,8 @@ namespace vpanic {
 		float z_near  { 0.1f };
 		float z_far   { 1000.f };
 		float aspect_ratio  { 1.0f };
-		float sensetivity   { 0.145f };
+		float sensetivity   { 0.124f };
+		float delta_time    { 0.0f };
 		bool freecam  { true };
 
 		glm::mat4 view        { glm::mat4(1.0f) };

@@ -243,12 +243,12 @@ namespace vpanic {
 				" vec3 shape_color = vec3(shape.color);"
 				" vec3 light_dir = normalize(pos - fragment.pos);"
 				" vec3 norm = normalize(fragment.normal);"
-				" vec3 ambient = light_color;" // TODO
+				" vec3 ambient = 0.4f*light_color;" // TODO
 				" float diff = max(dot(norm, light_dir), 0.0f);"
-				" vec3 diffuse = diff*light_color;"
+				" vec3 diffuse = 0.5f*diff*light_color;"
 				" vec3 view_dir = normalize(camera_pos-fragment.pos);"
 				" float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);"
-				" vec3 specular = spec*light_color;"
+				" vec3 specular = 0.34f*spec*light_color;"
 				" float d = length(pos-fragment.pos);"
 				" float att = smoothstep(radius+d, 0.0, d);"
 				" vec3 res = vec3((ambient*att)+(diffuse*att)+(specular*att))*shape_color;"

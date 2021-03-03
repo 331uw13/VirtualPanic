@@ -25,46 +25,47 @@ namespace vpanic {
 	}
 
 	void Camera::move(MoveDir t_direction, const float t_speed) {
+		const float s = t_speed*delta_time;
 		switch(t_direction) {	
 			case MoveDir::UP:
-				pos.y += t_speed;
+				pos.y += s;
 				break;
 			
 			case MoveDir::DOWN:
-				pos.y -= t_speed;
+				pos.y -= s;
 				break;
 			
 			case MoveDir::LEFT:
 				if(freecam) {
-					pos -= glm::cross(front, m_up) * t_speed;
+					pos -= glm::cross(front, m_up)*s;
 				} else {
-					pos -= (glm::cross(_rot_xz(front.x, front.z), m_up) * t_speed);
+					pos -= (glm::cross(_rot_xz(front.x, front.z), m_up)*s);
 				}
 				break;
 			
 			case MoveDir::RIGHT:
 				if(freecam) {
-					pos += glm::cross(front, m_up) * t_speed;
+					pos += glm::cross(front, m_up)*s;
 				} else {
-					pos += (glm::cross(_rot_xz(front.x, front.z), m_up) * t_speed);
+					pos += (glm::cross(_rot_xz(front.x, front.z), m_up)*s);
 				}
 				break;
 			
 			case MoveDir::FORWARD:
 				if(freecam) {
-					pos += front * t_speed;
+					pos += front*s;
 				} else {
-					pos.x += cos(glm::radians(yaw))*cos(glm::radians(front.x)) * t_speed;
-					pos.z += sin(glm::radians(yaw))*cos(glm::radians(front.z)) * t_speed;
+					pos.x += cos(glm::radians(yaw))*cos(glm::radians(front.x))*s;
+					pos.z += sin(glm::radians(yaw))*cos(glm::radians(front.z))*s;
 				}
 				break;
 			
 			case MoveDir::BACK:
 				if(freecam) {
-					pos -= front * t_speed;
+					pos -= front*s;
 				} else {
-					pos.x -= cos(glm::radians(yaw))*cos(glm::radians(front.x)) * t_speed;
-					pos.z -= sin(glm::radians(yaw))*cos(glm::radians(front.z)) * t_speed;
+					pos.x -= cos(glm::radians(yaw))*cos(glm::radians(front.x))*s;
+					pos.z -= sin(glm::radians(yaw))*cos(glm::radians(front.z))*s;
 				}
 				break;
 
@@ -76,8 +77,9 @@ namespace vpanic {
 	}
 	
 	void Camera::look_at_mouse(const MouseData& t_data) {
-		yaw += (t_data.delta_x)*sensetivity;
-		pitch += (-t_data.delta_y)*sensetivity;
+		const float s = sensetivity;
+		yaw += (t_data.delta_x)*s;
+		pitch += (-t_data.delta_y)*s;
 		clamp<float>(pitch, -89.9f, 89.9f);
 	}
 	
