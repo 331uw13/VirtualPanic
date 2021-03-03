@@ -5,6 +5,17 @@
 ### Aims to be very simple and fast 3D graphics library with OpenGL
 ( work in progress )
 
+Todo:
+
+- [ ] Particle system
+- [ ] Materials
+- [ ] Model loading
+- [ ] Better light system
+- [ ] Physics
+- [ ] Collision detection
+- [ ] Trail effects
+- [ ] Bloom
+- [ ] Motion blur
 
 # 
 
