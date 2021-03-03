@@ -35,6 +35,32 @@ namespace vpanic {
 		m_fragment_source.clear();
 	}
 	
+	void Shader::load_from_memory(const char* t_shader_src, const uint32_t t_glsl_version, const int t_settings) {
+
+		// TODO: check if the any source is changed, if it is then delete and load else just return
+		if(m_loaded) {
+		   	unload();
+	   	}
+
+		if(t_settings != NO_SHADER_UTIL) {
+			_add_functions(t_glsl_version);
+		}
+		
+		_safe_check_vertex_source(t_glsl_version);
+		m_fragment_source = t_shader_src;
+
+		// TODO: 
+		// add option for geometry shader
+		// add option to support all kind of things in vertex shader
+
+		_compile_shaders();
+		
+		// not needed anymore
+		m_vertex_source.clear();
+		m_fragment_source.clear();
+
+	}
+	
 	void Shader::load(const char* t_vertex_filename, const char* t_fragment_filename) {
 		
 		// TODO: check if the any source is changed, if it is then delete and load else just return

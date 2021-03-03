@@ -20,6 +20,7 @@ namespace vpanic {
 		// you get control over fragment shader only and there are built in things to help you
 		// you dont have access to vertex shader this way
 		void load(const char* t_shader_filename, const uint32_t t_glsl_version, const int t_settings = 0);
+		void load_from_memory(const char* t_shader_src, const uint32_t t_glsl_version, const int t_settings = 0);
 		
 		// lets you do more things
 		// see wiki how to set up vertex shader with this: <link to wiki page when its completed>

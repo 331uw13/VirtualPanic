@@ -31,7 +31,11 @@ namespace vpanic {
 	void Engine::update_callback(void(*t_callback)()) {
 		m_update_callback = t_callback;
 	}
-		
+	
+	void Engine::use_camera(Camera* t_cam_ptr) {
+		m_cam = t_cam_ptr;
+	}
+
 	EngineState Engine::copy_state() const {
 		return m_state;
 	}
@@ -41,7 +45,7 @@ namespace vpanic {
 	}
 
 	void Engine::_update_engine_ok_state() {
-		if(m_window == nullptr || m_context == NULL) {
+		if(m_window == nullptr || m_context == NULL || !m_state[EngineState::INIT_OK]) {
 			m_state.unset(EngineState::OK);
 		}
 		else {
@@ -219,30 +223,29 @@ namespace vpanic {
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-			// update camera and set its view, projection and position for everyone to use
-			camera.update();
-			glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
-			// NOTE: projection probably doesnt change that much, create event for it?
-			// NOTE: i can have array of stuff what should be updated here
-			//glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &camera.view[0][0]);
-			//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::mat4),   &camera.projection[0][0]);
-			//glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4),   sizeof(glm::vec3),   &camera.pos);
-			glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &(camera.projection*camera.view)[0][0]);
-			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::vec3),   &camera.pos);
-
+			if(m_cam != nullptr) {
+				// update camera and set its view, projection and position for everyone to use
+				m_cam->update();
+				glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+				// NOTE: projection probably doesnt change that much, create event for it?
+				// NOTE: i can have array of stuff what should be updated here
+				glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &(m_cam->projection*m_cam->view)[0][0]);
+				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::vec3),   &m_cam->pos);
+			}
+		
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplSDL2_NewFrame(m_window);
 			ImGui::NewFrame();
 		
 			glStencilMask(0);
 
-			if(m_skybox.texture.is_loaded()) { 
+			if(m_skybox.texture.is_loaded() && m_cam != nullptr) { 
 				
 				glDepthFunc(GL_LEQUAL);
 				_needs_render_back(true);
 
 				m_skybox.shader.use();
-				m_skybox.shader.set_mat4("matrix", camera.projection*glm::mat4(glm::mat3(camera.view)));
+				m_skybox.shader.set_mat4("matrix", m_cam->projection*glm::mat4(glm::mat3(m_cam->view)));
 				m_skybox.texture.enable();
 				m_skybox.shape.draw(m_skybox.shader);
 				glUseProgram(0);
@@ -400,7 +403,9 @@ namespace vpanic {
 		SDL_SetWindowFullscreen(m_window, b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		glViewport(0, 0, m_width, m_height);
-		camera.aspect_ratio = get_aratio();
+		if(m_cam != nullptr) {
+			m_cam->aspect_ratio = get_aratio();
+		}
 		if(b) {
 			m_state.set(EngineState::FULLSCREEN_ENABLED);
 		}

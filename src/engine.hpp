@@ -40,12 +40,11 @@ namespace vpanic {
 
 		glm::vec2 get_window_size() const;
 		float get_aratio() const; // aspect ratio
-		
-		Camera camera; // <-- temporary solution!
 
 		// it needs to know what shaders wants to know camera matrix
 		void setup_shaders(const std::vector<Shader*>& t_shaders);
 
+		void use_camera(Camera* t_cam_ptr);
 		bool load_skybox(const std::vector<const char*> t_files);
 		void unload_skybox();
 		void lock_mouse(const bool b);
@@ -80,10 +79,11 @@ namespace vpanic {
 		void(*m_keydown_callback)(uint8_t)      { nullptr };
 		void(*m_mouse_wheel_callback)(int8_t)   { nullptr };
 		void(*m_mouse_move_callback)(const MouseData&) { nullptr };
-
+		
 		void _update_engine_ok_state();
 		void _needs_render_back(const bool b);
 
+		Camera* m_cam            { nullptr };
 		SDL_Window* m_window     { nullptr };
 		SDL_GLContext m_context  { NULL };
 
