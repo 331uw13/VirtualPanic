@@ -21,7 +21,6 @@ namespace vpanic {
 		   			const float dst_min, const float dst_max);
 
 	void rotate_matrix_to_matrix(glm::mat4& m0, const glm::mat4& m1);
-	float angle_between(const glm::vec2& p0, const glm::vec2& p1);
 	float distance(const glm::vec3& p0, const glm::vec3& p1);
 
 	float random (const float min, const float max);
@@ -42,7 +41,6 @@ namespace vpanic {
 	Color imvec4_to_color(const ImVec4& v4);
 	void read_imgui_theme(const char* filename);
 
-	void add_triangle_data(std::vector<Vertex>& out);
 	void add_plane_data(std::vector<Vertex>& out, const int t_settings = 0);
 	void add_box_data(std::vector<Vertex>& out);
 	void add_sphere_data(std::vector<Vertex>& out);

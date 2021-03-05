@@ -38,8 +38,8 @@ namespace vpanic {
 		void quit();
 	
 
-		glm::vec2 get_window_size() const;
-		float get_aratio() const; // aspect ratio
+		glm::vec2 window_size() const;
+		float aspect_ratio() const;
 		float delta_time() const;
 
 		// it needs to know what shaders wants to know camera matrix

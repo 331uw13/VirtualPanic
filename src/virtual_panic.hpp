@@ -10,6 +10,7 @@
 #include "theme.hpp"
 #include "file.hpp"
 #include "console.hpp"
+#include "particle_system.hpp"
 
 
 

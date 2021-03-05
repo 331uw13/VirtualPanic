@@ -243,8 +243,7 @@ namespace vpanic {
 		
 			glStencilMask(0);
 
-			if(m_skybox.texture.is_loaded() && m_cam != nullptr) { 
-				
+			if(m_skybox.texture.is_loaded() && m_cam != nullptr) { 	
 				glDepthFunc(GL_LEQUAL);
 				_needs_render_back(true);
 
@@ -254,7 +253,7 @@ namespace vpanic {
 				m_skybox.shape.draw(m_skybox.shader);
 				m_skybox.texture.disable();
 				glUseProgram(0);
-			
+
 				glDepthFunc(GL_LESS);
 			}
 			_needs_render_back(false);	
@@ -281,6 +280,9 @@ namespace vpanic {
 							m_width = event.window.data1;
 							m_height = event.window.data2;
 							glViewport(0, 0, m_width, m_height);
+							if(m_cam != nullptr) {
+								m_cam->aspect_ratio = aspect_ratio();
+							}
 						}
 						break;
 
@@ -320,7 +322,7 @@ namespace vpanic {
 		quit();
 	}
 
-	float Engine::get_aratio() const {
+	float Engine::aspect_ratio() const {
 		return static_cast<float>(m_width) / static_cast<float>(m_height);
 	}
 	
@@ -328,7 +330,7 @@ namespace vpanic {
 		return m_delta_time;
 	}
 		
-	glm::vec2 Engine::get_window_size() const {
+	glm::vec2 Engine::window_size() const {
 		return glm::vec2(m_width, m_height);
 	}
 
@@ -406,7 +408,7 @@ namespace vpanic {
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		glViewport(0, 0, m_width, m_height);
 		if(m_cam != nullptr) {
-			m_cam->aspect_ratio = get_aratio();
+			m_cam->aspect_ratio = aspect_ratio();
 		}
 		if(b) {
 			m_state.set(EngineState::FULLSCREEN_ENABLED);

@@ -35,16 +35,16 @@ namespace vpanic {
 	}
 	*/
 
-	void ShapeArray::set_pos(const uint32_t t_index, const glm::vec3& t_pos) {
+	void ShapeArray::set_matrix(const uint32_t t_index, const glm::mat4& t_mat) {
 		if(!m_loaded) { load({ }); }
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
-		glBufferSubData(GL_ARRAY_BUFFER, t_index*sizeof(glm::vec3), sizeof(glm::vec3), &t_pos);		
+		glBufferSubData(GL_ARRAY_BUFFER, t_index*sizeof(glm::mat4), sizeof(glm::mat4), &t_mat);		
 	}
 	
 	void ShapeArray::reserve(const uint32_t t_size) {
 		if(!m_loaded) { load({ }); }
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
-		glBufferData(GL_ARRAY_BUFFER, t_size*sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, t_size*sizeof(glm::mat4), NULL, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_reserved = t_size;
 	}
@@ -99,18 +99,20 @@ namespace vpanic {
 		
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
 
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
+		/*
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), 0);
 		glEnableVertexAttribArray(3);
 		glVertexAttribDivisor(3, 1);
+		*/
 		
-		/*
+		
 		for(int i = 0; i < 4; i++) {
 			const int id = i+3;
-			glVertexAttribPointer(id, 4, GL_FLOAT, GL_FALSE, MATRIX_SIZE, (void*)(sizeof(glm::vec4)*i)); // 0*x=0, 1*x=x ...
+			glVertexAttribPointer(id, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)*i)); // 0*x=0, 1*x=x ...
 			glEnableVertexAttribArray(id);
 			glVertexAttribDivisor(id, 1);
 		}
-		*/
+		
 		m_draw_data_size = t_data.size();
 		m_loaded = true;
 	}

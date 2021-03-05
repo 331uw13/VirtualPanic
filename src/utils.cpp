@@ -56,10 +56,6 @@ namespace vpanic {
 		m0[2][2] = m1[2][2];
 	}
 
-	float angle_between(const glm::vec2& p0, const glm::vec2& p1) {
-		return atan2(p1.x-p0.x, p1.y-p0.y);
-	}
-
 	float distance(const glm::vec3& p0, const glm::vec3& p1) {
 		const float dx = p1.x - p0.x;
 		const float dy = p1.y - p0.y;
@@ -86,8 +82,12 @@ namespace vpanic {
 	}
 
 	Color mix_color(const Color& start, const Color& end, float t) {
-		return Color(lerp(start.r, end.r, t), lerp(start.g, end.g, t), 
-				lerp(start.b, end.b, t), lerp(start.a, end.a, t));
+		return Color(
+				lerp(start.r, end.r, t), 
+				lerp(start.g, end.g, t),
+			   	lerp(start.b, end.b, t),
+			   	lerp(start.a, end.a, t)
+				);
 	}
 
 	void invert_color(Color& color) {
@@ -191,13 +191,8 @@ namespace vpanic {
 
 	}
 	
-	void add_triangle_data(std::vector<Vertex>& out) {
-	}
-
 	void add_plane_data(std::vector<Vertex>& out, const int t_settings) {
-		
 		std::vector<Vertex> tmp = [t_settings]() {
-			
 			if(t_settings == DOUBLE_SIDE) {
 				return std::vector<Vertex> {
 					Vertex(-0.5f, -0.5f,  0.0f),
@@ -225,7 +220,6 @@ namespace vpanic {
 					Vertex(-0.5f,  0.5f,  0.0f),
 				};
 			}
-
 		}();
 
 		out.resize(out.size()+tmp.size());
@@ -234,6 +228,9 @@ namespace vpanic {
 	}
 
 	void add_sphere_data(std::vector<Vertex>& out) {
+		// TODO: read with time:
+		// https://math.wikia.org/wiki/Icosahedron
+		// https://en.wikipedia.org/wiki/Icosahedron
 	}
 	
 	void add_box_data(std::vector<Vertex>& out) {	
@@ -276,7 +273,6 @@ namespace vpanic {
 			Vertex(-0.5f,  0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f,  0.5f),
-			
 			Vertex( 0.5f,  0.5f,  0.5f),
 			Vertex(-0.5f,  0.5f,  0.5f),
 			Vertex(-0.5f,  0.5f, -0.5f)
