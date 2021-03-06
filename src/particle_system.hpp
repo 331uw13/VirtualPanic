@@ -17,11 +17,11 @@ namespace vpanic {
 		glm::vec3 vel              { glm::vec3(0.0f, 0.0f, 0.0f) };
 		glm::vec3 acc              { glm::vec3(0.0f, 0.0f, 0.0f) };
 		glm::vec3 scale            { glm::vec3(0.4f, 0.4f, 0.4f) };
-		float rotation             { 0.0f };
-		float lifetime             { 0.0f };
-		float max_lifetime         { 2.0f };
-		bool dead                  { false };
-		Color color                { Color(0, 255, 0) };
+		float rotation              { 0.0f };
+		float lifetime              { 0.0f };
+		float max_lifetime          { 2.0f };
+		bool dead                  { true };
+		Color color                { Color(255, 255, 255) };
 		glm::mat4 _matrix          { glm::mat4(1.0f) };
 	};
 
