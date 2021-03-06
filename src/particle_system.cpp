@@ -35,9 +35,11 @@ namespace vpanic {
 			m_shape_array.set_matrix(i, m_particles[i]._matrix);
 		}
 
-		glDisable(GL_DEPTH_TEST);
+		//glDisable(GL_DEPTH_TEST); ... oops!
+		glDepthMask(GL_FALSE);
 		m_shape_array.draw(t_shader);
-		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		//glEnable(GL_DEPTH_TEST);
 	}
 	
 	void ParticleSystem::particle_update_callback(void(*t_callback)(Particle*)) {
