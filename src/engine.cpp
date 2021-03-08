@@ -1,6 +1,6 @@
 #include <GL/gl3w.h>
 #include <SDL2/SDL_opengl.h>
-#include <glm/glm.hpp>
+//#include <glm/glm.hpp>
 
 #include "libs/imgui/imgui_impl_opengl3.h"
 #include "libs/imgui/imgui_impl_sdl.h"
@@ -33,7 +33,11 @@ namespace vpanic {
 	}
 	
 	void Engine::use_camera(Camera* t_cam_ptr) {
+		if(t_cam_ptr == nullptr) { return; }
 		m_cam = t_cam_ptr;
+		if(m_state[EngineState::INIT_OK]) {
+			m_cam->aspect_ratio = aspect_ratio();
+		}
 	}
 
 	EngineState Engine::copy_state() const {
@@ -53,7 +57,7 @@ namespace vpanic {
 		}
 	}
 
-	void Engine::init(const char* t_title, const glm::vec2& t_size, const int t_settings) {
+	void Engine::init(const char* t_title, const Vec2& t_size, const int t_settings) {
 		if(m_state[EngineState::INIT_OK]) { 
 			message(MType::WARNING, "Already initialized?!");
 			return;
@@ -147,6 +151,10 @@ namespace vpanic {
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		glViewport(0, 0, m_width, m_height);
 
+		if(m_cam != nullptr) {
+			m_cam->aspect_ratio = aspect_ratio();
+		}
+
 		message(MType::OK, "Engine is ready! [%ims]", timer.elapsed_ms());
 		m_state.set(EngineState::INIT_OK);
 		_update_engine_ok_state();
@@ -233,8 +241,8 @@ namespace vpanic {
 				glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
 				// NOTE: projection probably doesnt change at much, create event for it?
 				// NOTE: i can have array of stuff what should be updated here
-				glBufferSubData(GL_UNIFORM_BUFFER, 0,                     sizeof(glm::mat4),   &(m_cam->projection*m_cam->view)[0][0]);
-				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),     sizeof(glm::vec3),   &m_cam->pos);
+				glBufferSubData(GL_UNIFORM_BUFFER, 0,                 sizeof(Matrix),   &(m_cam->projection*m_cam->view)[0].x);
+				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Matrix),    sizeof(Vec3),     &m_cam->pos);
 			}
 		
 			ImGui_ImplOpenGL3_NewFrame();
@@ -242,7 +250,7 @@ namespace vpanic {
 			ImGui::NewFrame();
 		
 			glStencilMask(0);
-
+/*
 			if(m_skybox.texture.is_loaded() && m_cam != nullptr) { 	
 				glDepthFunc(GL_LEQUAL);
 				_needs_render_back(true);
@@ -257,7 +265,7 @@ namespace vpanic {
 				glDepthFunc(GL_LESS);
 			}
 			_needs_render_back(false);	
-
+*/
 			
 			if(m_update_callback != nullptr) {
 				m_update_callback();
@@ -330,8 +338,8 @@ namespace vpanic {
 		return m_delta_time;
 	}
 		
-	glm::vec2 Engine::window_size() const {
-		return glm::vec2(m_width, m_height);
+	Vec2 Engine::window_size() const {
+		return Vec2(m_width, m_height);
 	}
 
 	bool Engine::load_skybox(const std::vector<const char*> t_files) {
@@ -350,7 +358,6 @@ namespace vpanic {
 			"uniform mat4 model;"
 			"uniform mat4 matrix;"
 			"out vec3 texcoord;"
-
 			"void main() {"
 				" texcoord = pos;"
 				" gl_Position = (model*matrix*vec4(pos, 1.0)).xyww;"
@@ -435,7 +442,7 @@ namespace vpanic {
 		}
 
 		// camera view, projection and position
-		const uint32_t size = sizeof(glm::mat4) + sizeof(glm::vec3);
+		const uint32_t size = sizeof(Matrix)+sizeof(Vec3);
 
 		glGenBuffers(1, &m_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);

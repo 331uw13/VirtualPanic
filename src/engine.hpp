@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <SDL2/SDL.h>
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
+//#include <glm/vec3.hpp>
+//#include <glm/vec2.hpp>
 
 #include "libs/imgui/imgui.h"
 
@@ -31,14 +31,14 @@ namespace vpanic {
 		void keydown_callback(void(*t_callback)(uint8_t));       // when any keyboard key is down but not good for movement
 		void update_callback(void(*t_callback)());               // every frame
 
-		void init(const char* t_title, const glm::vec2& t_size, const int t_settings = 0);
+		void init(const char* t_title, const Vec2& t_size, const int t_settings = 0);
 		void start();
 
 		void request_shutdown(); // use this instead of 'quit' when wanting to quit from event callback
 		void quit();
 	
 
-		glm::vec2 window_size() const;
+		Vec2 window_size() const;
 		float aspect_ratio() const;
 		float delta_time() const;
 

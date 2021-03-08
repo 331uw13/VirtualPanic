@@ -1,7 +1,9 @@
 #pragma once
-#include <glm/vec3.hpp>
+//#include <glm/vec3.hpp>
 #include <vector>
 
+#include "vec3.hpp"
+#include "matrix.hpp"
 #include "shader.hpp"
 #include "vertex.hpp"
 
@@ -13,7 +15,7 @@ namespace vpanic {
 		Color color { Color(5, 240, 5) };
 
 		//void place(const std::vector<glm::mat4>& t_matrices);
-		void set_matrix(const uint32_t t_index, const glm::mat4& t_mat);
+		void set_matrix(const uint32_t t_index, const Matrix& t_mat);
 		void reserve(const uint32_t t_size);
 		uint32_t size() const;
 

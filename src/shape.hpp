@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
-#include <glm/vec3.hpp>
+//#include <glm/vec3.hpp>
 
+#include "vec3.hpp"
+#include "matrix.hpp"
 #include "color.hpp"
 #include "shader.hpp"
 #include "vertex.hpp"
@@ -20,11 +22,17 @@ namespace vpanic {
 	class Shape {
 	public:
 
+/*		
 		glm::vec3 pos       { glm::vec3(0.0f, 0.0f, 0.0f) };
 		glm::vec3 scale     { glm::vec3(1.0f, 1.0f, 1.0f) };
 		glm::vec3 rotation  { glm::vec3(0.0f, 0.0f, 0.0f) };
+*/		
 
-		Color color         { Color(5, 240, 5) };
+		
+		Vec3 pos       { Vec3(0.0f) };
+		Vec3 scale     { Vec3(1.0f) };
+		Vec3 rotation  { Vec3(0.0f) };	
+		Color color    { Color(255) };
 
 		void enable_outline(Shader* t_shader_ptr);
 		void disable_outline();
@@ -38,14 +46,14 @@ namespace vpanic {
 		bool is_loaded() const;
 		uint8_t get_type() const;
 
-		void set_model_matrix(const glm::mat4& t_matrix);
+		void set_model_matrix(const Matrix& t_matrix);
+		//void set_model_matrix(const glm::mat4& t_matrix);
 		void update_vertex(const Vertex& t_vertex, const int t_index);
 		void update_vertices(const std::vector<Vertex>& t_vertices);
 		
 		void draw(const Shader& t_shader) const;		
 
-		Shape(const std::vector<Vertex>& t_data, const glm::vec3& t_pos,
-			   	const Color& t_color, const int t_settings = 0)
+		Shape(const std::vector<Vertex>& t_data, const Vec3& t_pos, const Color& t_color, const int t_settings = 0)
 			: pos(t_pos), color(t_color) 
 		{ load(t_data, t_settings); }
 		
@@ -63,7 +71,8 @@ namespace vpanic {
 		Shader* m_outline_shader { nullptr };
 
 		mutable bool m_has_user_model_matrix { false };
-		glm::mat4 m_user_model_matrix { glm::mat4(1.0f) };
+		Matrix m_user_model_matrix { Matrix(1.0f) };
+		//glm::mat4 m_user_model_matrix { glm::mat4(1.0f) };
 
 	};
 }

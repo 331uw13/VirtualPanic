@@ -1,11 +1,11 @@
 #include <GL/gl3w.h>
-#include <glm/gtc/matrix_transform.hpp>
+//#include <glm/gtc/matrix_transform.hpp>
 
 #include "shape_array.hpp"
 #include "messages.hpp"
 
 //#define MATRIX_SIZE  0x40
-#define VEC3_SIZE  0xC
+//#define VEC3_SIZE  0xC
 
 
 namespace vpanic {
@@ -35,16 +35,16 @@ namespace vpanic {
 	}
 	*/
 
-	void ShapeArray::set_matrix(const uint32_t t_index, const glm::mat4& t_mat) {
+	void ShapeArray::set_matrix(const uint32_t t_index, const Matrix& t_mat) {
 		if(!m_loaded) { load({ }); }
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
-		glBufferSubData(GL_ARRAY_BUFFER, t_index*sizeof(glm::mat4), sizeof(glm::mat4), &t_mat);		
+		glBufferSubData(GL_ARRAY_BUFFER, t_index*sizeof(Matrix), sizeof(Matrix), &t_mat);		
 	}
 	
 	void ShapeArray::reserve(const uint32_t t_size) {
 		if(!m_loaded) { load({ }); }
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
-		glBufferData(GL_ARRAY_BUFFER, t_size*sizeof(glm::mat4), NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, t_size*sizeof(Matrix), NULL, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_reserved = t_size;
 	}
@@ -78,7 +78,7 @@ namespace vpanic {
 			}
 		}
 	
-		const uint32_t stride = sizeof(glm::vec3)*2+sizeof(glm::vec2);
+		const uint32_t stride = sizeof(Vec3)*2+sizeof(Vec2);
 
 		// points
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
@@ -108,7 +108,7 @@ namespace vpanic {
 		
 		for(int i = 0; i < 4; i++) {
 			const int id = i+3;
-			glVertexAttribPointer(id, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)*i)); // 0*x=0, 1*x=x ...
+			glVertexAttribPointer(id, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix), (void*)(sizeof(Vec4)*i)); // 0*x=0, 1*x=x ...
 			glEnableVertexAttribArray(id);
 			glVertexAttribDivisor(id, 1);
 		}
@@ -151,7 +151,7 @@ namespace vpanic {
 		glBindBuffer(GL_ARRAY_BUFFER, m_ibuffer);
 		glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		size /= sizeof(glm::vec3);
+		size /= sizeof(Vec3);
 		return size;
 	}
 	
@@ -159,8 +159,11 @@ namespace vpanic {
 		if(!m_loaded) { return; }
 		if(m_type == 0) { return; }
 		
+		Matrix model(1.0f);
+		model.translate(Vec3(0.0f));
+
 		t_shader.use();
-		t_shader.set_mat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)));
+		t_shader.set_mat4("model", model);//glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)));
 		t_shader.set_color("shape.color", color);
 		t_shader.set_int("use_offset", 1);
 

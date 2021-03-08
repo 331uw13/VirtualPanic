@@ -1,4 +1,4 @@
-#include <glm/gtc/matrix_transform.hpp>
+#include <GL/gl3w.h>
 
 #include "particle_system.hpp"
 #include "utils.hpp"
@@ -16,7 +16,7 @@ namespace vpanic {
 	}
 
 
-	void ParticleSystem::update(const Shader& t_shader, const float t_delta_time, const glm::mat4& t_camera_view) {		
+	void ParticleSystem::update(const Shader& t_shader, const float t_delta_time, const Matrix& t_camera_view) {		
 		for(size_t i = 0; i < m_particles.size(); i++) {
 			Particle* p = &m_particles[i];
 			p->lifetime += t_delta_time;
@@ -27,10 +27,10 @@ namespace vpanic {
 				m_update_callback(p);
 			}
 
-			p->_matrix = glm::mat4(1.0f);
-			p->_matrix = glm::translate(p->_matrix, p->pos);
-			rotate_matrix_to_matrix(p->_matrix, t_camera_view);
-			p->_matrix = glm::scale(p->_matrix, p->scale);
+			//p->_matrix = glm::mat4(1.0f);
+			//p->_matrix = glm::translate(p->_matrix, p->pos);
+			//rotate_matrix_to_matrix(p->_matrix, t_camera_view);
+			//p->_matrix = glm::scale(p->_matrix, p->scale);
 
 			m_shape_array.set_matrix(i, m_particles[i]._matrix);
 		}

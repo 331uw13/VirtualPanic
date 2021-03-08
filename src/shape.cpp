@@ -7,8 +7,6 @@
 #include "messages.hpp"
 #include "utils.hpp"
 
-#define VEC3_SIZE  0xC
-
 
 namespace vpanic {
 	
@@ -26,10 +24,9 @@ namespace vpanic {
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*t_data.size(), &t_data[0], GL_STATIC_DRAW);
-
 		message(MType::DEBUG, "Shape::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
 
-		const uint32_t stride = sizeof(glm::vec3)*2+sizeof(glm::vec2);
+		const uint32_t stride = sizeof(Vec3)*2+sizeof(Vec2);
 
 		// points
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
@@ -74,7 +71,7 @@ namespace vpanic {
 	}
 		
 		
-	void Shape::set_model_matrix(const glm::mat4& t_matrix) {
+	void Shape::set_model_matrix(const Matrix& t_matrix) {
 		m_has_user_model_matrix = true;
 		m_user_model_matrix = t_matrix;
 	}
@@ -113,17 +110,30 @@ namespace vpanic {
 		
 		t_shader.use();
 
-		glm::mat4 model(1.0f);
+		Matrix model(1.0f);
+		//glm::mat4 model(1.0f);
 
 		if(!m_has_user_model_matrix) {
-			model = glm::translate(model, pos);
+			model.translate(pos);
+			//model = glm::translate(model, pos);
+			
+			if(!rotation.all(0.0f)) {
+				model.rotate(Vec3(1.0f, 0.0f, 0.0f), rotation.x);
+				model.rotate(Vec3(0.0f, 1.0f, 0.0f), rotation.y);
+				model.rotate(Vec3(0.0f, 0.0f, 1.0f), rotation.z);
+			}
+
+			/*
 			if(rotation != glm::vec3(0.0f)) {
 				model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 				model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 				model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 			}
-			if(scale != glm::vec3(0.0f)) {
-				model = glm::scale(model, scale);
+			*/
+			
+			if(!scale.all(0.0f)) {
+				model.scale(scale);
+				//model = glm::scale(model, scale);
 			}
 		}
 		else {
@@ -140,17 +150,17 @@ namespace vpanic {
 		if(m_type == GL_LINES) {
 			glLineWidth(line_thickness);
 		}
-
+/*
 		const bool use_outline = (m_outline && m_outline_shader != nullptr);
 
 		if(use_outline) {
 			glStencilFunc(GL_ALWAYS, 1, 255);
 			glStencilMask(255);
 		}
-		
+*/		
 		glBindVertexArray(m_vao);
 		glDrawArrays(m_type, 0, m_draw_data_size);
-
+/*
 		if(use_outline) {
 			
 			clamp<float>(outline_thickness, 1.02f, 2.0f);
@@ -172,6 +182,7 @@ namespace vpanic {
 			glStencilFunc(GL_ALWAYS, 1, 255);
 			glStencilMask(255);
 		}
+		*/
 	}
 	
 	uint8_t Shape::get_type() const {

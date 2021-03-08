@@ -4,6 +4,7 @@
 
 #include "libs/imgui/imgui.h"
 
+#include "math.hpp"
 #include "utils.hpp"
 #include "theme.hpp"
 #include "settings.hpp"
@@ -39,7 +40,8 @@ namespace vpanic {
 	   1, 2, 3, 4,    4, 4, 4, 4
 
 	*/
-	void rotate_matrix_to_matrix(glm::mat4& m0, const glm::mat4& m1) {
+	
+	/*void rotate_matrix_to_matrix(glm::mat4& m0, const glm::mat4& m1) {
 		// first
 		m0[0][0] = m1[0][0];
 		m0[0][1] = m1[1][0];
@@ -54,9 +56,9 @@ namespace vpanic {
 		m0[2][0] = m1[0][2];
 		m0[2][1] = m1[1][2];
 		m0[2][2] = m1[2][2];
-	}
+	}*/
 
-	float distance(const glm::vec3& p0, const glm::vec3& p1) {
+	float distance(const Vec3& p0, const Vec3& p1) {
 		const float dx = p1.x - p0.x;
 		const float dy = p1.y - p0.y;
 		const float dz = p1.z - p0.z;
@@ -68,10 +70,6 @@ namespace vpanic {
 		return min + static_cast<float>(fast_rand()) / (static_cast<float>((float)0x7FFF / (float)(max - min)));
 	}
 	
-	glm::vec3 random_point(const glm::vec3& min, const glm::vec3& max) {
-		return glm::vec3(random(min.x, max.x), random(min.y, max.y), random(min.z, max.z));
-	}
-
 	int fast_rand() {
 		g_seed = (0x343FD * g_seed + 0x269EC3);
 		return (g_seed >> 16) & 0x7FFF;
@@ -285,15 +283,15 @@ namespace vpanic {
 	void set_normals(std::vector<Vertex>& out, const int t_settings) {
 		if(out.empty()) { return; }
 
-		glm::vec3 triangle[3];
+		Vec3 triangle[3];
 
-		for(uint32_t i = 0; i < out.size(); i+=3) {
+		for(size_t i = 0; i < out.size(); i+=3) {
 			triangle[0] = out[i].point;
 			triangle[1] = out[i+1].point;
 			triangle[2] = out[i+2].point;
 
-			glm::vec3 normal = glm::cross(triangle[1]-triangle[0], triangle[2]-triangle[0]);	
-			normal = -(normal/glm::length(normal));
+			Vec3 normal = cross(triangle[1]-triangle[0], triangle[2]-triangle[0]);	
+			normal = -(normal/normal.length());
 
 			out[i].normal = normal;
 			out[i+1].normal = normal;

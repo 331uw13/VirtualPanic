@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/vec2.hpp>
+#include "vec2.hpp"
 
 namespace vpanic {
 
@@ -10,7 +10,7 @@ namespace vpanic {
 		const float delta_y;
 	};
 
-	namespace Mouse {
+	namespace mouse {
 		
 		enum {
 			LEFT,
@@ -18,7 +18,7 @@ namespace vpanic {
 			RIGHT
 		};
 		
-		glm::vec2 get_pos();
+		Vec2 get_pos();
 		bool button_down(const int t_button);
 
 	}

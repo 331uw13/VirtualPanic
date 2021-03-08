@@ -7,8 +7,7 @@ namespace vpanic {
 	class Texture {
 	public:
 
-		Texture(const char* t_filename);
-		Texture() {}
+		Texture();
 		~Texture();
 
 		// TODO: settings for loading texture and flipping it
@@ -28,7 +27,7 @@ namespace vpanic {
 		bool _generate_image(const char* t_filename, const int t_type);
 		bool m_loaded { false };
 		uint32_t m_id { 0 };
-		int m_type { GL_TEXTURE_2D };
+		int m_type { 0 };
 
 	};
 

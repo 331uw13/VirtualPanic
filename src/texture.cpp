@@ -8,8 +8,8 @@
 
 namespace vpanic {
 
-	Texture::Texture(const char* t_filename) {
-		load(t_filename);
+	Texture::Texture() {
+		m_type = GL_TEXTURE_2D;
 	}
 
 	Texture::~Texture() {

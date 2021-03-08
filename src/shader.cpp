@@ -4,6 +4,11 @@
 #include "shader.hpp"
 #include "messages.hpp"
 
+//
+// TODO: rewrite ------------------------------------ !!!!!!!!!
+//
+
+
 namespace vpanic {
 
 	Shader::~Shader() {
@@ -103,16 +108,16 @@ namespace vpanic {
 			   	t_color.a/255.0f);
 	}
 	
-	void Shader::set_vec3(const char* t_name, const glm::vec3& t_v3) const {
+	void Shader::set_vec3(const char* t_name, const Vec3& t_v3) const {
 		glUniform3f(glGetUniformLocation(id, t_name), t_v3.x, t_v3.y, t_v3.z);
 	}
 	
-	void Shader::set_vec2(const char* t_name, const glm::vec2& t_v2) const {
+	void Shader::set_vec2(const char* t_name, const Vec2& t_v2) const {
 		glUniform2f(glGetUniformLocation(id, t_name), t_v2.x, t_v2.y);
 	}
 
-	void Shader::set_mat4(const char* t_name, const glm::mat4& t_value) const {
-		glUniformMatrix4fv(glGetUniformLocation(id, t_name), 1, GL_FALSE, &t_value[0][0]);
+	void Shader::set_mat4(const char* t_name, const Matrix& t_value) const {
+		glUniformMatrix4fv(glGetUniformLocation(id, t_name), 1, GL_FALSE, t_value.begin());
 	}
 	
 	void Shader::set_int(const char* t_name, const int t_value) const {

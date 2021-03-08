@@ -1,10 +1,13 @@
 #pragma once
-#include <GL/gl3w.h>
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
+//#include <GL/gl3w.h>
+//#include <glm/mat4x4.hpp>
+//#include <glm/vec3.hpp>
 #include <vector>
 #include <string>
 
+#include "vec3.hpp"
+#include "vec2.hpp"
+#include "matrix.hpp"
 #include "color.hpp"
 #include "light.hpp"
 #include "settings.hpp"
@@ -36,12 +39,12 @@ namespace vpanic {
 		// TODO: make sure that shader has uniform 't_name'
 		
 		void set_color  (const char* t_name, const Color& t_color)   const;
-		void set_vec3   (const char* t_name, const glm::vec3& t_v3)  const;
-		void set_vec2   (const char* t_name, const glm::vec2& t_v2)  const;
-		void set_mat4   (const char* t_name, const glm::mat4& t_value) const;
-		void set_int    (const char* t_name, const int t_value)    const;
-		void set_bool   (const char* t_name, const bool t_value)   const; // you can just use set_int but i think this looks bit more clear :)
-		void set_float  (const char* t_name, const float t_value)  const;
+		void set_vec3   (const char* t_name, const Vec3& t_v3)       const;
+		void set_vec2   (const char* t_name, const Vec2& t_v2)       const;
+		void set_mat4   (const char* t_name, const Matrix& t_value)  const;
+		void set_int    (const char* t_name, const int t_value)      const;
+		void set_bool   (const char* t_name, const bool t_value)     const; // you can just use set_int but i think this looks bit more clear :)
+		void set_float  (const char* t_name, const float t_value)    const;
 		
 		uint32_t id { 0 };
 		
