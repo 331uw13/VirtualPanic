@@ -1,5 +1,5 @@
-#include <GL/gl3w.h>
 #include <fstream>
+#include "libs/gl3w.h"
 
 #include "shader.hpp"
 #include "messages.hpp"

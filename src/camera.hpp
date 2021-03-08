@@ -1,6 +1,7 @@
 #pragma once
-#include <glm/glm.hpp>
 
+#include "matrix.hpp"
+#include "vec3.hpp"
 #include "shader.hpp"
 #include "mouse.hpp"
 
@@ -17,8 +18,8 @@ namespace vpanic {
 
 	class Camera {
 	public:
-		glm::vec3 pos    { glm::vec3(0.0f) };
-		glm::vec3 front  { glm::vec3(0.0f, 0.0f, -1.0f) };
+		Vec3 pos    { Vec3(0.0f) };
+		Vec3 front  { Vec3(0.0f, 0.5f, -1.0f) };
 		
 		float yaw    { 0.0f };
 		float pitch  { 0.0f };
@@ -31,21 +32,21 @@ namespace vpanic {
 		float delta_time    { 0.0f };
 		bool freecam  { true };
 
-		glm::mat4 view        { glm::mat4(1.0f) };
-		glm::mat4 projection  { glm::mat4(1.0f) };
+		Matrix view        { Matrix(1.0f) };
+		Matrix projection  { Matrix(1.0f) };
 
 		void update(); 
 
 		void move(MoveDir t_direction, const float t_speed);
-		void look_at_point(const glm::vec3& t_point);
+		void look_at_point(const Vec3& t_point);
 		void look_at_mouse(const MouseData& t_data);
-		glm::vec3 point_from_front(const float t_distance);
+		Vec3 point_from_front(const float t_distance);
 
 		// TODO: is point in radius from front ?
 
 	private:
-		glm::vec3 m_up { glm::vec3(0.0f, 1.0f, 0.0f) };
-		glm::vec3 _rot_xz(const float t_x, const float t_z);
+		Vec3 m_up { Vec3(0.0f, 1.0f, 0.0f) };
+		Vec3 _rot_xz(const float t_x, const float t_z);
 	};
 
 }

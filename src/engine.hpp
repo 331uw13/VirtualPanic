@@ -1,9 +1,6 @@
 #pragma once
 #include <vector>
 #include <SDL2/SDL.h>
-//#include <glm/vec3.hpp>
-//#include <glm/vec2.hpp>
-
 #include "libs/imgui/imgui.h"
 
 #include "mouse.hpp"

@@ -1,4 +1,4 @@
-#include <GL/gl3w.h>
+#include "libs/gl3w.h"
 
 #include "particle_system.hpp"
 #include "utils.hpp"

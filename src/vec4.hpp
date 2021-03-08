@@ -1,4 +1,6 @@
 #pragma once
+#include "vec3.hpp"
+#include "vec2.hpp"
 
 namespace vpanic {
 
@@ -17,6 +19,10 @@ namespace vpanic {
 			: x(t_x), y(t_y), z(t_z), w(t_w) {}
 
 		Vec4() {}
+
+
+		Vec3 xyz() const { return Vec3(x, y, z); }
+		Vec2 xy() const { return Vec2(x, y); }
 
 	};
 

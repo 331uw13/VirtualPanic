@@ -1,7 +1,5 @@
-#include <GL/gl3w.h>
+#include "libs/gl3w.h"
 #include <SDL2/SDL_opengl.h>
-//#include <glm/glm.hpp>
-
 #include "libs/imgui/imgui_impl_opengl3.h"
 #include "libs/imgui/imgui_impl_sdl.h"
 

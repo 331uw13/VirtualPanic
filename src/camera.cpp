@@ -1,27 +1,44 @@
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "camera.hpp"
 #include "utils.hpp"
+#include "math.hpp"
+
 
 namespace vpanic {
 
 	void Camera::update() {
-		front = glm::normalize(glm::vec3(
-					cos(glm::radians(yaw))*cos(glm::radians(pitch)),
-					sin(glm::radians(pitch)),
-					sin(glm::radians(yaw))*cos(glm::radians(pitch))));
+		front = Vec3(cos(to_radians(yaw))*cos(to_radians(pitch)), sin(to_radians(pitch)), sin(to_radians(yaw))*cos(to_radians(pitch)));
+		front.normalize_self();
 
-		view = glm::translate(view, pos);
-		view = glm::lookAt(pos, pos+front, glm::vec3(0.0f, 1.0f, 0.0f));
-		projection = glm::perspective(glm::radians(fov), aspect_ratio, z_near, z_far);
-		
-		if(roll != 0.0f) {
-			projection = glm::rotate(projection, glm::radians(roll), glm::vec3(0.0f, 0.0f, 1.0f));
-		}
+		get_projection(projection, fov, aspect_ratio, z_near, z_far);
+
+		Vec3 center = pos+front;
+		Vec3 f(center-pos);
+		f.normalize_self();
+
+		Vec3 s(cross(f, Vec3(0.0f, 1.0f, 0.0f)));
+		s.normalize_self();
+
+		Vec3 u(cross(s, f));
+
+		view[0].x = s.x;
+		view[1].x = s.y;
+		view[2].x = s.z;
+
+		view[0].y = u.x;
+		view[1].y = u.y;
+		view[2].y = u.z;
+
+		view[0].z = -f.x;
+		view[1].z = -f.y;
+		view[2].z = -f.z;
+
+		view[3].x = -dot(s, pos);
+		view[3].y = -dot(u, pos);
+		view[3].z =  dot(f, pos);
 	}
 
-	glm::vec3 Camera::_rot_xz(const float t_x, const float t_z) {
-		return glm::vec3(cos(glm::radians(yaw))*cos(glm::radians(t_x)), 0, sin(glm::radians(yaw))*cos(glm::radians(t_z)));
+	Vec3 Camera::_rot_xz(const float t_x, const float t_z) {
+		return Vec3(cos(to_radians(yaw))*cos(to_radians(t_x)), 0, sin(to_radians(yaw))*cos(to_radians(t_z)));
 	}
 
 	void Camera::move(MoveDir t_direction, const float t_speed) {
@@ -37,17 +54,17 @@ namespace vpanic {
 			
 			case MoveDir::LEFT:
 				if(freecam) {
-					pos -= glm::cross(front, m_up)*s;
+					pos -= cross(front, m_up)*s;
 				} else {
-					pos -= (glm::cross(_rot_xz(front.x, front.z), m_up)*s);
+					pos -= cross(_rot_xz(front.x, front.z), m_up)*s;
 				}
 				break;
 			
 			case MoveDir::RIGHT:
 				if(freecam) {
-					pos += glm::cross(front, m_up)*s;
+					pos += cross(front, m_up)*s;
 				} else {
-					pos += (glm::cross(_rot_xz(front.x, front.z), m_up)*s);
+					pos += cross(_rot_xz(front.x, front.z), m_up)*s;
 				}
 				break;
 			
@@ -55,8 +72,8 @@ namespace vpanic {
 				if(freecam) {
 					pos += front*s;
 				} else {
-					pos.x += cos(glm::radians(yaw))*cos(glm::radians(front.x))*s;
-					pos.z += sin(glm::radians(yaw))*cos(glm::radians(front.z))*s;
+					pos.x += cos(to_radians(yaw))*cos(to_radians(front.x))*s;
+					pos.z += sin(to_radians(yaw))*cos(to_radians(front.z))*s;
 				}
 				break;
 			
@@ -64,8 +81,8 @@ namespace vpanic {
 				if(freecam) {
 					pos -= front*s;
 				} else {
-					pos.x -= cos(glm::radians(yaw))*cos(glm::radians(front.x))*s;
-					pos.z -= sin(glm::radians(yaw))*cos(glm::radians(front.z))*s;
+					pos.x -= cos(to_radians(yaw))*cos(to_radians(front.x))*s;
+					pos.z -= sin(to_radians(yaw))*cos(to_radians(front.z))*s;
 				}
 				break;
 
@@ -73,7 +90,7 @@ namespace vpanic {
 		}
 	}
 		
-	void Camera::look_at_point(const glm::vec3& t_point) {
+	void Camera::look_at_point(const Vec3& t_point) {
 	}
 	
 	void Camera::look_at_mouse(const MouseData& t_data) {
@@ -83,11 +100,10 @@ namespace vpanic {
 		clamp<float>(pitch, -89.9f, 89.9f);
 	}
 	
-	glm::vec3 Camera::point_from_front(const float t_distance) {
-		return glm::vec3(
-					pos.x+cos(glm::radians(yaw))*(t_distance*cos(glm::radians(pitch))),
-					pos.y+t_distance*sin(glm::radians(pitch)),
-					pos.z+sin(glm::radians(yaw))*(t_distance*cos(glm::radians(pitch))));
+	Vec3 Camera::point_from_front(const float t_distance) {
+		return Vec3(pos.x+cos(to_radians(yaw))*(t_distance*cos(to_radians(pitch))),
+				pos.y+t_distance*sin(to_radians(pitch)),
+				pos.z+sin(to_radians(yaw))*(t_distance*cos(to_radians(pitch))));
 	}
 
 

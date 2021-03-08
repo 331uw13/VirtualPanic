@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-//#include <glm/vec3.hpp>
 
 #include "vec3.hpp"
 #include "matrix.hpp"

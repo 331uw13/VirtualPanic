@@ -1,4 +1,5 @@
 #pragma once
+#include "vec2.hpp"
 
 namespace vpanic {
 
@@ -19,30 +20,33 @@ namespace vpanic {
 
 		
 		float length() const;
+		Vec3 invert() const;
 		Vec3 normalize() const;
 		void normalize_self();
 		
+
 		bool all(const float t) const;
 		bool any(const float t) const;
 
-		Vec3  operator -  ();
-		Vec3  operator -  (const Vec3& a);
-		Vec3  operator -  (const float a);
+		Vec2 xy() const { return Vec2(x, y); }
+
+		Vec3  operator -  (const Vec3& a) const;
+		Vec3  operator -  (const float a) const;
 		Vec3& operator -= (const Vec3& a);
 		Vec3& operator -= (const float a);
-		Vec3  operator +  (const Vec3& a);
-		Vec3  operator +  (const float a);
+		Vec3  operator +  (const Vec3& a) const;
+		Vec3  operator +  (const float a) const;
 		Vec3& operator += (const Vec3& a);
 		Vec3& operator += (const float a);
-		Vec3  operator /  (const Vec3& a);
-		Vec3  operator /  (const float a);
+		Vec3  operator /  (const Vec3& a) const;
+		Vec3  operator /  (const float a) const;
 		Vec3& operator /= (const Vec3& a);
 		Vec3& operator /= (const float a);
-		Vec3  operator *  (const Vec3& a);
-		Vec3  operator *  (const float a);
+		Vec3  operator *  (const Vec3& a) const;
+		Vec3  operator *  (const float a) const;
 		Vec3& operator *= (const Vec3& a);
 		Vec3& operator *= (const float a);
-		
+	
 	};
 
 }

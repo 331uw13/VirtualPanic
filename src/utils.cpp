@@ -1,7 +1,5 @@
 #include <cmath>
 #include <vector>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "libs/imgui/imgui.h"
 
 #include "math.hpp"
@@ -291,7 +289,7 @@ namespace vpanic {
 			triangle[2] = out[i+2].point;
 
 			Vec3 normal = cross(triangle[1]-triangle[0], triangle[2]-triangle[0]);	
-			normal = -(normal/normal.length());
+			normal = (normal/normal.length()).invert();
 
 			out[i].normal = normal;
 			out[i+1].normal = normal;
