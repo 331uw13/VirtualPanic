@@ -20,7 +20,6 @@ namespace vpanic {
 	float map    (const float value, const float src_min, const float src_max,
 		   			const float dst_min, const float dst_max);
 
-//	void rotate_matrix_to_matrix(glm::mat4& m0, const glm::mat4& m1);
 	float distance(const Vec3& p0, const Vec3& p1);
 
 	float random (const float min, const float max);

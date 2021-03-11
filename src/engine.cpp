@@ -152,6 +152,7 @@ namespace vpanic {
 		if(m_cam != nullptr) {
 			m_cam->aspect_ratio = aspect_ratio();
 		}
+		_needs_render_back(false);
 
 		message(MType::OK, "Engine is ready! [%ims]", timer.elapsed_ms());
 		m_state.set(EngineState::INIT_OK);

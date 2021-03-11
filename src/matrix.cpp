@@ -162,6 +162,43 @@ namespace vpanic {
 		m[3] = last;
 	}
 
+	/*
+	
+	   0, 1, 2, -
+	   0, 1, 2, -
+	   0, 1, 2, -
+	   -, -, -, -
+
+
+	   0, 0, 0, -
+	   1, 1, 1, -
+	   2, 2, 2, -
+	   -, -, -, -
+
+	*/
+	void Matrix::copy_rotation(const Matrix& mat) {
+		
+		m[0].x = mat[0].x;
+		m[0].y = mat[1].x;
+		m[0].z = mat[2].x;
+		
+		m[1].x = mat[0].y;
+		m[1].y = mat[1].y;
+		m[1].z = mat[2].y;
+		
+		m[2].x = mat[0].z;
+		m[2].y = mat[1].z;
+		m[2].z = mat[2].z;
+
+	}
+
+	void Matrix::clear() {
+		m[0] = Vec4(1.0f, 0.0f, 0.0f, 0.0f);
+		m[1] = Vec4(0.0f, 1.0f, 0.0f, 0.0f);
+		m[2] = Vec4(0.0f, 0.0f, 1.0f, 0.0f);
+		m[3] = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+
 	float* Matrix::begin() const {
 		return (float*)&m[0].x;
 	}

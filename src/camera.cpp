@@ -9,8 +9,10 @@ namespace vpanic {
 		front = Vec3(cos(to_radians(yaw))*cos(to_radians(pitch)), sin(to_radians(pitch)), sin(to_radians(yaw))*cos(to_radians(pitch)));
 		front.normalize_self();
 
+		// projection matrix for camera
 		get_projection(projection, fov, aspect_ratio, z_near, z_far);
 
+		// view matrix for camera
 		Vec3 center = pos+front;
 		Vec3 f(center-pos);
 		f.normalize_self();
@@ -18,7 +20,7 @@ namespace vpanic {
 		Vec3 s(cross(f, Vec3(0.0f, 1.0f, 0.0f)));
 		s.normalize_self();
 
-		Vec3 u(cross(s, f));
+		const Vec3 u(cross(s, f));
 
 		view[0].x = s.x;
 		view[1].x = s.y;

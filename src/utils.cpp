@@ -29,33 +29,6 @@ namespace vpanic {
 		return lerp(dst_min, dst_max, norm(value, src_min, src_max));
 	}
 
-
-	/*
-
-       1, 2, 3, 4,    1, 1, 1, 1
-	   1, 2, 3, 4,    2, 2, 2, 2
-	   1, 2, 3, 4,    3, 3, 3, 3
-	   1, 2, 3, 4,    4, 4, 4, 4
-
-	*/
-	
-	/*void rotate_matrix_to_matrix(glm::mat4& m0, const glm::mat4& m1) {
-		// first
-		m0[0][0] = m1[0][0];
-		m0[0][1] = m1[1][0];
-		m0[0][2] = m1[2][0];
-
-		// second
-		m0[1][0] = m1[0][1];
-		m0[1][1] = m1[1][1];
-		m0[1][2] = m1[2][1];
-	
-		// third
-		m0[2][0] = m1[0][2];
-		m0[2][1] = m1[1][2];
-		m0[2][2] = m1[2][2];
-	}*/
-
 	float distance(const Vec3& p0, const Vec3& p1) {
 		const float dx = p1.x - p0.x;
 		const float dy = p1.y - p0.y;

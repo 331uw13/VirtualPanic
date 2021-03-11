@@ -17,6 +17,12 @@ namespace vpanic {
 		Shader() {}
 		~Shader();
 
+		// NOTE:
+		// -  bool is_file_changed();
+		// -  void update_source();
+		// these could be helpful too! :)
+
+
 		// you get control over fragment shader only and there are built in things to help you
 		// you dont have access to vertex shader this way
 		void load(const char* t_shader_filename, const uint32_t t_glsl_version, const int t_settings = 0);

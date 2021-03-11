@@ -8,6 +8,7 @@
 
 // this is probably going to change a bit
 
+
 namespace vpanic {
 
 	struct Particle {
@@ -18,22 +19,28 @@ namespace vpanic {
 		Vec3 scale            { Vec3(0.4f, 0.4f, 0.4f) };
 		float rotation        { 0.0f };
 		float lifetime        { 0.0f };
-		float max_lifetime    { 2.0f };
+		float max_lifetime    { 0.0f };
 		bool dead             { true };
 		//Color color         { Color(255, 255, 255) };
 		Matrix _matrix        { Matrix(1.0f) };
 	};
 
+
 	class ParticleSystem {
 	public:
 
+		// NOTE:
+		// tests ?
+		// for example: user can call particle_system.test_update(); to identify some problems ?
+		// .. idk if this is very useful
+
 		void init();
 		void update(const Shader& t_shader, const float t_delta_time, const Matrix& t_camera_view);
-		void particle_update_callback(void(*t_callback)(Particle*));
+		void update_callback(void(*t_callback)(Particle*));
 
 	private:
 	
-		uint32_t m_max_count { 5000 };
+		uint32_t m_max_count { 500 };
 		std::vector<Particle> m_particles;
 		ShapeArray m_shape_array;
 

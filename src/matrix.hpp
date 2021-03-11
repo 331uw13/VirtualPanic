@@ -25,7 +25,8 @@ namespace vpanic {
 		void translate(const Vec3& pos);
 		void scale(const Vec3& vec);
 		void rotate(const Vec3& r, const float angle);
-
+		void copy_rotation(const Matrix& mat);
+		void clear();
 		float* begin() const;
 	
 	private:
