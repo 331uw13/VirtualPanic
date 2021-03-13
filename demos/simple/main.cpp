@@ -5,14 +5,13 @@
 */
 #include <VirtualPanic/virtual_panic.hpp>
 
-// you probably dont want to have these as global
 static vpanic::Engine engine;
 static vpanic::Shape shape;
 static vpanic::Shader shader;
 static vpanic::Camera camera;
 
 static bool light_follow_camera { false };
-static constexpr float camera_speed  { 0.2f };
+static constexpr float camera_speed  { 3.7f };
 
 
 void update() {
@@ -64,13 +63,13 @@ void setup() {
 	shape.load(data);
 
 	shape.color = vpanic::Color(240, 240, 240);
-	shape.pos = glm::vec3(0.0f, -1.0f, 0.0f);
-	shape.scale = glm::vec3(10.f, 2.0f, 10.f);
-	camera.pos = glm::vec3(0.0f, 2.0f, 0.0f);
+	shape.pos = vpanic::Vec3(0.0f, -1.0f, 0.0f);
+	shape.scale = vpanic::Vec3(10.f, 2.0f, 10.f);
+	camera.pos = vpanic::Vec3(0.0f, 2.0f, 0.0f);
 
 	// set default light position
 	shader.use();
-	shader.set_vec3("light_pos", glm::vec3(0.0f, 2.0f, 0.0f));
+	shader.set_vec3("light_pos", vpanic::Vec3(0.0f, 2.0f, 0.0f));
 
 	// lock mouse to center of the screen
 	engine.lock_mouse(true);
@@ -87,6 +86,9 @@ void keydown(uint8_t t_key) {
 	if(t_key == 'e') {
 		light_follow_camera =! light_follow_camera;
 	}
+	else if(t_key == 'q') {
+		engine.request_shutdown();
+	}
 }
 
 
@@ -100,7 +102,7 @@ void mouse_moved(const vpanic::MouseData& t_mdata) {
 int main() {
 
 	// initialize and check if its ok to continue
-	engine.init("Simple Demo", glm::vec2(1200, 900));
+	engine.init("Simple Demo", vpanic::Vec2(1200, 900));
 	if(!engine.copy_state()[vpanic::EngineState::OK]) {
 		return -1;
 	}
