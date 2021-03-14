@@ -11,9 +11,10 @@ namespace vpanic {
 	class ShapeArray {
 	public:
 
-		Color color { Color(5, 240, 5) };
+		//Color color { Color(5, 240, 5) };
 
 		//void place(const std::vector<glm::mat4>& t_matrices);
+		void set_color(const uint32_t t_index, const Color& t_col);
 		void set_matrix(const uint32_t t_index, const Matrix& t_mat);
 		void reserve(const uint32_t t_size);
 		uint32_t size() const;
@@ -37,9 +38,10 @@ namespace vpanic {
 	private:
 
 		bool m_loaded       { false };
+		uint32_t m_matrix_buffer  { 0 };
+		uint32_t m_color_buffer { 0 };
 		uint32_t m_vao      { 0 };
 		uint32_t m_vbo      { 0 };
-		uint32_t m_ibuffer  { 0 };
 		uint32_t m_reserved { 0 };
 		uint8_t  m_type     { 0 };
 		uint32_t m_draw_data_size { 0 };

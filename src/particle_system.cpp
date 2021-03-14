@@ -32,21 +32,15 @@ namespace vpanic {
 			p->_matrix.translate(p->pos);
 			p->_matrix.copy_rotation(t_camera_view);
 			p->_matrix.scale(p->scale);
-			
-			//p->_matrix = glm::mat4(1.0f);
-			//p->_matrix = glm::translate(p->_matrix, p->pos);
-			//rotate_matrix_to_matrix(p->_matrix, t_camera_view);
-			//p->_matrix = glm::scale(p->_matrix, p->scale);
 
 			// TODO: test performance between setting matrices like this or first updating private array of matrices and setting that?
-			m_shape_array.set_matrix(i, m_particles[i]._matrix);
+			m_shape_array.set_matrix(i, p->_matrix);
+			m_shape_array.set_color(i, p->color);
 		}
 
-		//glDisable(GL_DEPTH_TEST); ... oops!
 		glDepthMask(GL_FALSE);
 		m_shape_array.draw(t_shader);
 		glDepthMask(GL_TRUE);
-		//glEnable(GL_DEPTH_TEST);
 	}
 	
 	void ParticleSystem::update_callback(void(*t_callback)(Particle*)) {

@@ -140,9 +140,9 @@ namespace vpanic {
 			//t_shader.set_mat4("model", m_user_model_matrix);
 		}
 
-		t_shader.set_vec3("shape.pos", pos);
+		t_shader.set_vec3("shape_pos", pos);
+		t_shader.set_color("shape_color", color);
 		t_shader.set_mat4("model", model);
-		t_shader.set_color("shape.color", color);
 		t_shader.set_int("use_offset", 0);
 		
 		if(m_type == GL_LINES) {

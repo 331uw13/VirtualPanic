@@ -214,6 +214,7 @@ namespace vpanic {
 		Timer timer;
 		SDL_Event event;
 
+		const float ticks_per_frame = 1000.f/60.f;
 		float previous_count = 0.0f;
 		float current_count = 0.0f;
 
@@ -323,6 +324,12 @@ namespace vpanic {
 			}
 		
 			SDL_GL_SwapWindow(m_window);
+
+			const float elapsed = static_cast<float>(timer.elapsed_ms());
+			if(elapsed < ticks_per_frame) {
+				SDL_Delay(ticks_per_frame-elapsed);
+			}
+
 		}
 
 		m_state.unset(EngineState::KEEP_LOOP);
