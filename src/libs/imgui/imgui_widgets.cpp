@@ -4643,15 +4643,12 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 #ifdef IMGUI_INCLUDE_VIRTUALPANIC
 #include "../../utils.hpp"
 
-
 void ImGui::VPanic::TextRGB(const char* fmt, ...) {
 	
 	ImGuiWindow* window = GetCurrentWindow();
     ImGuiContext& g = *GImGui;
 
-	// TODO: use max size(0x200000) if flag is set
-
-	const size_t max_buf_size = 0x200000;
+	const size_t max_buf_size = 2048;
 
 	char buf[max_buf_size];
 	va_list ap;

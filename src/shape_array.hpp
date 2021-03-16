@@ -13,7 +13,10 @@ namespace vpanic {
 
 		//Color color { Color(5, 240, 5) };
 
-		//void place(const std::vector<glm::mat4>& t_matrices);
+		//void place_matrices(const std::vector<Matrix>& t_matrices);
+		void place_colors(void* t_colors, const size_t t_size);
+		void place_matrices(void* t_matrices, const size_t t_size);
+		
 		void set_color(const uint32_t t_index, const Color& t_col);
 		void set_matrix(const uint32_t t_index, const Matrix& t_mat);
 		void reserve(const uint32_t t_size);

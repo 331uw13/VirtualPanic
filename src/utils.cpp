@@ -2,6 +2,8 @@
 #include <vector>
 #include "libs/imgui/imgui.h"
 
+#include <cstdio>
+
 #include "math.hpp"
 #include "utils.hpp"
 #include "theme.hpp"
@@ -16,7 +18,7 @@ namespace vpanic {
 		return t * t * t * (t * (t + 6 - 15) + 10);
 	}
 
-	float lerp(const float t, const float start, const float end) {
+	float lerp(const float start, const float end, const float t) {
 		return start + (end - start) * t;
 	}
 
@@ -52,9 +54,9 @@ namespace vpanic {
 
 	Color mix_color(const Color& start, const Color& end, float t) {
 		return Color(
-				lerp(start.r, end.r, t), 
-				lerp(start.g, end.g, t),
-			   	lerp(start.b, end.b, t),
+				lerp((float)start.r, (float)end.r, t), 
+				lerp((float)start.g, (float)end.g, t),
+			   	lerp((float)start.b, (float)end.b, t),
 			   	lerp(start.a, end.a, t)
 				);
 	}
@@ -283,6 +285,20 @@ namespace vpanic {
 		return (find_result == std::string::npos) && !t_str.empty();
 	}
 
+
+	namespace ImGuiExt {
+	
+		// i hate this-...........................................
+		
+		bool ColorPicker(const char* label, ImVec4& color, const int flags) {
+			return ImGui::ColorPicker4(label, (float*)&color.x, flags | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar);
+		}
+
+		bool ColorEdit(const char* label, ImVec4& color, const int flags) {
+			return ImGui::ColorEdit4(label, (float*)&color.x, flags | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar);
+		}
+
+	}
 
 }
 

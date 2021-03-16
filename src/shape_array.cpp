@@ -1,3 +1,4 @@
+#include <cstring>
 #include "libs/gl3w.h"
 
 #include "shape_array.hpp"
@@ -33,7 +34,23 @@ namespace vpanic {
 		glBufferSubData(GL_ARRAY_BUFFER, t_index*MATRIX_SIZE, MATRIX_SIZE, &t_matrix);		
 	}
 	*/
+	
+	void ShapeArray::place_colors(void* t_colors, const size_t t_size) {
+		glBindBuffer(GL_ARRAY_BUFFER, m_color_buffer);
+		
+		void* ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		memmove(ptr, t_colors, t_size*sizeof(Vec4));
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
 
+	void ShapeArray::place_matrices(void* t_matrices, const size_t t_size) {
+		glBindBuffer(GL_ARRAY_BUFFER, m_matrix_buffer);
+		
+		void* ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		memmove(ptr, t_matrices, t_size*sizeof(Matrix));
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
+	
 	void ShapeArray::set_matrix(const uint32_t t_index, const Matrix& t_mat) {
 		if(!m_loaded) { load({ }); }
 		glBindBuffer(GL_ARRAY_BUFFER, m_matrix_buffer);
@@ -42,18 +59,19 @@ namespace vpanic {
 	
 	void ShapeArray::set_color(const uint32_t t_index, const Color& t_col) {
 		if(!m_loaded) { load({ }); }
-		glBindBuffer(GL_ARRAY_BUFFER, m_matrix_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, m_color_buffer);
 		const Vec4 color(t_col.r/255.f, t_col.g/255.f, t_col.b/255.f, t_col.a/255.f);
 		glBufferSubData(GL_ARRAY_BUFFER, t_index*sizeof(Vec4), sizeof(Vec4), &color);		
 	}
 
 	void ShapeArray::reserve(const uint32_t t_size) {
 		if(!m_loaded) { load({ }); }
-		glBindBuffer(GL_ARRAY_BUFFER, m_matrix_buffer);
-		glBufferData(GL_ARRAY_BUFFER, t_size*sizeof(Matrix), NULL, GL_DYNAMIC_DRAW);
-		
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_color_buffer);
-		glBufferData(GL_ARRAY_BUFFER, t_size*sizeof(Vec4), NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, t_size*sizeof(Vec4), NULL, GL_STREAM_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_matrix_buffer);
+		glBufferData(GL_ARRAY_BUFFER, t_size*sizeof(Matrix), NULL, GL_STREAM_DRAW);
 		
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_reserved = t_size;
@@ -74,7 +92,7 @@ namespace vpanic {
 		if(!t_data.empty()) {
 			const size_t data_size = t_data.size();
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-			glBufferData(GL_ARRAY_BUFFER, data_size*sizeof(Vertex), &t_data[0], GL_DYNAMIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, data_size*sizeof(Vertex), &t_data[0], GL_STREAM_DRAW);
 		
 			message(MType::DEBUG, "ShapeArray::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
 
@@ -102,24 +120,17 @@ namespace vpanic {
 		}
 
 		// texture coordinates
-		//if(!(t_settings & NO_TEXTURE)) {
-		//}
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
 		glEnableVertexAttribArray(2);	
 	
-		
-		glBindBuffer(GL_ARRAY_BUFFER, m_matrix_buffer);
-
-		/*
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), 0);
-		glEnableVertexAttribArray(3);
-		glVertexAttribDivisor(3, 1);
-		*/
-		
+		// color
+		glBindBuffer(GL_ARRAY_BUFFER, m_color_buffer);
 		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vec4), (void*)0);
 		glEnableVertexAttribArray(3);
 		glVertexAttribDivisor(3, 1);
 		
+		// matrices
+		glBindBuffer(GL_ARRAY_BUFFER, m_matrix_buffer);
 		for(int i = 0; i < 4; i++) {
 			const int id = i+4;
 			glVertexAttribPointer(id, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix), (void*)(sizeof(Vec4)*i));
@@ -146,8 +157,8 @@ namespace vpanic {
 	void ShapeArray::unload() {
 		if(!m_loaded) { return; }
 		glDeleteBuffers(1, &m_vbo);
-		glDeleteBuffers(1, &m_matrix_buffer);
 		glDeleteBuffers(1, &m_color_buffer);
+		glDeleteBuffers(1, &m_matrix_buffer);
 		glDeleteVertexArrays(1, &m_vao);
 		
 		m_vbo = 0;
@@ -167,7 +178,7 @@ namespace vpanic {
 		glBindBuffer(GL_ARRAY_BUFFER, m_matrix_buffer);
 		glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		size /= sizeof(Vec3);
+		size /= sizeof(Matrix);
 		return size;
 	}
 	

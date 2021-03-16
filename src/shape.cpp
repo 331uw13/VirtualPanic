@@ -107,13 +107,10 @@ namespace vpanic {
 		if(m_type == 0) { return; }
 		
 		t_shader.use();
-
 		Matrix model(1.0f);
-		//glm::mat4 model(1.0f);
 
 		if(!m_has_user_model_matrix) {
 			model.translate(pos);
-			//model = glm::translate(model, pos);
 			
 			if(!rotation.all(0.0f)) {
 				model.rotate(Vec3(1.0f, 0.0f, 0.0f), rotation.x);
@@ -121,17 +118,8 @@ namespace vpanic {
 				model.rotate(Vec3(0.0f, 0.0f, 1.0f), rotation.z);
 			}
 
-			/*
-			if(rotation != glm::vec3(0.0f)) {
-				model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-				model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-				model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-			}
-			*/
-			
 			if(!scale.all(0.0f)) {
 				model.scale(scale);
-				//model = glm::scale(model, scale);
 			}
 		}
 		else {

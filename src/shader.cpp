@@ -238,11 +238,12 @@ namespace vpanic {
 				" vec3 pos;"
 				" vec4 color;"
 			"};\n"
-			//"in vec3 offset_pos;"
+			
 			"in vec3 camera_pos;"
 			"in Fragment fragment;\n"
-			"uniform VPanicShape shape;"
+			"in VPanicShape shape;\n"
 			"uniform sampler2D texture0;" // NOTE: array of textures?
+			
 			"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float radius) {\n"
 				" if(fragment.normal == vec3(0.0f, 0.0f, 0.0f)) { return vec3(shape.color); }"
 				" vec3 light_color = vec3(color);"
@@ -272,7 +273,7 @@ namespace vpanic {
 				" vec3 diffuse = diffuse_value*diff*light_color;"
 				" float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);"
 				" vec3 specular = spec*light_color;"
-				"return (ambient+diffuse+specular)*shape_color;"
+				" return (ambient+diffuse+specular)*shape_color;"
 			"}"
 			"float vpanic_fog(vec3 pos, float max, float min) {\n"
 				" float dist = distance(pos, fragment.pos);"
@@ -284,7 +285,7 @@ namespace vpanic {
 	
 	void Shader::_safe_check_vertex_source(const uint32_t t_glsl_version) {
 		// make sure that vertex source is not empty and it starts with '#' else update it
-		if(m_vertex_source.size() <= 1 && m_vertex_source.find(0x23) != 0) {	
+		if(m_vertex_source.size() <= 5 && m_vertex_source.find('#') != 0) {	
 			m_vertex_source = 
 				"#version " + std::to_string(t_glsl_version) + " core\n"
 				"layout(location = 0) in vec3 pos;\n"
@@ -292,6 +293,7 @@ namespace vpanic {
 				"layout(location = 2) in vec2 texcoord;\n"
 				"layout(location = 3) in vec4 offset_color;\n"
 				"layout(location = 4) in mat4 offset;\n"
+
 				"struct Fragment {\n"
 					" vec3 pos;\n"
 					" vec3 normal;\n"
@@ -306,14 +308,16 @@ namespace vpanic {
 					" vec3 pos;"
 					" vec4 color;"
 				"};\n"
+				
 				"uniform mat4 model;\n"
 				"uniform bool use_offset;\n"
 				"uniform vec4 shape_color;\n"
 				"uniform vec3 shape_pos;\n"
-				"out Fragment fragment;\n"	
+
+				"out Fragment fragment;\n"
 				"out vec3 camera_pos;\n"
-				//"out vec3 offset_pos;"
-				"out Shape shape;"
+				"out VPanicShape shape;\n"
+				
 				"void main() {\n"
 					" camera_pos = cam_pos;"
 					" fragment.texcoord = texcoord;\n"

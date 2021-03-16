@@ -15,7 +15,7 @@ struct ImVec4;
 namespace vpanic {
 
 	float fade   (const float t);
-	float lerp   (const float t, const float start, const float end);
+	float lerp   (const float start, const float end, const float t);
 	float norm   (const float value, const float min, const float max);
 	float map    (const float value, const float src_min, const float src_max,
 		   			const float dst_min, const float dst_max);
@@ -31,7 +31,6 @@ namespace vpanic {
 	}
 
 	Color mix_color(const Color& start, const Color& end, float t);
-
 	Color illuminate(const Color& color, const int8_t t); // NOTE: needs better name maybe
 	void invert_color(Color& color);
 
@@ -52,6 +51,10 @@ namespace vpanic {
 	Color hex_to_color(const uint32_t hex);
 	bool is_hex_string(const std::string& t_str);		
 
+	namespace ImGuiExt {
+		bool ColorPicker(const char* label, ImVec4& color, const int flags = 0);
+		bool ColorEdit(const char* label, ImVec4& color, const int flags = 0);
+	}
 
 }
 
