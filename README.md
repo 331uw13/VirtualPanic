@@ -1,4 +1,5 @@
 # VirtualPanic
+![](https://raw.githubusercontent.com/331uw13/VirtualPanic/master/Images/virtualpanic-art-2.jpg)
 
 [VirtualPanic Wiki](https://331uw13.github.io/VirtualPanicWiki/)
 
@@ -33,6 +34,3 @@ https://learnopengl.com/  thanks for reading material :heart:
 
 ![](https://github.com/331uw13/VirtualPanic/blob/master/Images/pink.png)
 
-![](https://github.com/331uw13/VirtualPanic/blob/master/Images/rainbow_block.png)
-
-![](https://github.com/331uw13/VirtualPanic/blob/master/Images/rainbow.png)
