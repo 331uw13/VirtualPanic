@@ -7,7 +7,7 @@
 
 Todo:
 
-- [x] Particle system  (needs optimization)
+- [x] Particle system  (needs more optimization)
 - [ ] Materials
 - [ ] Model loading
 - [ ] Better light system
