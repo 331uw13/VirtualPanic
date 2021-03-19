@@ -8,6 +8,7 @@
 Todo:
 
 - [x] Particle system  (needs more optimization)
+- [ ] Terrain
 - [ ] Materials
 - [ ] Model loading
 - [ ] Better light system
