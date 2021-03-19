@@ -2,18 +2,15 @@
 #include <thread>
 #include "libs/gl3w.h"
 
-
 #include "particle_system.hpp"
 #include "utils.hpp"
+#include "internal.hpp"
+#include "messages.hpp"
 
 
 namespace vpanic {
 
 	void ParticleSystem::init() {
-		//std::vector<Vertex> data;
-		//add_plane_data(data, USING_TRIANGLE_STRIP);
-		//set_normals(data);
-
 		m_blob_max_count = m_max_count/2;
 		clamp<uint32_t>(m_blob_max_count, 1, m_blob_max_count);
 
@@ -22,7 +19,6 @@ namespace vpanic {
 
 		for(size_t i = 0; i < m_blobs.size(); i++) {
 			Blob& b = m_blobs[i];
-			//b.shape_array.load(data);
 			b.shape_array.load_point();
 			b.shape_array.reserve(m_blob_max_count);
 			b.particles.resize(m_blob_max_count);
@@ -44,8 +40,8 @@ namespace vpanic {
 	}
 	
 	void ParticleSystem::update(const Shader& t_shader, const float t_delta_time, const Matrix& t_camera_view) {		
-	
-		Matrix matrix_buffer[m_blob_max_count];
+		
+		Vec3 position_buffer[m_blob_max_count];
 		Color color_buffer[m_blob_max_count];
 
 		const int dt = static_cast<int>(t_delta_time*1000.f);
@@ -57,14 +53,7 @@ namespace vpanic {
 				p->dead = (p->lifetime >= p->max_lifetime);
 				m_update_callback(p);
 			
-				p->matrix[3].x = p->pos.x;
-				p->matrix[3].y = p->pos.y;
-				p->matrix[3].z = p->pos.z;
-
-				p->matrix.copy_rotation(t_camera_view);
-				p->matrix.scale(p->scale);
-
-				matrix_buffer[t_index] = p->matrix;
+				position_buffer[t_index] = p->pos;
 				color_buffer[t_index] = p->color;
 			}
 		};
@@ -76,7 +65,7 @@ namespace vpanic {
 				update_particle(&b.particles[j], j);
 			}
 
-			b.shape_array.fill_matrices(matrix_buffer, m_blob_max_count);
+			b.shape_array.fill_point_pos(position_buffer, m_blob_max_count);
 			b.shape_array.fill_colors((Color*)color_buffer, m_blob_max_count);
 		}
 

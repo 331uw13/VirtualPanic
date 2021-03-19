@@ -29,9 +29,6 @@ namespace vpanic {
 	// not default
 	static constexpr int NO_SHADER_UTIL { 1 };
 
-	// this will give you support for geometry shaders.
-	// TODO: static constexpr int SUPPORT_GEOMETRY_SHADER { 1 << 1 };
-
 
 	// --- 'add_plane_data()' ---
 	// do you need to see both sides of the plane?

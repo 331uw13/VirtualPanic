@@ -135,7 +135,6 @@ namespace vpanic {
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		message(MType::OK, "Initialized ImGui");
 
-
 		if(t_settings & FULLSCREEN) {
 			message(MType::INFO, "Using Fullscreen");
 			fullscreen(true);
@@ -153,6 +152,8 @@ namespace vpanic {
 			m_cam->aspect_ratio = aspect_ratio();
 		}
 		_needs_render_back(false);
+
+		m_ubo.create({ sizeof(Matrix), sizeof(Vec3) });
 
 		message(MType::OK, "Engine is ready! [%ims]", timer.elapsed_ms());
 		m_state.set(EngineState::INIT_OK);
@@ -238,11 +239,19 @@ namespace vpanic {
 				// update camera and set its view, projection and position for everyone to use
 				m_cam->delta_time = m_delta_time;
 				m_cam->update();
+				
+				m_ubo.set(0, (m_cam->projection*m_cam->view).begin());
+				m_ubo.set(1, &m_cam->pos);
+				//m_ubo.add(sizeof(Matrix), (m_cam->projection*m_cam->view).begin());
+				//m_ubo.add(sizeof(Vec3), &m_cam->pos);
+				
+				/*
 				glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
 				// NOTE: projection probably doesnt change at much, create event for it?
 				// NOTE: i can have array of stuff what should be updated here
 				glBufferSubData(GL_UNIFORM_BUFFER, 0,                 sizeof(Matrix),   &(m_cam->projection*m_cam->view)[0].x);
 				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Matrix),    sizeof(Vec3),     &m_cam->pos);
+				*/
 			}
 		
 			ImGui_ImplOpenGL3_NewFrame();
@@ -442,18 +451,8 @@ namespace vpanic {
 	
 	void Engine::setup_shaders(const std::vector<Shader*>& t_shaders) {
 		for(size_t i = 0; i < t_shaders.size(); i++) {
-			if(!t_shaders[i]->is_loaded()) { continue; }
-			const uint32_t block_index = glGetUniformBlockIndex(t_shaders[i]->id, "vertex_data");
-			glUniformBlockBinding(t_shaders[i]->id, block_index, 0);
+			t_shaders[i]->add_uniform_binding("vertex_data");
 		}
-
-		// camera view, projection and position
-		const uint32_t size = sizeof(Matrix)+sizeof(Vec3);
-
-		glGenBuffers(1, &m_ubo);
-		glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
-		glBufferData(GL_UNIFORM_BUFFER, size, NULL, GL_STATIC_DRAW);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_ubo, 0, size);
 	}
 	
 	void Engine::mouse_to_window_center() {

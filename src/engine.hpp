@@ -3,16 +3,17 @@
 #include <SDL2/SDL.h>
 #include "libs/imgui/imgui.h"
 
-#include "mouse.hpp"
+#include "mouse.hpp" //.
 #include "color.hpp"
 #include "utils.hpp"
-#include "keyboard.hpp"
+#include "keyboard.hpp" //.
 #include "timer.hpp"
 #include "settings.hpp"
 #include "shader.hpp"
 #include "camera.hpp"
-#include "shape.hpp"
+#include "shape.hpp" //.
 #include "state.hpp"
+#include "uniform_buffer.hpp"
 
 
 namespace vpanic {
@@ -68,7 +69,9 @@ namespace vpanic {
 
 		} m_skybox;
 
-		uint32_t m_ubo { 0 };  // "uniform buffer object"
+		UniformBuffer m_ubo;
+
+		//uint32_t m_ubo { 0 };  // "uniform buffer object"
 		
 		int m_width    { 0 };
 		int m_height   { 0 };
