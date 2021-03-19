@@ -82,7 +82,7 @@ void setup() {
 
 
 void keydown(uint8_t t_key) {
-	//printf("keydown: 0x%x / %c\n", t_key);
+	//printf("keydown: 0x%x / %c\n", t_key, t_key);
 	if(t_key == 'e') {
 		light_follow_camera =! light_follow_camera;
 	}
@@ -94,7 +94,7 @@ void keydown(uint8_t t_key) {
 
 void mouse_moved(const vpanic::MouseData& t_mdata) {
 	// tell camera where mouse coordinates are going
-	// this will update 'camera.yaw', camera.pitch'
+	// this will update 'camera.yaw', 'camera.pitch'
 	camera.look_at_mouse(t_mdata);
 }
 
