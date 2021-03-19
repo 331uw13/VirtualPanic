@@ -291,6 +291,7 @@ namespace vpanic {
 				"layout(location = 0) in vec3 pos;\n"
 				"layout(location = 1) in vec3 normal;\n"
 				"layout(location = 2) in vec2 texcoord;\n"
+
 				"layout(location = 3) in vec4 offset_color;\n"
 				"layout(location = 4) in mat4 offset;\n"
 
@@ -314,8 +315,10 @@ namespace vpanic {
 				"uniform vec4 shape_color;\n"
 				"uniform vec3 shape_pos;\n"
 
-				"out Fragment fragment;\n"
+				"uniform int mode;\n"
+
 				"out vec3 camera_pos;\n"
+				"out Fragment fragment;\n"
 				"out VPanicShape shape;\n"
 				
 				"void main() {\n"

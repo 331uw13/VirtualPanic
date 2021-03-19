@@ -177,15 +177,15 @@ namespace vpanic {
 		ImGui_ImplSDL2_Shutdown();
 		ImGui::DestroyContext();
 		message(MType::OK, "Unloaded ImGui");
-
-		if(m_context != NULL) {
-			SDL_GL_DeleteContext(m_context);
-			message(MType::OK, "Destroyed context");
-		}
 		
 		if(m_window != nullptr) {
 			SDL_DestroyWindow(m_window);
 			message(MType::OK, "Destroyed window");
+		}
+
+		if(m_context != NULL) {
+			SDL_GL_DeleteContext(m_context);
+			message(MType::OK, "Destroyed context");
 		}
 
 		SDL_Quit();	

@@ -18,12 +18,6 @@ namespace vpanic {
 	static constexpr int CLOCKWISE { 1 };
 	static constexpr int COUNTER_CLOCKWISE { 2 };
 
-
-	// --- 'Shape::load()' ---
-	// dont pass normals for shaders
-	// not default
-	static constexpr int NO_COLORED_LIGHT { 1 << 0 };
-
 	// --- 'Shape::disable_outline()' ---
 	// unloads the current outline shader if loaded
 	// by default it sets the outline shader to nullptr but doesnt unload it
@@ -42,13 +36,14 @@ namespace vpanic {
 	// --- 'add_plane_data()' ---
 	// do you need to see both sides of the plane?
 	// not default
-	static constexpr int DOUBLE_SIDE { 1 };
-
+	static constexpr int DOUBLE_SIDE { 1 << 0 };
+	static constexpr int USING_TRIANGLE_STRIP { 1 << 1 };
 
 	// --- 'find_all()' ---
 	// dont ignore sub directories
 	// not default
 	static constexpr int INCLUDE_SUB_DIRECTORIES { 1 };
+
 
 	// ...
 

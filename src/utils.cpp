@@ -164,7 +164,7 @@ namespace vpanic {
 	
 	void add_plane_data(std::vector<Vertex>& out, const int t_settings) {
 		std::vector<Vertex> tmp = [t_settings]() {
-			if(t_settings == DOUBLE_SIDE) {
+			if(t_settings & DOUBLE_SIDE) {
 				return std::vector<Vertex> {
 					Vertex(-0.5f, -0.5f,  0.0f),
 					Vertex( 0.5f,  0.5f,  0.0f),
@@ -182,14 +182,24 @@ namespace vpanic {
 				};
 			}
 			else {
-				return std::vector<Vertex> {
-					Vertex(-0.5f, -0.5f,  0.0f),
-					Vertex( 0.5f,  0.5f,  0.0f),
-					Vertex( 0.5f, -0.5f,  0.0f),
-					Vertex( 0.5f,  0.5f,  0.0f),
-					Vertex(-0.5f, -0.5f,  0.0f),
-					Vertex(-0.5f,  0.5f,  0.0f),
-				};
+				if(t_settings & USING_TRIANGLE_STRIP) {
+					return std::vector<Vertex> {
+						Vertex(-0.5f, -0.5f,  0.0f),
+						Vertex(-0.5f,  0.5f,  0.0f),
+						Vertex( 0.5f, -0.5f,  0.0f),
+						Vertex( 0.5f,  0.5f,  0.0f),
+					};
+				}
+				else {
+					return std::vector<Vertex> {
+						Vertex(-0.5f, -0.5f,  0.0f),
+						Vertex( 0.5f,  0.5f,  0.0f),
+						Vertex( 0.5f, -0.5f,  0.0f),
+						Vertex( 0.5f,  0.5f,  0.0f),
+						Vertex(-0.5f, -0.5f,  0.0f),
+						Vertex(-0.5f,  0.5f,  0.0f),
+					};
+				}
 			}
 		}();
 
@@ -206,12 +216,13 @@ namespace vpanic {
 	
 	void add_box_data(std::vector<Vertex>& out) {	
 		std::vector<Vertex> tmp = {
+
 			Vertex(-0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f, -0.5f),
 			Vertex(-0.5f,  0.5f, -0.5f),
-			Vertex(-0.5f, -0.5f, -0.5f),
+			Vertex(-0.5f, -0.5f, -0.5f),	
 
 			Vertex(-0.5f, -0.5f,  0.5f),
 			Vertex( 0.5f,  0.5f,  0.5f),
@@ -258,7 +269,9 @@ namespace vpanic {
 
 		Vec3 triangle[3];
 
-		for(size_t i = 0; i < out.size(); i+=3) {
+		const size_t size = out.size();
+		for(size_t i = 0; i < size; i+=3) {
+			if(i+2 >= size) { break; }
 			triangle[0] = out[i].point;
 			triangle[1] = out[i+1].point;
 			triangle[2] = out[i+2].point;

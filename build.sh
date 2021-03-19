@@ -39,7 +39,7 @@ if ! make ; then
 fi
 
 echo -e "\n\033[1m\033[92m -------= Build Completed in ("$SECONDS") seconds! =-------\033[0m"
-echo -e " \033[94m($(cat `find ./src/* -type f | grep -v "ImGui\|stb_image\|gl3w"` | wc -l))\033[34m lines of code!\n\033[0m"
+echo -e " \033[94m($(cat `find ./src/* -type f | grep -v "imgui\|stb_image\|gl3w"` | wc -l))\033[34m lines of code!\n\033[0m"
 sleep 1
 
 if [[ $_install_lib == 1 ]] ; then

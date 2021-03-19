@@ -31,14 +31,9 @@ namespace vpanic {
 		glEnableVertexAttribArray(0);
 	
 		// normals
-		if(!(t_settings & NO_COLORED_LIGHT)) {
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, normal)));
-			glEnableVertexAttribArray(1);
-		}
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, normal)));
+		glEnableVertexAttribArray(1);
 
-		// texture coordinates
-		//if(!(t_settings & NO_TEXTURE)) {
-		//}
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
 		glEnableVertexAttribArray(2);	
 		
