@@ -43,6 +43,15 @@ namespace vpanic {
 		};
 	};
 
+	struct ShaderState : public DefaultState {
+		enum {
+			HAS_VS = 1 << 0, // vertex shader
+			HAS_FS = 1 << 1, // fragment shader
+			HAS_GS = 1 << 2, // geometry shader
+			HAS_CS = 1 << 3  // compute shader
+		};
+	};
+
 
 	// probably going to add more here...
 

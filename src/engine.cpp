@@ -72,12 +72,12 @@ namespace vpanic {
 		message(MType::OK, "Initialized SDL");
 
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 		m_window = SDL_CreateWindow(t_title, 0, 0, t_size.x, t_size.y,
-			   	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);	
+			   	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_ALLOW_HIGHDPI*/);	
 		
 		if(m_window == nullptr) {
 			message(MType::ERROR, "Failed to create window! (%s)", SDL_GetError());
@@ -385,9 +385,9 @@ namespace vpanic {
 			"void main() {"
 				" gl_FragColor = texture(skybox, texcoord);"
 			"}";
-		
-		m_skybox.shader.load_from_memory(vertex_src, fragment_src);
-		return true;
+	
+		m_skybox.shader.add_shaders_from_memory(vertex_src, fragment_src);
+		return m_skybox.shader.compile();
 	}
 
 	void Engine::unload_skybox() {

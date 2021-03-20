@@ -182,24 +182,14 @@ namespace vpanic {
 				};
 			}
 			else {
-				if(t_settings & USING_TRIANGLE_STRIP) {
-					return std::vector<Vertex> {
-						Vertex(-0.5f, -0.5f,  0.0f),
-						Vertex(-0.5f,  0.5f,  0.0f),
-						Vertex( 0.5f, -0.5f,  0.0f),
-						Vertex( 0.5f,  0.5f,  0.0f),
-					};
-				}
-				else {
-					return std::vector<Vertex> {
-						Vertex(-0.5f, -0.5f,  0.0f),
-						Vertex( 0.5f,  0.5f,  0.0f),
-						Vertex( 0.5f, -0.5f,  0.0f),
-						Vertex( 0.5f,  0.5f,  0.0f),
-						Vertex(-0.5f, -0.5f,  0.0f),
-						Vertex(-0.5f,  0.5f,  0.0f),
-					};
-				}
+				return std::vector<Vertex> {
+					Vertex(-0.5f, -0.5f,  0.0f),
+					Vertex( 0.5f,  0.5f,  0.0f),
+					Vertex( 0.5f, -0.5f,  0.0f),
+					Vertex( 0.5f,  0.5f,  0.0f),
+					Vertex(-0.5f, -0.5f,  0.0f),
+					Vertex(-0.5f,  0.5f,  0.0f),
+				};
 			}
 		}();
 
@@ -216,7 +206,6 @@ namespace vpanic {
 	
 	void add_box_data(std::vector<Vertex>& out) {	
 		std::vector<Vertex> tmp = {
-
 			Vertex(-0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f, -0.5f),

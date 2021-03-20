@@ -102,9 +102,9 @@ namespace vpanic {
 			
 			message(MType::DEBUG, "ShapeArray::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
 
-			// TODO: option for GL_LINE_STRIP
+			// TODO: option for GL_LINE_STRIP and GL_TRIANGLE_STRIP
 			if(data_size >= 3) {
-				m_type = GL_TRIANGLE_STRIP;
+				m_type = GL_TRIANGLES;
 			}
 			else if(data_size == 2) {
 				m_type = GL_LINES;
@@ -227,10 +227,10 @@ namespace vpanic {
 		if(m_type < 0) { return; }
 		if(m_mode == Mode::NONE) { return; }
 
-		static Matrix model(1.0f);
+		//static Matrix model(1.0f);
 
 		t_shader.use();
-		t_shader.set_mat4("model", model);
+		//t_shader.set_mat4("model", model);
 		t_shader.set_int("mode", internal::shader_mode__shape_array+(int)m_mode);
 
 		glBindVertexArray(m_vao);

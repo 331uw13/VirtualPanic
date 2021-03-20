@@ -40,6 +40,7 @@ namespace vpanic {
 		
 		const size_t data_size = t_data.size();
 
+		// TODO: option for GL_LINE_STRIP and GL_TRIANGLE_STRIP
 		if(data_size >= 3) {
 			m_type = GL_TRIANGLES;
 		}

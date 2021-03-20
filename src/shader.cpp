@@ -1,8 +1,11 @@
 #include <fstream>
+#include <cstring>
+#include <numeric>
 #include "libs/gl3w.h"
 
 #include "shader.hpp"
 #include "messages.hpp"
+#include "timer.hpp"
 
 
 namespace vpanic {
@@ -11,82 +14,187 @@ namespace vpanic {
 		unload();
 	}
 
-	void Shader::_shader_init(const int t_settings, const uint32_t t_glsl_version) {
+	void Shader::_cleanup() {
+		m_sources[0].clear();
+		m_sources[1].clear();
+		m_sources[2].clear();
+		m_sources[3].clear();
+	}
+
+	void Shader::add_shader(const char* t_filename, shadertype t_type) {
+
+		// Let it know what type of shader it needs to compile too. This is used when user wants to compile the shader
+		switch(t_type) {
+
+			case shadertype::vertex:
+				m_state.set(ShaderState::HAS_VS);
+				message(MType::DEBUG, "set ShaderState::HAS_VS");
+				break;
+			
+			case shadertype::fragment:
+				m_state.set(ShaderState::HAS_FS);
+				message(MType::DEBUG, "set ShaderState::HAS_FS");
+				break;
+			
+			case shadertype::geometry:
+				m_state.set(ShaderState::HAS_GS);
+				message(MType::DEBUG, "set ShaderState::HAS_GS");
+				break;
+			
+			case shadertype::compute:
+				m_state.set(ShaderState::HAS_CS);
+				message(MType::DEBUG, "set ShaderState::HAS_CS");
+				break;
+
+			default:return;
+		}
 		
-		// TODO: check if the any source is changed, if it is then delete and load else just return
-		if(m_loaded) {
-			unload();
+		const int type = static_cast<int>(t_type);
+		_read_sources(t_filename, m_sources[type]);
+		
+		// And save this filename for later use...
+		m_filenames[type] = strdup(t_filename); 
+	}
+
+	void Shader::add_shaders_from_memory(const char* t_vssrc, const char* t_fssrc) {
+		m_sources[(int)shadertype::vertex] = t_vssrc;
+		m_sources[(int)shadertype::fragment] = t_fssrc;
+		m_state.set(ShaderState::HAS_VS);
+		m_state.set(ShaderState::HAS_FS);
+	}
+
+	bool Shader::_compile_shader(const int t_shader, const char* t_src) {
+		glShaderSource(t_shader, 1, &t_src, NULL);
+		glCompileShader(t_shader);
+		return _shader_ok(t_shader);
+	}
+
+	bool Shader::compile() {
+	
+		Timer timer;
+		if(!m_raw) {
+			_safe_check_vertex_source(); // Make sure there is something.
+			_add_functions();
 		}
 
-		if(t_settings != NO_SHADER_UTIL) {
-			_add_functions(t_glsl_version);
+		const char* const vssrc = m_sources[ (int)shadertype::vertex   ].c_str();
+		const char* const fssrc = m_sources[ (int)shadertype::fragment ].c_str();
+		const char* const gssrc = m_sources[ (int)shadertype::geometry ].c_str();
+		const char* const cssrc = m_sources[ (int)shadertype::compute  ].c_str();
+		
+		// Compute shaders cant be linked with other type of shaders.
+		const bool cs_ok = (m_state[ShaderState::HAS_CS] && strlen(cssrc) > 1);
+		const bool vs_ok = (!cs_ok && m_state[ShaderState::HAS_VS] && strlen(vssrc) > 1);
+		const bool fs_ok = (!cs_ok && m_state[ShaderState::HAS_FS] && strlen(fssrc) > 1);
+		const bool gs_ok = (!cs_ok && m_state[ShaderState::HAS_GS] && strlen(gssrc) > 1);	
+
+		if(!vs_ok && !cs_ok) {
+			message(MType::ERROR, "No vertex shader was added. Please add it yourself if you are using \"raw\" shaders else visit <link to bug report page>");
+			_cleanup();
+			return false;
 		}
-	}
-	
-	void Shader::_shader_compile_and_clear() {
-		_compile_shaders();
-		m_vertex_source.clear();
-		m_fragment_source.clear();
-	}
 
-	void Shader::load(const char* t_shader_filename, const uint32_t t_glsl_version, const int t_settings) {
-		_shader_init(t_settings, t_glsl_version);
-		_safe_check_vertex_source(t_glsl_version);
-		_read_sources(t_shader_filename, m_fragment_source);
-		_shader_compile_and_clear();
-	}
-	
-	void Shader::load_from_memory(const char* t_shader_src, const uint32_t t_glsl_version, const int t_settings) {
-		_shader_init(t_settings, t_glsl_version);
-		_safe_check_vertex_source(t_glsl_version);
-		m_fragment_source = t_shader_src;
-		_shader_compile_and_clear();
-	}
+		if(!fs_ok && !cs_ok) {
+			message(MType::ERROR, "No fragment shader was added.");
+			_cleanup();
+			return false;
+		}
+		
+		// All other shaders are optional.
 
-	void Shader::load_with_geometry_shader(const char* t_shader_filename, const char* t_g_shader_filename, const uint32_t t_glsl_version, const int t_settings) {
-		m_has_geometry_shader = true;
-		_shader_init(t_settings, t_glsl_version);
-		_safe_check_vertex_source(t_glsl_version);
-		_read_sources(t_shader_filename, m_fragment_source);
-		_read_sources(t_g_shader_filename, m_geometry_source);
-		_shader_compile_and_clear();
-	}
+		int compute_shader   = cs_ok ? glCreateShader(GL_COMPUTE_SHADER)  : -1;
+		int geometry_shader  = gs_ok ? glCreateShader(GL_GEOMETRY_SHADER) : -1;
+		int vertex_shader    = vs_ok ? glCreateShader(GL_VERTEX_SHADER)   : -1;
+		int fragment_shader  = fs_ok ? glCreateShader(GL_FRAGMENT_SHADER) : -1;
 
-	void Shader::load_with_geometry_shader_from_memory(const char* t_shader_src, const char* t_g_shader_src, const uint32_t t_glsl_version, const int t_settings) {
-		m_has_geometry_shader = true;
-		_shader_init(t_settings, t_glsl_version);
-		_safe_check_vertex_source(t_glsl_version);
-		m_fragment_source = t_shader_src;
-		m_geometry_source = t_g_shader_src;
-		_shader_compile_and_clear();
-	}
-	
-	void Shader::load(const char* t_vertex_filename, const char* t_fragment_filename) {
-		_shader_init(0, 0);
-		_read_sources(t_vertex_filename, m_vertex_source);
-		_read_sources(t_fragment_filename, m_fragment_source);
-		_shader_compile_and_clear();
-	}
-	
-	void Shader::load_from_memory(const char* t_vertex_src, const char* t_fragment_src) {
-		_shader_init(0, 0);
-		m_vertex_source = t_vertex_src;
-		m_fragment_source = t_fragment_src;
-		_shader_compile_and_clear();
+		if(cs_ok) {
+			if(!_compile_shader(compute_shader, cssrc)) {
+				message(MType::ERROR, "Failed to compile [compute shader] from file \"%s\"", m_filenames[(int)shadertype::compute]);
+				_cleanup();
+				return false;
+			}
+		}
+		else {
+			if(!_compile_shader(vertex_shader, vssrc)) {
+				message(MType::ERROR, "Failed to compile [vertex shader] from file \"%s\"", m_filenames[(int)shadertype::vertex]);
+				_cleanup();
+				return false;
+			}
+
+			if(!_compile_shader(fragment_shader, fssrc)) {
+				message(MType::ERROR, "Failed to compile [fragment shader] from file \"%s\"", m_filenames[(int)shadertype::fragment]);
+				_cleanup();
+				return false;
+			}
+
+			// geometry shader
+			if(gs_ok) {
+				if(!_compile_shader(geometry_shader, gssrc)) {
+					message(MType::ERROR, "Failed to compile [geometry shader] from file \"%s\"", m_filenames[(int)shadertype::geometry]);
+					_cleanup();
+					return false;
+				}
+			}
+		}
+
+		// Finally try to create and link the program!
+		
+		int program = glCreateProgram();
+		if(cs_ok) {
+			glAttachShader(program, compute_shader);
+		}
+		else {
+			glAttachShader(program, vertex_shader);
+			glAttachShader(program, fragment_shader);
+			if(gs_ok) {
+				glAttachShader(program, geometry_shader);
+			}
+		}
+
+		glLinkProgram(program);
+		
+		// They are compiled and linked to the shader program so they can be deleted.
+		if(cs_ok) {
+			glDeleteShader(compute_shader);
+		}
+		else {
+			glDeleteShader(vertex_shader);
+			glDeleteShader(fragment_shader);
+			if(gs_ok) {
+				glDeleteShader(geometry_shader);
+			}
+		}
+
+		int linked = 0;
+		glGetProgramiv(program, GL_LINK_STATUS, &linked);
+		if(linked == 0) {
+			GLint length = 0;
+			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+			char* msg = (char*)malloc(length);
+			msg[length-2] = 0; // remove '\n'
+			glGetProgramInfoLog(program, length, NULL, msg);
+			message(MType::ERROR, "(Shader Program Link Error): %s", msg);
+			id = program;
+			m_loaded = false;
+			free(msg);
+			_cleanup();
+			return false;
+		}
+		id = program;
+		m_loaded = true;
+
+		message(MType::DEBUG, "Shader finished in %ims", timer.elapsed_ms());
+		_cleanup();
+		return true;
 	}
 
 	void Shader::set_color(const char* t_name, const Color& t_color) const {
-		glUniform4f(glGetUniformLocation(id, t_name), 
-				t_color.r/255.0f, 
-				t_color.g/255.0f,
-			   	t_color.b/255.0f,
-			   	t_color.a/255.0f);
+		glUniform4f(glGetUniformLocation(id, t_name), t_color.r/255.0f, t_color.g/255.0f, t_color.b/255.0f, t_color.a/255.0f);
 	}
 	
 	int Shader::_retrieve_location(const char* t_name) const {
-		// if name is not found in saved names then ask opengl if it can find it
-		// if not then no need to do anything
-		// but if its found then add it to saved names
+		// If name is not found in saved names then ask opengl if it can find it.
+		// If opengl cant find it then just dont do anything with it anymore, but if its found then add it to saved names.
 		if(m_saved.find(t_name) == m_saved.end()) {
 			const int l = glGetUniformLocation(id, t_name);
 			if(l >= 0) {
@@ -98,6 +206,10 @@ namespace vpanic {
 			return m_saved[t_name];
 		}
 		return -1;
+	}
+	
+	void Shader::set_vec4(const char* t_name, const Vec4& t_v4) const {
+		glUniform4f(_retrieve_location(t_name), t_v4.x, t_v4.y, t_v4.z, t_v4.w);
 	}
 	
 	void Shader::set_vec3(const char* t_name, const Vec3& t_v3) const {
@@ -144,84 +256,12 @@ namespace vpanic {
 		glDeleteProgram(id);
 		id = 0;
 		m_loaded = false;
-		m_has_geometry_shader = false;
-	}
-
-	void Shader::_compile_shaders() {
-		const char* const vertex_src = m_vertex_source.c_str();
-		const char* const fragment_src = m_fragment_source.c_str();
-
-		int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertex_shader, 1, &vertex_src, NULL);
-		glCompileShader(vertex_shader);
-		
-		// check if shader has been compiled succesfully
-		if(!_shader_ok(vertex_shader)) { 
-			message(MType::ERROR, "Vertex shader failed");
-			return;
-	   	}
-
-		int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragment_shader, 1, &fragment_src, NULL);
-		glCompileShader(fragment_shader);
-		
-		// check if shader has been compiled succesfully
-		if(!_shader_ok(fragment_shader)) {
-			message(MType::ERROR, "Fragment shader failed");
-			return;
-	   	}
-		
-		// check if user wanted geometry shader
-		int geometry_shader = 0;
-		const bool with_gs = (m_has_geometry_shader);
-		if(with_gs) {
-
-			message(MType::DEBUG, "Using geometry shader");
-
-			geometry_shader = glCreateShader(GL_GEOMETRY_SHADER);
-			const char* const g_src = m_geometry_source.c_str();
-			glShaderSource(geometry_shader, 1, &g_src, NULL);
-			glCompileShader(geometry_shader);
-	
-			// aaand make sure that it has been compiled succesfully
-			if(!_shader_ok(geometry_shader)) {
-				message(MType::ERROR, "Geometry shader failed");
-				return;
-			}
-
-			message(MType::DEBUG, "Geometry shader compiled succesfulalsygisayfaig00g");
-		}
-
-		// create and link the program
-		int program = glCreateProgram();
-		
-		glAttachShader(program, vertex_shader);
-		glAttachShader(program, fragment_shader);
-		if(with_gs) {
-			glAttachShader(program, geometry_shader);
-		}
-
-		glLinkProgram(program);
-		
-		// they are compiled and linked to the program so they can be deleted
-		glDeleteShader(vertex_shader);
-		glDeleteShader(fragment_shader);
-		if(with_gs) {
-			glDeleteShader(geometry_shader);
-		}
-
-		int linked = 0;
-		glGetProgramiv(program, GL_LINK_STATUS, &linked);
-		if(linked == 0) {
-			char msg[1024];
-			glGetProgramInfoLog(program, 1024, NULL, msg);
-			message(MType::ERROR, "(Shader Program Link Error): %s", msg);
-			id = program;
-			m_loaded = false;
-			return;
-		}
-		id = program;
-		m_loaded = true;
+		m_raw = false;
+		m_state.clear();
+		m_sources[0].clear();
+		m_sources[1].clear();
+		m_sources[2].clear();
+		m_sources[3].clear();
 	}
 	
 	void Shader::_read_sources(const char* t_filename, std::string& t_src_ref) {	
@@ -243,99 +283,155 @@ namespace vpanic {
 		glGetShaderiv(t_id, GL_COMPILE_STATUS, &iv);
 		if(iv == 0) {
 		
-			// TODO: show part of source where the error is
+			GLint length = 0;
+			glGetShaderiv(t_id, GL_INFO_LOG_LENGTH, &length);
+			
+			char* msg = (char*)malloc(length);
+			glGetShaderInfoLog(t_id, length, NULL, msg);
+			msg[length-2] = 0; // remove '\n' from info log
 
-			char msg[1024];
-			glGetShaderInfoLog(t_id, 1024, NULL, msg);
-			message(MType::ERROR, "(Shader Compile Error): %s", msg);
+			message(MType::ERROR, "---= Shader Compile Error =---\n%s", msg);
+
+			std::string msg_str(msg, length);
+
+			const size_t start_pos = msg_str.find(':');
+			const size_t end_pos = msg_str.find('(', start_pos);
+			if(start_pos == std::string::npos || end_pos == std::string::npos) {
+				free(msg);
+				return false;
+			}
+
+			const std::string& line_num_str = msg_str.substr(start_pos+1, end_pos-start_pos-1);
+
+			uint32_t reach = 0;
+			uint32_t line_count = 0;
+			
+			// make sure it is a number first
+			if(line_num_str.find_first_not_of("0123456789") == std::string::npos) {
+				reach = std::stoi(line_num_str)-1;
+			}
+
+			std::string& src = m_sources[(int)shadertype::compute];
+
+			for(size_t i = 0; i < src.length(); i++) {
+				if(src[i] == '\n') {
+					line_count++;
+					if(line_count == reach) {
+						printf("\033[36m[Line %i]: \033[33m\"%s\"\033[0m\n", reach, src.substr(i+1, src.find('\n', i+1)-i-1).c_str());
+						break;
+					}
+				}
+			}
+			
+			free(msg);
 			m_loaded = false;
 			return false;
+			
 		}
 		return true;
 	}
 
 
 
-	void Shader::_add_functions(const uint32_t t_glsl_version) {
-		m_fragment_source = 
-			"#version " + std::to_string(t_glsl_version) + " core\n"
-			"struct Fragment {\n"
-				" vec3 pos;\n"
-				" vec3 normal;\n"
-				" vec2 texcoord;\n"
-				" vec3 texcoord3d;\n"
-			"};\n"
-			"struct VPanicShape {\n"
-				" vec3 pos;"
-				" vec4 color;"
-			"};\n"
-			
-			"in vec3 camera_pos;"
-			"in Fragment fragment;\n"
-			"in VPanicShape shape;\n"
-			"uniform sampler2D texture0;" // NOTE: array of textures?
-			
-			"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float radius) {\n"
-				" if(fragment.normal == vec3(0.0f, 0.0f, 0.0f)) { return vec3(shape.color); }"
-				" vec3 light_color = vec3(color);"
-				" vec3 shape_color = vec3(shape.color);"
-				" vec3 light_dir = normalize(pos - fragment.pos);"
-				" vec3 norm = normalize(fragment.normal);"
-				" vec3 ambient = 0.4f*light_color;" // TODO
-				" float diff = max(dot(norm, light_dir), 0.0f);"
-				" vec3 diffuse = 0.5f*diff*light_color;"
-				" vec3 view_dir = normalize(camera_pos-fragment.pos);"
-				" float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);"
-				" vec3 specular = 0.34f*spec*light_color;"
-				" float d = length(pos-fragment.pos);"
-				" float att = smoothstep(radius+d, 0.0, d);"
-				" vec3 res = vec3((ambient*att)+(diffuse*att)+(specular*att))*shape_color;"
-				" return vec3(1.0)-exp(-(res*shape_color*brightness));"
-			"}"
-			"vec3 vpanic_directional_light(vec3 direction, vec4 color, float ambient_value, float diffuse_value, float specular_value) {\n"
-				" if(fragment.normal == vec3(0.0f, 0.0f, 0.0f)) { return vec3(shape.color); }"
-				" vec3 light_color = vec3(color);"
-				" vec3 shape_color = vec3(shape.color);"
-				" vec3 light_dir = normalize(direction);"
-				" vec3 view_dir = normalize(camera_pos-fragment.pos);"
-				" vec3 norm = normalize(fragment.normal);"
-				" vec3 ambient = ambient_value*light_color;" // TODO
-				" float diff = max(dot(norm, light_dir), 0.0f);"
-				" vec3 diffuse = diffuse_value*diff*light_color;"
-				" float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);"
-				" vec3 specular = spec*light_color;"
-				" return (ambient+diffuse+specular)*shape_color;"
-			"}"
-			"float vpanic_fog(vec3 pos, float max, float min) {\n"
-				" float dist = distance(pos, fragment.pos);"
-				" if(dist <= min) { return 0.0; }"
-				" if(dist >= max) { return 1.0; }"
-				" return 1.0 - (max - dist) / (max - min);"
-			"}";
+	void Shader::_add_functions() {
+
+		if(m_state[ShaderState::HAS_CS]) {
+			m_sources[(int)shadertype::compute].insert(0,
+					"#version 430 core\n"
+					"#extension GL_ARB_compute_shader: enable\n"
+					"#extension GL_ARB_shader_storage_buffer_object: enable\n"
+					);
+		}
+		else {
+			m_sources[(int)shadertype::fragment].insert(0,
+				"#version 400 core\n"
+
+				"struct Fragment {\n"
+					" vec3 pos;\n"
+					" vec3 normal;\n"
+					" vec2 texcoord;\n"
+					" vec3 texcoord3d;\n"
+				"};\n"
+				"struct VPanicShape {\n"
+					" vec3 pos;"
+					" vec4 color;"
+				"};\n"
+				
+				"in vec3 camera_pos;"
+				"in Fragment fragment;\n"
+				"in VPanicShape shape;\n"
+				"uniform sampler2D texture0;" // NOTE: array of textures?
+				
+				"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float radius) {\n"
+					" if(fragment.normal == vec3(0.0f, 0.0f, 0.0f)) { return vec3(shape.color); }"
+					" vec3 light_color = vec3(color);"
+					" vec3 shape_color = vec3(shape.color);"
+					" vec3 light_dir = normalize(pos - fragment.pos);"
+					" vec3 norm = normalize(fragment.normal);"
+					" vec3 ambient = 0.4f*light_color;" // TODO
+					" float diff = max(dot(norm, light_dir), 0.0f);"
+					" vec3 diffuse = 0.5f*diff*light_color;"
+					" vec3 view_dir = normalize(camera_pos-fragment.pos);"
+					" float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);"
+					" vec3 specular = 0.34f*spec*light_color;"
+					" float d = length(pos-fragment.pos);"
+					" float att = smoothstep(radius+d, 0.0, d);"
+					" vec3 res = vec3((ambient*att)+(diffuse*att)+(specular*att))*shape_color;"
+					" return vec3(1.0)-exp(-(res*shape_color*brightness));"
+				"}"
+				"vec3 vpanic_directional_light(vec3 direction, vec4 color, float ambient_value, float diffuse_value, float specular_value) {\n"
+					" if(fragment.normal == vec3(0.0f, 0.0f, 0.0f)) { return vec3(shape.color); }"
+					" vec3 light_color = vec3(color);"
+					" vec3 shape_color = vec3(shape.color);"
+					" vec3 light_dir = normalize(direction);"
+					" vec3 view_dir = normalize(camera_pos-fragment.pos);"
+					" vec3 norm = normalize(fragment.normal);"
+					" vec3 ambient = ambient_value*light_color;" // TODO
+					" float diff = max(dot(norm, light_dir), 0.0f);"
+					" vec3 diffuse = diffuse_value*diff*light_color;"
+					" float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);"
+					" vec3 specular = spec*light_color;"
+					" return (ambient+diffuse+specular)*shape_color;"
+				"}"
+				"float vpanic_fog(vec3 pos, float max, float min) {\n"
+					" float dist = distance(pos, fragment.pos);"
+					" if(dist <= min) { return 0.0; }"
+					" if(dist >= max) { return 1.0; }"
+					" return 1.0 - (max - dist) / (max - min);"
+				"}");
+		}
 	}
 	
-	void Shader::_safe_check_vertex_source(const uint32_t t_glsl_version) {
+	void Shader::_safe_check_vertex_source() {
 		// make sure that vertex source is not empty and it starts with '#' else update it
-		if(m_vertex_source.size() <= 5 && m_vertex_source.find('#') != 0) {	
-			m_vertex_source = 
-				"#version " + std::to_string(t_glsl_version) + " core\n"
+
+		m_state.set(ShaderState::HAS_VS);
+		std::string& vssrc = m_sources[(int)shadertype::vertex];
+		if(vssrc.size() <= 5 && vssrc.find('#') != 0) {
+			vssrc.clear();
+		   	vssrc = 
+				"#version 400 core\n"
 				"layout(location = 0) in vec3 pos;\n"
 				"layout(location = 1) in vec3 normal;\n"
 				"layout(location = 2) in vec2 texcoord;\n"
 
 				"layout(location = 3) in vec4 offset_color;\n"
-				"layout(location = 4) in vec3 particle_pos;\n"
+				"layout(location = 4) in vec3 point_pos;\n"
 				"layout(location = 5) in mat4 offset;\n"
+				
+				"layout(location = 6) in vec4 particle_pos;"
+				"layout(location = 7) in vec4 particle_prev_pos;"
+
+				"layout (std140) uniform vertex_data {"
+					" uniform mat4 matrix;"
+					" uniform vec3 cam_pos;"
+				"};"
 
 				"struct Fragment {"
 					" vec3 pos;"
 					" vec3 normal;"
 					" vec2 texcoord;"
 					" vec3 texcoord3d;"
-				"};"
-				"layout (std140) uniform vertex_data {"
-					" uniform mat4 matrix;"
-					" uniform vec3 cam_pos;"
 				"};"
 				"struct VPanicShape {"
 					" vec3 pos;"
@@ -376,44 +472,26 @@ namespace vpanic {
 						"break;"
 						
 						"case 2:" // shader_mode__shape_array_point
-							"shape.pos = particle_pos;"
+							"shape.pos = point_pos;"
 							"shape.color = offset_color;"
-							"fragment.pos = particle_pos;"
+							"fragment.pos = point_pos;"
 							"fragment.normal = vec3(0.0f, 0.0f, 0.0f);"
-							"gl_Position = matrix*mat4(1.0f)*vec4(particle_pos, 1.0);"
+							"gl_Position = matrix*vec4(point_pos, 1.0);"
+						"break;"
+	
+						"case 3:" // shader_mode__particle  (TESTING)
+							"shape.pos = particle_pos.xyz;"
+							"shape.color = vec4(0.0f, 1.0f, 1.0f, 1.0f);"
+							"fragment.pos = particle_pos.xyz;"
+							"fragment.normal = vec3(0.0f, 0.0f, 0.0f);"
+							"gl_Position = matrix*vec4(particle_pos.xyz, 1.0);"
 						"break;"
 
 						"default:break;"
 					"}"
-
-					/*
-					" if(mode == 2) {"
-						" shape.pos = offset[3].xyz;"
-						" shape.color = offset_color;"
-						" fragment.normal = mat3(transpose(inverse(offset)))*normal;"
-						" fragment.pos = vec3(offset*vec4(pos, 1.0));\n"
-						" gl_Position = matrix*offset*vec4(pos, 1.0);\n"
-					" }"
-					" else if(mode == 1){"
-						" shape.pos = shape_pos;"
-						" shape.color = shape_color;"
-						" fragment.normal = mat3(transpose(inverse(model)))*normal;"
-						" fragment.pos = vec3(model*vec4(pos, 1.0));\n"
-						" gl_Position = matrix*model*vec4(pos, 1.0);\n"
-					" }"
-					*/
 				"}";
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
 
 

@@ -7,11 +7,18 @@
 #include "vec2.hpp"
 #include "matrix.hpp"
 #include "color.hpp"
-#include "light.hpp"
 #include "settings.hpp"
+#include "state.hpp"
 
 
 namespace vpanic {
+
+	enum class shadertype {
+		vertex = 0,
+		fragment = 1,
+		geometry = 2,
+		compute = 3
+	};
 
 	class Shader {
 	public:
@@ -24,31 +31,19 @@ namespace vpanic {
 		// -  void update_source();
 		// these could be helpful too! :)
 
-
-		// you get control over fragment shader only and there are built in things to help you
-		// you dont have access to vertex shader this way
-		void load(const char* t_shader_filename, const uint32_t t_glsl_version, const int t_settings = 0);
-		void load_from_memory(const char* t_shader_src, const uint32_t t_glsl_version, const int t_settings = 0);
-		
-		// same as one above but with geometry shader
-		void load_with_geometry_shader(const char* t_shader_filename, const char* t_g_shader_filename, const uint32_t t_glsl_version, const int t_settings = 0);
-		void load_with_geometry_shader_from_memory(const char* t_shader_src, const char* t_g_shader_src, const uint32_t t_glsl_version, const int t_settings = 0);
-		
-		// lets you do more things
-		// see wiki how to set up vertex shader with this: <link to wiki page when its completed>
-		void load(const char* t_vertex_filename, const char* t_fragment_filename);
-		void load_from_memory(const char* t_vertex_src, const char* t_fragment_src);
-	
+		void add_shader(const char* t_filename, shadertype t_type);
+		void add_shaders_from_memory(const char* t_vssrc, const char* t_fssrc);
+		bool compile();
 
 		void unload();
 		bool is_loaded() const;
 
+		// TODO: check if its compiled or not
 		void use() const;
 		void add_uniform_binding(const char* t_name);
 
-		// TODO: make sure that shader has uniform 't_name'
-		
 		void set_color  (const char* t_name, const Color& t_color)   const;
+		void set_vec4   (const char* t_name, const Vec4& t_v4)       const;
 		void set_vec3   (const char* t_name, const Vec3& t_v3)       const;
 		void set_vec2   (const char* t_name, const Vec2& t_v2)       const;
 		void set_mat4   (const char* t_name, const Matrix& t_value)  const;
@@ -61,28 +56,35 @@ namespace vpanic {
 	private:
 
 		mutable std::unordered_map<const char*, int> m_saved;
+		int _retrieve_location(const char* t_name) const;
+		
 
-		void _shader_init(const int t_settings, const uint32_t t_glsl_version);
-		void _shader_compile_and_clear();
-		void _compile_shaders();
+		bool _compile_shader(const int t_shader_id, const char* t_src);
 		bool _shader_ok(const int t_id);
 		void _read_sources(const char* t_filename, std::string& t_src_ref);
-		void _safe_check_vertex_source(const uint32_t t_glsl_version);
-		int _retrieve_location(const char* t_name) const;
+		void _safe_check_vertex_source();
+		void _add_functions();
+		void _cleanup();
 
-		std::string m_vertex_source    { "" };
-		std::string m_fragment_source  { "" };
-		std::string m_geometry_source  { "" };
+		ShaderState m_state;
+		std::string m_sources[5] {
+			"",
+			"",
+			"",
+			""
+		};
 
-		bool m_has_geometry_shader { false };
+		const char* m_filenames[5] {
+			"",
+			"",
+			"",
+			""
+		};
+		
+		bool m_raw { false };
 		bool m_loaded { false };
 		uint32_t m_bind_count { 0 };
 	
-		// this adds things to the shader code
-		// vpanic_light(), vpanic_fog()... they just help you calculate stuff if you are feeling lazy
-		// (this is done by default so use NO_SHADER_UTIL when loading the shader if you dont want this
-		// or pass vertex shader to load function too, see above)
-		void _add_functions(const uint32_t t_glsl_version);
 
 	};
 }
