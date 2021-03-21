@@ -36,7 +36,7 @@ float rand() {
 
 void main() {
 
-	rand_lcg();
+	rng_state = rand_lcg();
 
 	const uint id = gl_GlobalInvocationID.x;
 	if(id <= max_particles) {
