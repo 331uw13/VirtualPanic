@@ -34,6 +34,8 @@ float rand() {
 }
 
 
+
+
 void main() {
 
 	rand_lcg();
@@ -53,8 +55,7 @@ void main() {
 			float w = rand()-0.5f;
 
 			vec4 n = vec4(x, y, z, w);
-			float d = length(origin-n);
-			n *= rand()*3.3;
+			//n *= rand();
 
 			p.pos.x += n.x;
 			p.pos.y += n.y;
@@ -64,10 +65,12 @@ void main() {
 
 		}
 	
-		vec4 n = normalize(origin-p.pos)*fract(length(p.pos.xyz))*500*dt*sqrt(p.pos.w*dt);
-		p.velocity += n;
-		
+		//p.pos.w += dt;
+		p.velocity += normalize(origin-p.pos)*length(fract(p.pos.xyzw)*300.f)*dt*dt;
+
 		p.pos += p.velocity*dt;
+
+
 		particle_array[id] = p;
 	}
 	

@@ -13,6 +13,10 @@ namespace vpanic {
 	Shader::~Shader() {
 		unload();
 	}
+	
+	ShaderState Shader::copy_state() {
+		return m_state;
+	}
 
 	void Shader::_cleanup() {
 		m_sources[0].clear();

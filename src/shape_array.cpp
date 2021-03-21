@@ -227,10 +227,7 @@ namespace vpanic {
 		if(m_type < 0) { return; }
 		if(m_mode == Mode::NONE) { return; }
 
-		//static Matrix model(1.0f);
-
 		t_shader.use();
-		//t_shader.set_mat4("model", model);
 		t_shader.set_int("mode", internal::shader_mode__shape_array+(int)m_mode);
 
 		glBindVertexArray(m_vao);

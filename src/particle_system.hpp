@@ -8,8 +8,23 @@
 #include "timer.hpp"
 
 
+/*
+
+NOTES:
 
 
+	-  drag to origin
+	-  drag force
+
+	-  velocity
+	-  lifetime
+	-  gravity
+	-  colors
+	-  max lifetime
+
+
+
+*/
 namespace vpanic {
 
 	class ParticleSystem {

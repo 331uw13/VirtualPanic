@@ -18,6 +18,8 @@ namespace vpanic {
 		fragment = 1,
 		geometry = 2,
 		compute = 3
+
+			// TODO:  "particle shader" that is compute shader but used by particle system and it has already some functions like "random" and has the uniforms and stuff already there
 	};
 
 	class Shader {
@@ -50,6 +52,8 @@ namespace vpanic {
 		void set_int    (const char* t_name, const int t_value)      const;
 		void set_bool   (const char* t_name, const bool t_value)     const; // you can just use set_int but i think this looks bit more clear :)
 		void set_float  (const char* t_name, const float t_value)    const;
+
+		ShaderState copy_state();
 
 		uint32_t id { 0 };
 		
