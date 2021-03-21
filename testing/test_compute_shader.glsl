@@ -8,7 +8,7 @@ struct Particle {
 };
 
 
-layout (local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 layout (std430, binding = 0) buffer particles {
 	Particle particle_array[];
 };
@@ -33,19 +33,19 @@ float rand() {
 	return float(rand_xorshift()) * (1.0 / 4294967296.0);
 }
 
-
 void main() {
 
-	rng_state = rand_lcg();
-
 	const uint id = gl_GlobalInvocationID.x;
+	rng_state = id;
+
 	if(id <= max_particles) {
 		Particle p = particle_array[id];
 
 		if(p.pos.w >= p.velocity.w) {
 			p.pos = origin;
 			p.pos.w = 0.0f;
-			p.velocity = vec4(0.0);
+			p.velocity = vec4(0.0f);
+
 
 			float x = rand()-0.5f;
 			float y = rand()-0.5f;
@@ -53,21 +53,20 @@ void main() {
 			float w = rand()-0.5f;
 
 			vec4 n = vec4(x, y, z, w);
-			float d = length(origin-n);
-			n *= rand()*3.3;
+			//n *= rand()*8.0f;
 
 			p.pos.x += n.x;
 			p.pos.y += n.y;
 			p.pos.z += n.z;
 
-			p.velocity.w = w;
+			p.velocity.w = 0.5f;
 
 		}
 	
-		vec4 n = normalize(origin-p.pos)*fract(length(p.pos.xyz))*500*dt*sqrt(p.pos.w*dt);
-		p.velocity += n;
-		
+		//p.pos.w += dt;
+		p.velocity += normalize(origin-p.pos)*length(fract(p.pos.xyzw)*300.f)*dt*dt;
 		p.pos += p.velocity*dt;
+
 		particle_array[id] = p;
 	}
 	
