@@ -425,6 +425,7 @@ namespace vpanic {
 				
 				"layout(location = 6) in vec4 particle_pos;"
 				"layout(location = 7) in vec4 particle_prev_pos;"
+				"layout(location = 8) in vec4 particle_color;"
 
 				"layout (std140) uniform vertex_data {"
 					" uniform mat4 matrix;"
@@ -485,7 +486,7 @@ namespace vpanic {
 	
 						"case 3:" // shader_mode__particle  (TESTING)
 							"shape.pos = particle_pos.xyz;"
-							"shape.color = vec4(0.0f, 1.0f, 1.0f, 1.0f);"
+							"shape.color = particle_color;"
 							"fragment.pos = particle_pos.xyz;"
 							"fragment.normal = vec3(0.0f, 0.0f, 0.0f);"
 							"gl_Position = matrix*vec4(particle_pos.xyz, 1.0);"

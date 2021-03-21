@@ -227,8 +227,16 @@ void update() {
 		ImGui::SameLine();
 		ImGui::Text("Blobs: %i", particle_system.get_blob_count());
 		*/
-		if(ImGui::SliderInt("##count", &count, 1, 100000, "Count: %i")) {
+
+		static uint32_t limit = 100000;
+
+		ImGui::Text("Limit: %i", limit);
+
+		if(ImGui::SliderInt("##count", &count, 1, limit, "Count: %i")) {
 			particle_system.resize(count);
+		}
+		if(ImGui::Button("Add limit")) {
+			limit+=100000;
 		}
 
 		ImGui::DragFloat("##scale", &particle_settings.scale, 0.001f, 0.005f, 5.f, "Scale %f");

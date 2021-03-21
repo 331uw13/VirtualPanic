@@ -55,6 +55,7 @@ namespace vpanic {
 		struct Particle {
 			Vec4 pos;
 			Vec4 velocity;
+			Vec4 color;
 		};
 	};
 
