@@ -18,18 +18,6 @@ namespace vpanic {
 	static constexpr int CLOCKWISE { 1 };
 	static constexpr int COUNTER_CLOCKWISE { 2 };
 
-	// --- 'Shape::disable_outline()' ---
-	// unloads the current outline shader if loaded
-	// by default it sets the outline shader to nullptr but doesnt unload it
-	static constexpr int UNLOAD_ON_DISABLE { 1 };
-
-
-	// --- 'Shader::load()' ---
-	// this will not add any util functions for shaders.
-	// not default
-	static constexpr int NO_SHADER_UTIL { 1 };
-
-
 	// --- 'add_plane_data()' ---
 	// do you need to see both sides of the plane?
 	// not default

@@ -232,6 +232,7 @@ namespace vpanic {
 
 		glBindVertexArray(m_vao);
 		glDrawArraysInstanced(m_type, 0, m_draw_data_size, m_reserved);
+		t_shader.disable();
 	}
 	
 	void ShapeArray::set_type(const int t_type) {

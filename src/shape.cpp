@@ -166,6 +166,7 @@ namespace vpanic {
 			glStencilMask(255);
 		}
 		*/
+		t_shader.disable();
 	}
 	
 	uint8_t Shape::get_type() const {

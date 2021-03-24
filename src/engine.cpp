@@ -217,7 +217,7 @@ namespace vpanic {
 
 		const float ticks_per_frame = 1000.f/60.f;
 		float previous_count = 0.0f;
-		float current_count = 0.0f;
+		float current_count = SDL_GetPerformanceCounter();
 
 		while(!m_state[EngineState::QUIT]) {
 			_update_engine_ok_state();
@@ -358,6 +358,8 @@ namespace vpanic {
 	}
 
 	bool Engine::load_skybox(const std::vector<const char*> t_files) {
+		return false;
+		/*
 		if(t_files.empty()) { return false; }
 		if(!m_skybox.texture.load_cube(t_files)) {
 			return false;
@@ -388,6 +390,7 @@ namespace vpanic {
 	
 		m_skybox.shader.add_shaders_from_memory(vertex_src, fragment_src);
 		return m_skybox.shader.compile();
+		*/
 	}
 
 	void Engine::unload_skybox() {
@@ -410,7 +413,6 @@ namespace vpanic {
 		else {
 			m_state.unset(EngineState::LOCK_MOUSE);
 		}
-
 	}
 
 	void Engine::vsync(const bool b) {

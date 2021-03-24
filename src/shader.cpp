@@ -1,4 +1,3 @@
-#include <fstream>
 #include <cstring>
 #include <numeric>
 #include "libs/gl3w.h"
@@ -6,6 +5,7 @@
 #include "shader.hpp"
 #include "messages.hpp"
 #include "timer.hpp"
+#include "file.hpp"
 
 
 namespace vpanic {
@@ -14,183 +14,85 @@ namespace vpanic {
 		unload();
 	}
 	
-	ShaderState Shader::copy_state() {
-		return m_state;
+	void Shader::_clear_sources() {
 	}
-
-	void Shader::_cleanup() {
-		m_sources[0].clear();
-		m_sources[1].clear();
-		m_sources[2].clear();
-		m_sources[3].clear();
-	}
-
-	void Shader::add_shader(const char* t_filename, shadertype t_type) {
-
-		// Let it know what type of shader it needs to compile too. This is used when user wants to compile the shader
-		switch(t_type) {
-
-			case shadertype::vertex:
-				m_state.set(ShaderState::HAS_VS);
-				message(MType::DEBUG, "set ShaderState::HAS_VS");
-				break;
-			
-			case shadertype::fragment:
-				m_state.set(ShaderState::HAS_FS);
-				message(MType::DEBUG, "set ShaderState::HAS_FS");
-				break;
-			
-			case shadertype::geometry:
-				m_state.set(ShaderState::HAS_GS);
-				message(MType::DEBUG, "set ShaderState::HAS_GS");
-				break;
-			
-			case shadertype::compute:
-				m_state.set(ShaderState::HAS_CS);
-				message(MType::DEBUG, "set ShaderState::HAS_CS");
-				break;
-
-			default:return;
-		}
-		
-		const int type = static_cast<int>(t_type);
-		_read_sources(t_filename, m_sources[type]);
-		
-		// And save this filename for later use...
-		m_filenames[type] = strdup(t_filename); 
-	}
-
-	void Shader::add_shaders_from_memory(const char* t_vssrc, const char* t_fssrc) {
-		m_sources[(int)shadertype::vertex] = t_vssrc;
-		m_sources[(int)shadertype::fragment] = t_fssrc;
-		m_state.set(ShaderState::HAS_VS);
-		m_state.set(ShaderState::HAS_FS);
-	}
-
-	bool Shader::_compile_shader(const int t_shader, const char* t_src) {
-		glShaderSource(t_shader, 1, &t_src, NULL);
-		glCompileShader(t_shader);
-		return _shader_ok(t_shader);
-	}
-
-	bool Shader::compile() {
 	
+	bool Shader::add_src(const char* t_filename, const int t_type) {
+		if(t_type >= INVALID_SHADER || t_type < 0) { return; }
 		Timer timer;
-		if(!m_raw) {
-			_safe_check_vertex_source(); // Make sure there is something.
-			_add_functions();
-		}
-
-		const char* const vssrc = m_sources[ (int)shadertype::vertex   ].c_str();
-		const char* const fssrc = m_sources[ (int)shadertype::fragment ].c_str();
-		const char* const gssrc = m_sources[ (int)shadertype::geometry ].c_str();
-		const char* const cssrc = m_sources[ (int)shadertype::compute  ].c_str();
 		
-		// Compute shaders cant be linked with other type of shaders.
-		const bool cs_ok = (m_state[ShaderState::HAS_CS] && strlen(cssrc) > 1);
-		const bool vs_ok = (!cs_ok && m_state[ShaderState::HAS_VS] && strlen(vssrc) > 1);
-		const bool fs_ok = (!cs_ok && m_state[ShaderState::HAS_FS] && strlen(fssrc) > 1);
-		const bool gs_ok = (!cs_ok && m_state[ShaderState::HAS_GS] && strlen(gssrc) > 1);	
+		ShaderComponent& sc = m_components[t_type];
+		_add_functions(sc.src, t_type);
 
-		if(!vs_ok && !cs_ok) {
-			message(MType::ERROR, "No vertex shader was added. Please add it yourself if you are using \"raw\" shaders else visit <link to bug report page>");
-			_cleanup();
-			return false;
-		}
-
-		if(!fs_ok && !cs_ok) {
-			message(MType::ERROR, "No fragment shader was added.");
-			_cleanup();
-			return false;
+		// included from "file.hpp"
+		if(read_file(t_filename, &sc.src)) {
+			sc.compile(t_type);
+			if(_succeeded(sc.id, SHADER)) {
+				m_type_bits |= t_type;
+				message(MType::OK, "Compiled \"%s\" (took %ims)", t_filename, timer.elapsed_ms());
+			}
+			else {
+				sc.type = INVALID_SHADER;
+				message(MType::ERROR, "Failed to compile shader \"%s\"", t_filename);
+			}
 		}
 		
-		// All other shaders are optional.
-
-		int compute_shader   = cs_ok ? glCreateShader(GL_COMPUTE_SHADER)  : -1;
-		int geometry_shader  = gs_ok ? glCreateShader(GL_GEOMETRY_SHADER) : -1;
-		int vertex_shader    = vs_ok ? glCreateShader(GL_VERTEX_SHADER)   : -1;
-		int fragment_shader  = fs_ok ? glCreateShader(GL_FRAGMENT_SHADER) : -1;
-
-		if(cs_ok) {
-			if(!_compile_shader(compute_shader, cssrc)) {
-				message(MType::ERROR, "Failed to compile [compute shader] from file \"%s\"", m_filenames[(int)shadertype::compute]);
-				_cleanup();
-				return false;
-			}
-		}
-		else {
-			if(!_compile_shader(vertex_shader, vssrc)) {
-				message(MType::ERROR, "Failed to compile [vertex shader] from file \"%s\"", m_filenames[(int)shadertype::vertex]);
-				_cleanup();
-				return false;
-			}
-
-			if(!_compile_shader(fragment_shader, fssrc)) {
-				message(MType::ERROR, "Failed to compile [fragment shader] from file \"%s\"", m_filenames[(int)shadertype::fragment]);
-				_cleanup();
-				return false;
-			}
-
-			// geometry shader
-			if(gs_ok) {
-				if(!_compile_shader(geometry_shader, gssrc)) {
-					message(MType::ERROR, "Failed to compile [geometry shader] from file \"%s\"", m_filenames[(int)shadertype::geometry]);
-					_cleanup();
-					return false;
-				}
-			}
-		}
-
-		// Finally try to create and link the program!
-		
-		int program = glCreateProgram();
-		if(cs_ok) {
-			glAttachShader(program, compute_shader);
-		}
-		else {
-			glAttachShader(program, vertex_shader);
-			glAttachShader(program, fragment_shader);
-			if(gs_ok) {
-				glAttachShader(program, geometry_shader);
-			}
-		}
-
-		glLinkProgram(program);
-		
-		// They are compiled and linked to the shader program so they can be deleted.
-		if(cs_ok) {
-			glDeleteShader(compute_shader);
-		}
-		else {
-			glDeleteShader(vertex_shader);
-			glDeleteShader(fragment_shader);
-			if(gs_ok) {
-				glDeleteShader(geometry_shader);
-			}
-		}
-
-		int linked = 0;
-		glGetProgramiv(program, GL_LINK_STATUS, &linked);
-		if(linked == 0) {
-			GLint length = 0;
-			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-			char* msg = (char*)malloc(length);
-			msg[length-2] = 0; // remove '\n'
-			glGetProgramInfoLog(program, length, NULL, msg);
-			message(MType::ERROR, "(Shader Program Link Error): %s", msg);
-			id = program;
-			m_loaded = false;
-			free(msg);
-			_cleanup();
-			return false;
-		}
-		id = program;
-		m_loaded = true;
-
-		message(MType::DEBUG, "Shader finished in %ims", timer.elapsed_ms());
-		_cleanup();
+		printf("\033[36m%s\n\033[90m%s\033[0m\n", t_filename, sc.src.c_str());
 		return true;
 	}
+	
+	bool Shader::_succeeded(const int t_id, const int t_type) {	
+
+		char* msg = nullptr;
+		bool error_occurred = false;
+		GLsizei max_length = 0;
+		GLsizei log_length = 0;
+		GLint p = 0;
+
+		if(t_type == SHADER) {
+			glGetShaderiv(t_id, GL_COMPILE_STATUS, &p);
+			glGetShaderiv(t_id, GL_INFO_LOG_LENGTH, &max_length);
+			if(max_length > 1) {
+				msg = (char*)malloc(max_length);
+				glGetShaderInfoLog(t_id, max_length, &log_length, msg);
+				if(p != GL_TRUE) {
+					error_occurred = true;
+					message(MType::SHADER_ERROR, "%s", msg);
+				}
+				else {
+					message(MType::SHADER_WARNING, "%s", msg);
+				}
+				free(msg);
+			}
+		}
+		else if(t_type == PROGRAM) {
+		}
+
+		return !error_occurred;
+	}
+
+
+	bool Shader::compile() {
+
+		// Add vertex shader if there is no compute shader.
+		// Compute shaders cant be linked with any other type of shader.
+		if(!(m_type_bits & COMPUTE_SHADER)) {
+			ShaderComponent& vertex = m_components[0];
+			_add_functions(vertex.src, 0);
+			vertex.compile();
+			if(!_succeeded(vertex.id, SHADER)) {
+				message(MType::ERROR, "Oops! Failed to compile vertex shader. Please visit <link to bug report page>");
+			}
+		}
+
+
+		for(uint32_t i = 0; i < 5; i++) {
+		
+		}
+
+		return false;
+	}
+
 
 	void Shader::set_color(const char* t_name, const Color& t_color) const {
 		glUniform4f(glGetUniformLocation(id, t_name), t_color.r/255.0f, t_color.g/255.0f, t_color.b/255.0f, t_color.a/255.0f);
@@ -248,6 +150,10 @@ namespace vpanic {
 		glUseProgram(id);
 	}
 	
+	void Shader::disable() const {
+		glUseProgram(0);
+	}
+	
 	void Shader::add_uniform_binding(const char* t_name) {
 		if(!m_loaded) { return; }
 		const uint32_t block_index = glGetUniformBlockIndex(id, t_name);
@@ -261,94 +167,59 @@ namespace vpanic {
 		id = 0;
 		m_loaded = false;
 		m_raw = false;
-		m_state.clear();
-		m_sources[0].clear();
-		m_sources[1].clear();
-		m_sources[2].clear();
-		m_sources[3].clear();
-	}
-	
-	void Shader::_read_sources(const char* t_filename, std::string& t_src_ref) {	
-		std::ifstream f;
-		std::string full, line;
-		f.open(t_filename);
-		if(!f.is_open()) {
-			message(MType::ERROR, "Failed to open file: \"%s\"!", t_filename);
-			t_src_ref = {};
-		}
-		while(getline(f, line)) {
-			t_src_ref += line + '\n';
-	   	}
-		f.close();
+		m_type_bits = 0;
+		_clear_sources();
 	}
 
-	bool Shader::_shader_ok(const int t_id) {
-		int iv = 0;
-		glGetShaderiv(t_id, GL_COMPILE_STATUS, &iv);
-		if(iv == 0) {
-		
-			GLint length = 0;
-			glGetShaderiv(t_id, GL_INFO_LOG_LENGTH, &length);
-			
-			char* msg = (char*)malloc(length);
-			glGetShaderInfoLog(t_id, length, NULL, msg);
-			msg[length-2] = 0; // remove '\n' from info log
+	void Shader::_add_functions(std::string& t_src, const int t_type) {
 
-			message(MType::ERROR, "---= Shader Compile Error =---\n%s", msg);
-
-			std::string msg_str(msg, length);
-
-			const size_t start_pos = msg_str.find(':');
-			const size_t end_pos = msg_str.find('(', start_pos);
-			if(start_pos == std::string::npos || end_pos == std::string::npos) {
-				free(msg);
-				return false;
-			}
-
-			const std::string& line_num_str = msg_str.substr(start_pos+1, end_pos-start_pos-1);
-
-			uint32_t reach = 0;
-			uint32_t line_count = 0;
-			
-			// make sure it is a number first
-			if(line_num_str.find_first_not_of("0123456789") == std::string::npos) {
-				reach = std::stoi(line_num_str)-1;
-			}
-
-			std::string& src = m_sources[(int)shadertype::compute];
-
-			for(size_t i = 0; i < src.length(); i++) {
-				if(src[i] == '\n') {
-					line_count++;
-					if(line_count == reach) {
-						printf("\033[36m[Line %i]: \033[33m\"%s\"\033[0m\n", reach, src.substr(i+1, src.find('\n', i+1)-i-1).c_str());
-						break;
-					}
-				}
-			}
-			
-			free(msg);
-			m_loaded = false;
-			return false;
-			
-		}
-		return true;
-	}
-
-
-
-	void Shader::_add_functions() {
-
-		if(m_state[ShaderState::HAS_CS]) {
-			m_sources[(int)shadertype::compute].insert(0,
+		if(t_type == COMPUTE_SHADER) {
+			t_src.insert(0,
 					"#version 430 core\n"
 					"#extension GL_ARB_compute_shader: enable\n"
 					"#extension GL_ARB_shader_storage_buffer_object: enable\n"
-					);
+					
+					"uniform int max_particles;"
+					"uniform float dt;"
+					"uniform vec4 origin;"
+					"uniform bool mouse_left_down;"
+					"uniform bool mouse_right_down;"
+
+					"struct Particle {"
+						" vec4 attr0;"
+						" vec4 attr1;"
+						" vec4 attr2;"
+						" vec3 attr3;"
+						" float life;"
+					"};"
+
+					"layout (local_size_x = 512, local_size_y = 1, local_size_z = 1) in;"
+					"layout (std430, binding = 0) buffer particle_buffer {"
+						" Particle particles[];"
+					"};"
+
+					"uint rng_state = 0;"
+					"uint rand_xorshift() {"
+						// Xorshift algorithm from George Marsaglia's paper
+						" rng_state ^= (rng_state << 13);"
+						" rng_state ^= (rng_state >> 17);"
+						" rng_state ^= (rng_state << 5);"
+						" return rng_state;"
+					"}"
+					"float rand() {"
+						" return float(rand_xorshift())*(1.0f/4294967296.0f);"
+					"}"
+					"uint get_particle_id() {"
+						" const uint x = gl_GlobalInvocationID.x;"
+						//" if(x >= max_particles) { return 0; }"
+						" rng_state = x;"
+						" return x;"
+					"}");
+
 		}
-		else {
-			m_sources[(int)shadertype::fragment].insert(0,
-				"#version 400 core\n"
+		else if(t_type == FRAGMENT_SHADER) {
+			t_src.insert(0,
+				"#version 430 core\n"
 
 				"struct Fragment {\n"
 					" vec3 pos;\n"
@@ -356,14 +227,15 @@ namespace vpanic {
 					" vec2 texcoord;\n"
 					" vec3 texcoord3d;\n"
 				"};\n"
+				
 				"struct VPanicShape {\n"
 					" vec3 pos;"
 					" vec4 color;"
 				"};\n"
-				
+
 				"in vec3 camera_pos;"
-				"in Fragment fragment;\n"
-				"in VPanicShape shape;\n"
+				"in Fragment fragment;"
+				"in VPanicShape shape;"
 				"uniform sampler2D texture0;" // NOTE: array of textures?
 				
 				"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float radius) {\n"
@@ -404,97 +276,97 @@ namespace vpanic {
 					" return 1.0 - (max - dist) / (max - min);"
 				"}");
 		}
-	}
-	
-	void Shader::_safe_check_vertex_source() {
-		// make sure that vertex source is not empty and it starts with '#' else update it
+		else if(t_type == 0) {
+			// make sure that vertex source is not empty and it starts with '#' else update it
+			std::string& vssrc = m_components[0].src;
+			if(vssrc.size() <= 5 && vssrc.find('#') != 0) {
+				vssrc.clear();
+				vssrc = 
+					"#version 430 core\n"
+					"layout(location = 0) in vec3 pos;\n"
+					"layout(location = 1) in vec3 normal;\n"
+					"layout(location = 2) in vec2 texcoord;\n"
 
-		m_state.set(ShaderState::HAS_VS);
-		std::string& vssrc = m_sources[(int)shadertype::vertex];
-		if(vssrc.size() <= 5 && vssrc.find('#') != 0) {
-			vssrc.clear();
-		   	vssrc = 
-				"#version 400 core\n"
-				"layout(location = 0) in vec3 pos;\n"
-				"layout(location = 1) in vec3 normal;\n"
-				"layout(location = 2) in vec2 texcoord;\n"
+					// TODO: rewrite this... whole thing!
 
-				"layout(location = 3) in vec4 offset_color;\n"
-				"layout(location = 4) in vec3 point_pos;\n"
-				"layout(location = 5) in mat4 offset;\n"
-				
-				"layout(location = 6) in vec4 particle_pos;"
-				"layout(location = 7) in vec4 particle_prev_pos;"
-				"layout(location = 8) in vec4 particle_color;"
+					"layout(location = 3) in vec4 offset_color;\n"
+					"layout(location = 4) in vec3 point_pos;\n"
+					"layout(location = 5) in mat4 offset;\n"
+					"layout(location = 9) in vec4 particle_pos;\n"
+					//"layout(location = 9) in vec4 particle_velocity;\n"
+					"layout(location = 10) in vec4 particle_color;\n"
 
-				"layout (std140) uniform vertex_data {"
-					" uniform mat4 matrix;"
-					" uniform vec3 cam_pos;"
-				"};"
+					
+					"layout (std140) uniform vertex_data {"
+						" uniform mat4 matrix;"
+						" uniform vec3 cam_pos;"
+					"};"
 
-				"struct Fragment {"
-					" vec3 pos;"
-					" vec3 normal;"
-					" vec2 texcoord;"
-					" vec3 texcoord3d;"
-				"};"
-				"struct VPanicShape {"
-					" vec3 pos;"
-					" vec4 color;"
-				"};"
-				
-				"uniform mat4 model;"
-				"uniform vec4 shape_color;"
-				"uniform vec3 shape_pos;"
-
-				"uniform int mode;"
-
-				"out vec3 camera_pos;"
-				"out Fragment fragment;"
-				"out VPanicShape shape;"
-				
-				"void main() {"
-					" camera_pos = cam_pos;"
-					" fragment.texcoord = texcoord;"
-					" fragment.texcoord3d = pos;"
-
-					"switch(mode) {"
-
-						"case 0:" // shader_mode__shape
-							"shape.pos = shape_pos;"
-							"shape.color = shape_color;"
-							"fragment.normal = mat3(transpose(inverse(model)))*normal;"
-							"fragment.pos = vec3(model*vec4(pos, 1.0));"
-							"gl_Position = matrix*model*vec4(pos, 1.0);"
-						"break;"
-
-						"case 1:" // shader_mode__shape_array
-							"shape.pos = offset[3].xyz;"
-							"shape.color = offset_color;"
-							"fragment.normal = mat3(transpose(inverse(offset)))*normal;"
-							"fragment.pos = vec3(offset*vec4(pos, 1.0));"
-							"gl_Position = matrix*offset*vec4(pos, 1.0);"
-						"break;"
+					"struct Fragment {"
+						" vec3 pos;"
+						" vec3 normal;"
+						" vec2 texcoord;"
+						" vec3 texcoord3d;"
+					"};"
+					
+					"struct VPanicShape {"
+						" vec3 pos;"
+						" vec4 color;"
+					"};"
 						
-						"case 2:" // shader_mode__shape_array_point
-							"shape.pos = point_pos;"
-							"shape.color = offset_color;"
-							"fragment.pos = point_pos;"
-							"fragment.normal = vec3(0.0f, 0.0f, 0.0f);"
-							"gl_Position = matrix*vec4(point_pos, 1.0);"
-						"break;"
-	
-						"case 3:" // shader_mode__particle  (TESTING)
-							"shape.pos = particle_pos.xyz;"
-							"shape.color = particle_color;"
-							"fragment.pos = particle_pos.xyz;"
-							"fragment.normal = vec3(0.0f, 0.0f, 0.0f);"
-							"gl_Position = matrix*vec4(particle_pos.xyz, 1.0);"
-						"break;"
+					"uniform mat4 model;"
+					"uniform vec4 shape_color;"
+					"uniform vec3 shape_pos;"
 
-						"default:break;"
-					"}"
-				"}";
+					"uniform int mode;"
+
+					"out vec3 camera_pos;"
+					"out Fragment fragment;"
+					"out VPanicShape shape;"
+
+					"void main() {"
+						" camera_pos = cam_pos;"
+						" fragment.texcoord = texcoord;"
+						" fragment.texcoord3d = pos;"
+
+						"switch(mode) {"
+
+							"case 0:" // shader_mode__shape
+								"shape.pos = shape_pos;"
+								"shape.color = shape_color;"
+								"fragment.normal = mat3(transpose(inverse(model)))*normal;"
+								"fragment.pos = vec3(model*vec4(pos, 1.0));"
+								"gl_Position = matrix*model*vec4(pos, 1.0);"
+							"break;"
+
+							"case 1:" // shader_mode__shape_array
+								"shape.pos = offset[3].xyz;"
+								"shape.color = offset_color;"
+								"fragment.normal = mat3(transpose(inverse(offset)))*normal;"
+								"fragment.pos = vec3(offset*vec4(pos, 1.0));"
+								"gl_Position = matrix*offset*vec4(pos, 1.0);"
+							"break;"
+							
+							"case 2:" // shader_mode__shape_array_point
+								"shape.pos = point_pos;"
+								"shape.color = offset_color;"
+								"fragment.pos = point_pos;"
+								"fragment.normal = vec3(0.0f, 0.0f, 0.0f);"
+								"gl_Position = matrix*vec4(point_pos, 1.0);"
+							"break;"
+		
+							"case 3:" // shader_mode__particle  (TESTING)
+								"shape.pos = particle_pos.xyz;"
+								"shape.color = particle_color;"
+								"fragment.pos = shape.pos;"
+								"fragment.normal = vec3(0.0f, 0.0f, 0.0f);"
+								"gl_Position = matrix*vec4(shape.pos, 1.0);"
+							"break;"
+
+							"default:break;"
+						"}"
+					"}";
+			}
 		}
 	}
 }
