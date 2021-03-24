@@ -8,7 +8,7 @@
 
 Todo:
 
-- [x] Particle system  (needs more optimization)
+- [x] Particle system
 - [ ] Terrain
 - [ ] Materials
 - [ ] Model loading
