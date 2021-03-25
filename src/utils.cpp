@@ -2,8 +2,6 @@
 #include <vector>
 #include "libs/imgui/imgui.h"
 
-#include <cstdio>
-
 #include "math.hpp"
 #include "utils.hpp"
 #include "theme.hpp"
@@ -11,6 +9,7 @@
 #include "console.hpp"
 
 static int g_seed { 0 };
+
 
 namespace vpanic {
 
@@ -290,8 +289,6 @@ namespace vpanic {
 
 	namespace ImGuiExt {
 	
-		// i hate this-...........................................
-		
 		bool ColorPicker(const char* label, ImVec4& color, const int flags) {
 			return ImGui::ColorPicker4(label, (float*)&color.x, flags | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar);
 		}
@@ -300,6 +297,20 @@ namespace vpanic {
 			return ImGui::ColorEdit4(label, (float*)&color.x, flags | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar);
 		}
 
+		bool TextEdit(const char* label, std::string* str, const ImVec2& size, const int flags) {
+
+			auto callback = [](ImGuiInputTextCallbackData* data) {
+				if(data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
+					std::string* str = (std::string*)data->UserData;
+					str->resize(data->BufSize);
+					data->Buf = (char*)str->c_str();
+				}
+				return 0;
+			};
+
+			return ImGui::InputTextMultiline(label, (char*)str->c_str(), str->capacity(), size, 
+					flags | ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize, callback, (void*)str);
+		}
 	}
 
 }

@@ -1,6 +1,8 @@
 /*
 	
-	libVirtualPanic - Simple Demo
+	libVirtualPanic - Testing
+
+	this is big mess because its just for testing...
 
 */
 #include <VirtualPanic/virtual_panic.hpp>
@@ -11,62 +13,45 @@ static vpanic::Shape ground;
 static vpanic::Shape light_plane;
 static vpanic::Shader shader;
 static vpanic::Shader particle_shader;
+static vpanic::Shader particle_frag;
 static vpanic::Camera camera;
 static vpanic::ShapeArray pilars;
 
 static vpanic::Vec3 light_pos;
-static vpanic::ParticleSystem particle_system;
-static vpanic::Vec3 particle_system_origin { vpanic::Vec3(10, 3, 0) };
-static vpanic::Vec3 prev_particle_system_origin { vpanic::Vec3(0, 3, 0) };
+vpanic::ParticleSystem particle_system;
 static float particle_system_dist { 0 };
 
 static bool menu_open { true };
-static bool light_follow_camera { false };
+static bool light_follow_camera { true };
 static float camera_speed  { 3.75f };
 static float default_camera_speed  { 3.75f };
+static std::string shader_source { "" };
 
 struct Player {
-	
 	const float height { 2.7f };
 	const float fly_speed { 5.5f };
 	const float walk_speed { 3.75f };
-
 } player;
 
 struct LightSettings {
-
 	vpanic::Color color { vpanic::Color(255, 228, 190) };
 	float radius { 145.f };
-	float brightness { 1.0f };
-
+	float brightness { 0.5f };
 } light_settings;
 
 struct ParticleSettings {
-	float scale { 0.02f };
-	float scale_add { 0.0f };
-	float mass { 1.0f };
-	int lifetime_min { 500 };
-	int lifetime_max { 2500 };
-	int count { 500 };
-
-	float velocity = 1.5f;
-	//vpanic::Vec3 vel_min;
-	//vpanic::Vec3 vel_max;
-	vpanic::Vec3 acc;
-
-	vpanic::Color start_color { vpanic::Color(230, 15, 15, 255) };
-	vpanic::Color end_color { vpanic::Color(255, 60, 0, 25) };
-
+	int count { 5000 };	
+	bool render { false };
+	std::string src { "" };
 } particle_settings;
 
 struct PilarSettings {
-
 	float height { 30.0f };
-	float width { 0.8f };
+	float width { 0.5f };
 	float range { 50.f };
 	int count { 30 };
-
 } pilar_settings;
+
 
 void create_pilars() {
 	std::vector<vpanic::Vertex> data;
@@ -102,8 +87,14 @@ void command_callback(const std::vector<std::string>& args) {
 
 }
 
-void update() {
+void imgui_title(const char* t_title) {
+	ImGui::Separator();
+	ImGui::SetWindowFontScale(1.4f);
+	ImGui::Text(t_title);
+	ImGui::SetWindowFontScale(1.0f);
+}
 
+void update() {
 	static bool only_particle_system = false;
 
 	if(!menu_open) {
@@ -137,7 +128,6 @@ void update() {
 		}
 
 		if(vpanic::mouse::button_down(vpanic::mouse::LEFT)) {
-			prev_particle_system_origin = particle_system.origin;
 			particle_system.origin = camera.point_from_front(particle_system_dist);
 		}
 		else {
@@ -168,16 +158,35 @@ void update() {
 	ImGui::VPanic::TextRGB("<AAAAAA>FPS: <e056fd>%i", (int)ImGui::GetIO().Framerate);
 	ImGui::SetWindowFontScale(1.0f);
 	ImGui::End();
-
+	
 
 	if(menu_open) {
+
+		ImGui::Begin("Editor");
+		{
+			if(ImGui::Button("Compile")) {
+				shader.unload();
+				shader.add_src_from_memory(shader_source, vpanic::FRAGMENT_SHADER);
+				shader.compile();
+			}
+			ImGui::SameLine();
+			if(ImGui::Button("Dump to stdout")) {
+				printf("\033[33m############################################################\033[0m\n");
+				printf("%s\n", shader_source.c_str());
+			}
+
+			const ImVec2& winsize = ImGui::GetWindowSize();
+			vpanic::ImGuiExt::TextEdit("##shader_source", &shader_source, ImVec2(winsize.x-20, winsize.y-70));
+		}
+		ImGui::End();
+
 
 		//ImGui::ShowDemoWindow();
 
 		vpanic::Console::instance().update();
 
 		vpanic::Vec2 win_size = engine.window_size();
-		static float menu_width = 500;
+		static float menu_width = 600;
 
 		ImGui::SetNextWindowPos(ImVec2(win_size.x-menu_width, 0));
 		ImGui::SetNextWindowSize(ImVec2(menu_width, win_size.y));
@@ -195,70 +204,40 @@ void update() {
 			camera.pitch = 0.0f;
 		}
 
-		static constexpr float title_size = 1.4f;
-		
-		ImGui::Separator();
-		ImGui::SetWindowFontScale(title_size);
-		ImGui::Text("Lights");
-		ImGui::SetWindowFontScale(1.0f);
 
-		ImGui::Checkbox("Follow camera", &light_follow_camera);
-		ImGui::SliderFloat("##radius", &light_settings.radius, 0.1f, 1000.f, "Radius: %1.3f");
-		ImGui::SliderFloat("##brightness", &light_settings.brightness, 0.1f, 2.f, "Brightness: %2.5f");
-
-
-		ImGui::Separator();
-		ImGui::SetWindowFontScale(title_size);
-		ImGui::Text("ParticleSystem");
-		ImGui::SetWindowFontScale(1.0f);
-
-
-		static int count = particle_settings.count;
-		static ImVec4 start_col = vpanic::color_to_imvec4(particle_settings.start_color);
-		static ImVec4 end_col = vpanic::color_to_imvec4(particle_settings.end_color);
-	
-		ImGui::Checkbox("Render only particle system", &only_particle_system);
-		if(ImGui::Button("Recompile")) {
-			particle_system.unload();
-			particle_system.init();
-		}
-		/*
-		ImGui::Text("Count: %i", particle_system.get_real_count());
-		ImGui::SameLine();
-		ImGui::Text("Blobs: %i", particle_system.get_blob_count());
-		*/
-
-		static uint32_t limit = 100000;
-
-		ImGui::Text("Limit: %i", limit);
-
-		if(ImGui::SliderInt("##count", &count, 1, limit, "Count: %i")) {
-			particle_system.resize(count);
-		}
-		if(ImGui::Button("Add limit")) {
-			limit+=100000;
+		imgui_title("Lights");
+		{
+			static ImVec4 color = vpanic::color_to_imvec4(light_settings.color);
+			ImGui::Checkbox("Follow camera", &light_follow_camera);
+			ImGui::SliderFloat("##radius", &light_settings.radius, 0.1f, 1000.f, "Radius: %1.3f");
+			ImGui::SliderFloat("##brightness", &light_settings.brightness, 0.1f, 2.f, "Brightness: %2.5f");
+			if(vpanic::ImGuiExt::ColorEdit("Color", color)) {
+				light_settings.color = vpanic::imvec4_to_color(color);
+			}
 		}
 
-		ImGui::DragFloat("##scale", &particle_settings.scale, 0.001f, 0.005f, 5.f, "Scale %f");
-		ImGui::DragFloat("##scale_add", &particle_settings.scale_add, 0.0001f, -0.001f, 0.001f, "Add To Scale %f");
-		ImGui::DragFloat("##mass", &particle_settings.mass, 0.001, -0.9, 0.9, "Mass %f");
-		ImGui::DragIntRange2("Lifetime", &particle_settings.lifetime_min, &particle_settings.lifetime_max, 0, 0, 10000, "Min %i", "Max %i");
-		ImGui::SliderFloat("##velocity", &particle_settings.velocity, 0.0f, 8.0f, "Velocity: %f");
-		//ImGui::DragFloatRange2("Velocity X", &particle_settings.vel_min.x, &particle_settings.vel_max.x, 0.05f, -velocity_range, velocity_range, "Min %f", "Max %f");
-		//ImGui::DragFloatRange2("Velocity Y", &particle_settings.vel_min.y, &particle_settings.vel_max.y, 0.05f, -velocity_range, velocity_range, "Min %f", "Max %f");
-		//ImGui::DragFloatRange2("Velocity Z", &particle_settings.vel_min.z, &particle_settings.vel_max.z, 0.05f, -velocity_range, velocity_range, "Min %f", "Max %f");
+		imgui_title("ParticleSystem");
+		{
 
-		if(vpanic::ImGuiExt::ColorEdit("Start color", start_col)) {
-			particle_settings.start_color = vpanic::imvec4_to_color(start_col);
+			if(ImGui::SliderInt("##count", &particle_settings.count, 1, 500000)) {
+				particle_system.resize(particle_settings.count);
+			}
+			ImGui::Checkbox("Render", &particle_settings.render);
+			if(ImGui::Button("Recompile")) {
+				particle_shader.unload();
+				particle_shader.add_src_from_memory(particle_settings.src, vpanic::COMPUTE_SHADER);
+				particle_shader.compile();
+			}
+
+			vpanic::ImGuiExt::TextEdit("##test", &particle_settings.src, ImVec2(ImGui::GetWindowSize().x-20, 400));
+
 		}
-		if(vpanic::ImGuiExt::ColorEdit("End color", end_col)) {
-			particle_settings.end_color = vpanic::imvec4_to_color(end_col);
-		}
+
 
 		ImGui::Separator();
 		ImGui::End();
 	}
-
+	
 	if(!light_follow_camera) {
 		
 		vpanic::Matrix m(1.0f);
@@ -268,37 +247,37 @@ void update() {
 		light_plane.color = light_settings.color;
 		
 		light_plane.set_model_matrix(m);
-		if(!only_particle_system) {
-			light_plane.draw(shader);
-		}
+		light_plane.draw(shader);
 
 	}
 
-	if(!only_particle_system) {
-		ground.draw(shader);
-		shape.draw(shader);
-		pilars.draw(shader);
-	}
+	ground.draw(shader);
+	shape.draw(shader);
+	pilars.draw(shader);
 	
-
-	particle_system.update(shader, engine.delta_time(), camera.view);
+	if(particle_settings.render) {
+		particle_system.update(particle_frag, particle_shader, engine.delta_time());
+	}
 }
 
 bool setup() {
 
 	vpanic::Console::instance().set_callback(command_callback);
 
+	vpanic::read_file("shader_source.txt", &shader_source);
+	vpanic::read_file("particle_shader.glsl", &particle_settings.src);
 	particle_system.init();
-	particle_system.resize(particle_settings.count);
-
 	create_pilars();
 
-	shader.add_shader("shader.glsl", vpanic::shadertype::fragment);
+	shader.add_src("shader.glsl", vpanic::FRAGMENT_SHADER);
 	if(!shader.compile()) { return false; }
 
-	particle_shader.add_shader("particle_shader.glsl", vpanic::shadertype::fragment);
+	particle_shader.add_src("particle_shader.glsl", vpanic::COMPUTE_SHADER);
 	if(!particle_shader.compile()) { return false; }
 
+	particle_frag.add_src("particle_fragment.glsl", vpanic::FRAGMENT_SHADER);
+	if(!particle_frag.compile()) { return false; }
+	
 	// tell engine that "here is the camera you can update it"
 	engine.use_camera(&camera);
 
@@ -336,7 +315,7 @@ bool setup() {
 	//engine.lock_mouse(true);
 
 	// finally let engine know about these so it can update model, view and projection matrices
-	engine.setup_shaders({ &shader, &particle_shader }); 
+	engine.setup_shaders({ &shader }); 
 	//engine.background_color = vpanic::Color(240, 240, 255);
 	//engine.background_color = vpanic::Color(20, 20, 20);
 
@@ -355,6 +334,8 @@ bool setup() {
 	camera.pos.y = player.height;
 	vpanic::Console::instance().focus();
 
+	particle_system.init();
+
 	return true;
 }
 
@@ -363,7 +344,7 @@ void keydown(uint8_t t_key) {
 	
 	switch(t_key) {
 	
-		case 0x09:
+		//case 0x09:
 		case 0xa7:
 			menu_open =! menu_open;
 			engine.lock_mouse(!menu_open);
@@ -407,7 +388,7 @@ void mouse_moved(const vpanic::MouseData& t_mdata) {
 int main() {
 
 	// initialize and check if its ok to continue
-	engine.init("Simple Demo", vpanic::Vec2(1200, 900));
+	engine.init("libVirtualPanic [Testing]", vpanic::Vec2(1200, 900));
 	if(!engine.copy_state()[vpanic::EngineState::OK]) {
 		return -1;
 	}

@@ -10,6 +10,7 @@
 #include "vertex.hpp"
 
 struct ImVec4;
+struct ImVec2;
 
 
 namespace vpanic {
@@ -52,6 +53,8 @@ namespace vpanic {
 	bool is_hex_string(const std::string& t_str);		
 
 	namespace ImGuiExt {
+		bool TextEdit(const char* label, std::string* str, 
+				const ImVec2& size, const int flags = 0);
 		bool ColorPicker(const char* label, ImVec4& color, const int flags = 0);
 		bool ColorEdit(const char* label, ImVec4& color, const int flags = 0);
 	}

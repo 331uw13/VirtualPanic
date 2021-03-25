@@ -1,7 +1,6 @@
 #include "libs/gl3w.h"
 
 #include "shader_component.hpp"
-#include "shader_type.hpp"
 #include "messages.hpp"
 
 
@@ -16,11 +15,13 @@ namespace vpanic {
 		type = t_type;
 		const int gltype = [t_type]() {
 			switch(t_type) {
-				case FRAGMENT_SHADER: return GL_FRAGMENT_SHADER;
-				case GEOMETRY_SHADER: return GL_GEOMETRY_SHADER;
-				case COMPUTE_SHADER: return GL_COMPUTE_SHADER;
-				default: return -1;
+				case VERTEX_SHADER:    return GL_VERTEX_SHADER;
+				case FRAGMENT_SHADER:  return GL_FRAGMENT_SHADER;
+				case GEOMETRY_SHADER:  return GL_GEOMETRY_SHADER;
+				case COMPUTE_SHADER:   return GL_COMPUTE_SHADER;
+				default:               return -1;
 			}
+			return -1;
 		}();
 
 		if(gltype < 0) {

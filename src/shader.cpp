@@ -18,43 +18,87 @@ namespace vpanic {
 	}
 	
 	bool Shader::add_src(const char* t_filename, const int t_type) {
-		if(t_type >= INVALID_SHADER || t_type < 0) { return; }
-		Timer timer;
-		
+		bool error_occurred = false;
 		ShaderComponent& sc = m_components[t_type];
-		_add_functions(sc.src, t_type);
+		
+		if(t_type >= INVALID_SHADER || t_type < 0) {
+			error_occurred = true;
+		}
+		else {
+			Timer timer;
+			_add_functions(sc.src, t_type);
 
-		// included from "file.hpp"
-		if(read_file(t_filename, &sc.src)) {
+			// included from "file.hpp"
+			if(read_file(t_filename, &sc.src)) {
+				sc.compile(t_type);
+				if(_succeeded(sc.id, SHADER)) {
+					m_type_bits |= t_type;
+					message(MType::OK, "Compiled shader component \"%s\" (took %ims)", t_filename, timer.elapsed_ms());
+				}
+				else {
+					sc.type = INVALID_SHADER;
+					message(MType::ERROR, "Failed to compile shader component \"%s\"", t_filename);
+					error_occurred = true;
+				}
+			}	
+			//printf("\033[32m  \"%s\"\n\033[90m%s\033[0m\n", t_filename, sc.src.c_str());
+		}
+		
+		return !error_occurred && sc.type != INVALID_SHADER;
+	}
+	
+	bool Shader::add_src_from_memory(const std::string& t_src, const int t_type) {
+		bool error_occurred = false;
+		ShaderComponent& sc = m_components[t_type];
+	
+		if(t_type >= INVALID_SHADER || t_type < 0) {
+			error_occurred = true;
+		}
+		else {
+			Timer timer;
+			sc.src = std::move(t_src);
+			_add_functions(sc.src, t_type);
 			sc.compile(t_type);
 			if(_succeeded(sc.id, SHADER)) {
 				m_type_bits |= t_type;
-				message(MType::OK, "Compiled \"%s\" (took %ims)", t_filename, timer.elapsed_ms());
+				message(MType::OK, "Compiled shader component (%i) (took %ims)", t_type, timer.elapsed_ms());
 			}
 			else {
 				sc.type = INVALID_SHADER;
-				message(MType::ERROR, "Failed to compile shader \"%s\"", t_filename);
+				message(MType::ERROR, "Failed to compile shader component (%i)", t_type);
+				error_occurred = true;
 			}
 		}
-		
-		printf("\033[36m%s\n\033[90m%s\033[0m\n", t_filename, sc.src.c_str());
-		return true;
-	}
-	
-	bool Shader::_succeeded(const int t_id, const int t_type) {	
 
+		return !error_occurred && sc.type != INVALID_SHADER;
+	}
+
+	bool Shader::_succeeded(const int t_id, const int t_type) {	
 		char* msg = nullptr;
-		bool error_occurred = false;
+		bool error_occurred = (t_type != SHADER && t_type != PROGRAM);
 		GLsizei max_length = 0;
 		GLsizei log_length = 0;
 		GLint p = 0;
 
-		if(t_type == SHADER) {
-			glGetShaderiv(t_id, GL_COMPILE_STATUS, &p);
-			glGetShaderiv(t_id, GL_INFO_LOG_LENGTH, &max_length);
+		if(!error_occurred) {
+			if(t_type == SHADER) {
+				glGetShaderiv(t_id, GL_COMPILE_STATUS, &p);
+				glGetShaderiv(t_id, GL_INFO_LOG_LENGTH, &max_length);
+			}
+			else if(t_type == PROGRAM) {
+				glGetProgramiv(t_id, GL_LINK_STATUS, &p);
+				glGetProgramiv(t_id, GL_INFO_LOG_LENGTH, &max_length);
+			}
+
 			if(max_length > 1) {
 				msg = (char*)malloc(max_length);
-				glGetShaderInfoLog(t_id, max_length, &log_length, msg);
+				if(t_type == SHADER) {
+					glGetShaderInfoLog(t_id, max_length, &log_length, msg);
+				}
+				else if(t_type == PROGRAM) {
+					glGetProgramInfoLog(t_id, max_length, &log_length, msg);
+				}
+				msg[max_length-2] = 0; // remove '\n'
 				if(p != GL_TRUE) {
 					error_occurred = true;
 					message(MType::SHADER_ERROR, "%s", msg);
@@ -65,32 +109,57 @@ namespace vpanic {
 				free(msg);
 			}
 		}
-		else if(t_type == PROGRAM) {
-		}
 
 		return !error_occurred;
 	}
 
-
 	bool Shader::compile() {
 
-		// Add vertex shader if there is no compute shader.
 		// Compute shaders cant be linked with any other type of shader.
-		if(!(m_type_bits & COMPUTE_SHADER)) {
-			ShaderComponent& vertex = m_components[0];
-			_add_functions(vertex.src, 0);
-			vertex.compile();
-			if(!_succeeded(vertex.id, SHADER)) {
-				message(MType::ERROR, "Oops! Failed to compile vertex shader. Please visit <link to bug report page>");
+		
+		bool error_occurred = false;
+		ShaderComponent& vertex = m_components[VERTEX_SHADER];
+		const ShaderComponent& fragment = m_components[FRAGMENT_SHADER];
+		const ShaderComponent& geometry = m_components[GEOMETRY_SHADER];
+		const ShaderComponent& compute = m_components[COMPUTE_SHADER];
+		Timer timer;
+
+		id = glCreateProgram();
+
+		if(compute.type != INVALID_SHADER && (m_type_bits & COMPUTE_SHADER)) {	
+			glAttachShader(id, compute.id);
+		}
+		else if(fragment.type != INVALID_SHADER && (m_type_bits & FRAGMENT_SHADER)) {
+			const bool has_vs = vertex.type != INVALID_SHADER && (m_type_bits & VERTEX_SHADER);
+			const bool has_gs = geometry.type != INVALID_SHADER && (m_type_bits & GEOMETRY_SHADER);
+
+			if(!has_vs && !add_src_from_memory(vertex.src, VERTEX_SHADER)) {
+				// thats bad... ;-;
+				message(MType::ERROR, "Oops! Failed to compile vertex shader from memory. Please visit <link to bug report page>");
+				error_occurred = true;
+			}
+			
+			if(!error_occurred) {
+				glAttachShader(id, vertex.id);
+				glAttachShader(id, fragment.id);
+				if(has_gs) {
+					glAttachShader(id, geometry.id);
+				}
 			}
 		}
 
-
-		for(uint32_t i = 0; i < 5; i++) {
-		
+		glLinkProgram(id);
+		if(!_succeeded(id, PROGRAM)) {
+			error_occurred = true;
+			glDeleteProgram(id);
+			id = 0;
+		}
+		else {
+			message(MType::OK, "Compiled shader program (took %ims)", timer.elapsed_ms());
 		}
 
-		return false;
+		_clear_sources();
+		return !error_occurred;
 	}
 
 
@@ -101,17 +170,19 @@ namespace vpanic {
 	int Shader::_retrieve_location(const char* t_name) const {
 		// If name is not found in saved names then ask opengl if it can find it.
 		// If opengl cant find it then just dont do anything with it anymore, but if its found then add it to saved names.
+		int location = -1;
 		if(m_saved.find(t_name) == m_saved.end()) {
 			const int l = glGetUniformLocation(id, t_name);
 			if(l >= 0) {
 				m_saved[t_name] = l;
 			}
-			return l;
+			location = l;
 		}
 		else {
-			return m_saved[t_name];
+			location = m_saved[t_name];
 		}
-		return -1;
+		
+		return location;
 	}
 	
 	void Shader::set_vec4(const char* t_name, const Vec4& t_v4) const {
@@ -251,7 +322,7 @@ namespace vpanic {
 					" float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);"
 					" vec3 specular = 0.34f*spec*light_color;"
 					" float d = length(pos-fragment.pos);"
-					" float att = smoothstep(radius+d, 0.0, d);"
+					" float att = d*smoothstep(radius/0.8f+d, 0.0, d);"
 					" vec3 res = vec3((ambient*att)+(diffuse*att)+(specular*att))*shape_color;"
 					" return vec3(1.0)-exp(-(res*shape_color*brightness));"
 				"}"
@@ -276,9 +347,9 @@ namespace vpanic {
 					" return 1.0 - (max - dist) / (max - min);"
 				"}");
 		}
-		else if(t_type == 0) {
+		else if(t_type == VERTEX_SHADER) {
 			// make sure that vertex source is not empty and it starts with '#' else update it
-			std::string& vssrc = m_components[0].src;
+			std::string& vssrc = m_components[VERTEX_SHADER].src;
 			if(vssrc.size() <= 5 && vssrc.find('#') != 0) {
 				vssrc.clear();
 				vssrc = 

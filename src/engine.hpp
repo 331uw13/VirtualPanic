@@ -1,17 +1,15 @@
 #pragma once
 #include <vector>
 #include <SDL2/SDL.h>
-#include "libs/imgui/imgui.h"
+#include <GL/glcorearb.h>
 
-#include "mouse.hpp" //.
 #include "color.hpp"
 #include "utils.hpp"
-#include "keyboard.hpp" //.
 #include "timer.hpp"
 #include "settings.hpp"
 #include "shader.hpp"
 #include "camera.hpp"
-#include "shape.hpp" //.
+#include "shape.hpp"
 #include "state.hpp"
 #include "uniform_buffer.hpp"
 
@@ -35,7 +33,6 @@ namespace vpanic {
 		void request_shutdown(); // use this instead of 'quit' when wanting to quit from event callback
 		void quit();
 	
-
 		Vec2 window_size() const;
 		float aspect_ratio() const;
 		float delta_time() const;

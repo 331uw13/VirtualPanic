@@ -7,8 +7,8 @@
 #include "vec2.hpp"
 #include "matrix.hpp"
 #include "color.hpp"
-#include "shader_type.hpp"
 #include "shader_component.hpp"
+
 
 namespace vpanic {
 
@@ -23,7 +23,9 @@ namespace vpanic {
 		// -  void update_source();
 		// these could be helpful too! :)
 
-		void add_src(const char* t_filename, const int t_type);
+		bool add_src(const char* t_filename, const int t_type);
+		bool add_src_from_memory(const std::string& t_src, const int t_type);
+
 		bool compile();
 
 		void unload();
@@ -52,7 +54,7 @@ namespace vpanic {
 
 	private:
 
-		ShaderComponent m_components[5];
+		ShaderComponent m_components[4];
 		int m_type_bits { 0 };
 
 		enum { 
@@ -61,8 +63,6 @@ namespace vpanic {
 		};
 	
 		bool _succeeded(const int t_id, const int t_type);
-		bool _compile_shader(const int t_shader_id, const char* t_src);
-		//void _read_sources(const char* t_filename, std::string& t_src_ref);
 		void _add_functions(std::string& t_src, const int t_type);
 		void _clear_sources();
 		

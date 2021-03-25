@@ -13,7 +13,7 @@ namespace vpanic {
 	
 	Engine::Engine() {}
 	Engine::~Engine() { quit(); }
-
+	
 	void Engine::mouse_move_callback(void(*t_callback)(const MouseData&)) {
 		m_mouse_move_callback = t_callback;
 	}
@@ -101,19 +101,18 @@ namespace vpanic {
 			return;		
 		}
 
-		message(MType::OK, "Initialized gl3w");	
-		/*if(!gl3wIsSupported(3, 3)) {
-			message(MType::BAD, "Current OpenGL version is not supported!!!");
+		message(MType::OK, "Initialized gl3w");
+		if(!gl3wIsSupported(4, 3)) {
+			message(MType::ERROR, "OpenGL 4.3 version is not supported :(");
 			quit();
 			return;
-		}*/
+		}
 
 	
 		//glEnable(GL_MULTISAMPLE);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
 		glEnable(GL_BLEND);
-
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		winding_order(CLOCKWISE);
 
@@ -242,16 +241,6 @@ namespace vpanic {
 				
 				m_ubo.set(0, (m_cam->projection*m_cam->view).begin());
 				m_ubo.set(1, &m_cam->pos);
-				//m_ubo.add(sizeof(Matrix), (m_cam->projection*m_cam->view).begin());
-				//m_ubo.add(sizeof(Vec3), &m_cam->pos);
-				
-				/*
-				glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
-				// NOTE: projection probably doesnt change at much, create event for it?
-				// NOTE: i can have array of stuff what should be updated here
-				glBufferSubData(GL_UNIFORM_BUFFER, 0,                 sizeof(Matrix),   &(m_cam->projection*m_cam->view)[0].x);
-				glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Matrix),    sizeof(Vec3),     &m_cam->pos);
-				*/
 			}
 		
 			ImGui_ImplOpenGL3_NewFrame();

@@ -1,17 +1,19 @@
 uniform int max_particles;
 uniform float dt;
 uniform vec4 origin;
+uniform bool mouse_down;
 
 struct Particle {
-	vec4 pos;
-	vec4 velocity;
-	vec4 color;
+	vec4 attr0;
+	vec4 attr1;
+	vec4 attr2;
+	vec3 attr3;
+	float life;
 };
-
 
 layout (local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
 layout (std430, binding = 0) buffer particles {
-	Particle particle_array[];
+	Particle particle_buffer[];
 };
 
 uint rng_state;
@@ -38,46 +40,26 @@ float rand() {
 void main() {
 
 	const uint id = gl_GlobalInvocationID.x;
+	if(id >= max_particles) { return; }
 	rng_state = id;
-	if(id <= max_particles) {
-		Particle p = particle_array[id];
-
-		if(p.pos.w >= p.velocity.w) {
-			p.pos = origin;
-			p.pos.w = 0.0f;
-			p.velocity = vec4(0.0);
-
-			float x = rand()-0.5f;
-			float y = rand()-0.5f;
-			float z = rand()-0.5f;
-			float w = rand()-0.5f;
-
-			vec4 n = vec4(x, y, z, w);
-			//float d = length(origin-n);
-			n *= rand()*3.5;
-
-			p.pos.x += n.x*rand()*0.5;
-			p.pos.y += n.y*rand()*0.5;
-			p.pos.z += n.z*rand()*0.5;
-
-			p.velocity.w = w;
-		}
 	
-		//p.velocity.w += dt;
+	Particle p = particle_buffer[id];
 
-		vec4 l = origin-p.pos;
-		vec4 a = rand()*(normalize(l))*length(p.pos.xyzw)*700;
+	if(p.life <= 0.0f || mouse_down) {
+		p.life = 1.0f;
 
-		vec4 n = a*dt*dt;
-		p.velocity += n;
+		float x = rand()-0.5f;
+		float y = rand()-0.5f;
+		float z = rand()-0.5f;
 
-		p.color = 0.5+0.5*cos(length(l)+vec4(1.0f, 2.0f, 4.0f, 1.0f));
-		p.color.a = 0.5f;
-
-		p.pos += p.velocity*dt;
-		particle_array[id] = p;
+		vec4 n = vec4(x, y, z, 1.0f);
+		p.attr0 = origin+n*rand();	
 	}
-	
 
+	p.attr1 += 1.99f*normalize(origin-p.attr0)*length(p.attr0)-0.09f;
+	p.attr0 += p.attr1*dt*dt;
+	
+	p.attr2 = vec4(1.0f, 0.05f, 0.0f, 0.6f);
+	particle_buffer[id] = p;
 }
 
