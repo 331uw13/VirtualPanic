@@ -12,6 +12,7 @@ namespace vpanic {
 		UniformBuffer() {}
 		~UniformBuffer();
 
+		// TODO: make this better
 		void create(const std::vector<uint32_t>& t_size_layout);
 		void set(const uint32_t t_index, void* t_ptr);
 

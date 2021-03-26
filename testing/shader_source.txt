@@ -1,34 +1,19 @@
 uniform vec3 light_pos;
 uniform vec4 light_color;
+
 uniform float light_radius;
 uniform float light_brightness;
 uniform vec3 particle_origin;
 
-vec3 test_light(vec3 pos, vec4 color, float brightness, float radius) {
-	if(fragment.normal == vec3(0.0f, 0.0f, 0.0f)) { return vec3(shape.color); }
-	vec3 light_color = vec3(color);
-	vec3 shape_color = vec3(shape.color);
-	vec3 light_dir = normalize(pos - fragment.pos);
-	vec3 norm = normalize(fragment.normal);
-	vec3 ambient = 0.4f*light_color;
-	float diff = max(dot(norm, light_dir), 0.0f);
-	vec3 diffuse = 0.5f*diff*light_color;
-	vec3 view_dir = normalize(camera_pos-fragment.pos);
-	float spec = pow(max(dot(norm, normalize(light_dir+view_dir)), 0.0f), 64.0f);
-	vec3 specular = 0.34f*spec*light_color;
-	float d = length(pos-fragment.pos);
-	float att = smoothstep(radius+d, 0.0, d);
-
-	// 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
-	vec3 res = vec3((ambient*att)+(diffuse*att)+(specular*att))*shape_color;
-	
-	return vec3(1.0)-exp(-(res*shape_color*brightness));
-}
-
-
+uniform sampler2D texture0;
 
 void main() {
-
-	gl_FragColor = vec4(test_light(light_pos, light_color, light_radius, light_brightness), 1.0f);
-
+	//gl_FragColor = vec4(vpanic_directional_light(vec3(0.45f, 1.2f, 2.65f), light_color, 2.14f, 0.42f, 0.21f), 1.0);
+	
+	vec4 col = vec4(0.0f);
+	col += vec4(vpanic_light(light_pos, light_color, light_radius, light_brightness), 1.0f);
+	col += texture(texture0, fragment.texcoord);
+	gl_FragColor = col;
 }
+
+

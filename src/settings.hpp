@@ -21,8 +21,7 @@ namespace vpanic {
 	// --- 'add_plane_data()' ---
 	// do you need to see both sides of the plane?
 	// not default
-	static constexpr int DOUBLE_SIDE { 1 << 0 };
-	static constexpr int USING_TRIANGLE_STRIP { 1 << 1 };
+	static constexpr int DOUBLE_SIDE { 1 };
 
 	// --- 'find_all()' ---
 	// dont ignore sub directories

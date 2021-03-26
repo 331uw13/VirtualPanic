@@ -15,6 +15,11 @@ namespace vpanic {
 	}
 	
 	void Shader::_clear_sources() {
+		for(uint32_t i = 0; i < INVALID_SHADER; i++) {
+			ShaderComponent& sc = m_components[i];
+			sc.src.clear();
+			glDeleteShader(sc.id);
+		}
 	}
 	
 	bool Shader::add_src(const char* t_filename, const int t_type) {
@@ -291,12 +296,11 @@ namespace vpanic {
 		else if(t_type == FRAGMENT_SHADER) {
 			t_src.insert(0,
 				"#version 430 core\n"
-
+				
 				"struct Fragment {\n"
 					" vec3 pos;\n"
 					" vec3 normal;\n"
 					" vec2 texcoord;\n"
-					" vec3 texcoord3d;\n"
 				"};\n"
 				
 				"struct VPanicShape {\n"
@@ -307,7 +311,6 @@ namespace vpanic {
 				"in vec3 camera_pos;"
 				"in Fragment fragment;"
 				"in VPanicShape shape;"
-				"uniform sampler2D texture0;" // NOTE: array of textures?
 				
 				"vec3 vpanic_light(vec3 pos, vec4 color, float brightness, float radius) {\n"
 					" if(fragment.normal == vec3(0.0f, 0.0f, 0.0f)) { return vec3(shape.color); }"
@@ -377,7 +380,6 @@ namespace vpanic {
 						" vec3 pos;"
 						" vec3 normal;"
 						" vec2 texcoord;"
-						" vec3 texcoord3d;"
 					"};"
 					
 					"struct VPanicShape {"
@@ -388,9 +390,8 @@ namespace vpanic {
 					"uniform mat4 model;"
 					"uniform vec4 shape_color;"
 					"uniform vec3 shape_pos;"
-
 					"uniform int mode;"
-
+					
 					"out vec3 camera_pos;"
 					"out Fragment fragment;"
 					"out VPanicShape shape;"
@@ -398,7 +399,6 @@ namespace vpanic {
 					"void main() {"
 						" camera_pos = cam_pos;"
 						" fragment.texcoord = texcoord;"
-						" fragment.texcoord3d = pos;"
 
 						"switch(mode) {"
 

@@ -15,7 +15,6 @@
 #pragma once
 
 #define IMGUI_IMPL_OPENGL_LOADER_GL3W
-#define IMGUI_INCLUDE_VIRTUALPANIC
 
 
 //---- Define assertion handler. Defaults to calling assert().

@@ -12,10 +12,12 @@ static vpanic::Shape shape;
 static vpanic::Shape ground;
 static vpanic::Shape light_plane;
 static vpanic::Shader shader;
+static vpanic::Shader blockshader;
 static vpanic::Shader particle_shader;
 static vpanic::Shader particle_frag;
 static vpanic::Camera camera;
 static vpanic::ShapeArray pilars;
+static vpanic::Texture texture;
 
 static vpanic::Vec3 light_pos;
 vpanic::ParticleSystem particle_system;
@@ -55,7 +57,7 @@ struct PilarSettings {
 
 void create_pilars() {
 	std::vector<vpanic::Vertex> data;
-	vpanic::add_box_data(data);
+	vpanic::set_box_data(data);
 	vpanic::set_normals(data);
 
 	pilars.unload();
@@ -137,10 +139,10 @@ void update() {
 
 
 
-	// update shader uniforms
 	if(light_follow_camera) {
 		light_pos = camera.pos;
 	}
+
 	shader.use();
 	shader.set_vec3("light_pos", light_pos);
 	shader.set_vec3("particle_origin", particle_system.origin);
@@ -148,14 +150,22 @@ void update() {
 	shader.set_float("light_radius", light_settings.radius);
 	shader.set_float("light_brightness", light_settings.brightness);
 
+	blockshader.use();
+	blockshader.set_vec3("light_pos", light_pos);
+	blockshader.set_vec3("particle_origin", particle_system.origin);
+	blockshader.set_color("light_color", light_settings.color);
+	blockshader.set_float("light_radius", light_settings.radius);
+	blockshader.set_float("light_brightness", light_settings.brightness);
+
+
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(400, 100));
 	ImGui::Begin("##info stuff", (bool*)nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 	ImGui::SetWindowFontScale(1.3f);
-	ImGui::VPanic::TextRGB("<AAAAAA>LOOKING AT:  <eb4d4b>%1.2f, <2ecc71>%1.2f, <3498db>%1.2f", camera.front.x, camera.front.y, camera.front.z);
-	ImGui::VPanic::TextRGB("<AAAAAA>POSITION:    <eb4d4b>%1.2f, <2ecc71>%1.2f, <3498db>%1.2f", camera.pos.x, camera.pos.y, camera.pos.z);
-	ImGui::VPanic::TextRGB("<AAAAAA>FPS: <e056fd>%i", (int)ImGui::GetIO().Framerate);
+	vpanic::ImGuiExt::TextRGB("<AAAAAA>LOOKING AT:  <eb4d4b>%1.2f, <2ecc71>%1.2f, <3498db>%1.2f", camera.front.x, camera.front.y, camera.front.z);
+	vpanic::ImGuiExt::TextRGB("<AAAAAA>POSITION:    <eb4d4b>%1.2f, <2ecc71>%1.2f, <3498db>%1.2f", camera.pos.x, camera.pos.y, camera.pos.z);
+	vpanic::ImGuiExt::TextRGB("<AAAAAA>FPS: <e056fd>%i", (int)ImGui::GetIO().Framerate);
 	ImGui::SetWindowFontScale(1.0f);
 	ImGui::End();
 	
@@ -165,9 +175,9 @@ void update() {
 		ImGui::Begin("Editor");
 		{
 			if(ImGui::Button("Compile")) {
-				shader.unload();
-				shader.add_src_from_memory(shader_source, vpanic::FRAGMENT_SHADER);
-				shader.compile();
+				blockshader.unload();
+				blockshader.add_src_from_memory(shader_source, vpanic::FRAGMENT_SHADER);
+				blockshader.compile();
 			}
 			ImGui::SameLine();
 			if(ImGui::Button("Dump to stdout")) {
@@ -204,6 +214,17 @@ void update() {
 			camera.pitch = 0.0f;
 		}
 
+
+
+		imgui_title("Box");
+		{
+
+			static vpanic::Vec3 scale(1.0f);
+			static ImVec4 color = vpanic::color_to_imvec4(light_settings.color);
+			ImGui::SliderFloat("##scale_x", &scale.x, 0.1f, 10.f, "Scale: %2.5f");
+			
+
+		}
 
 		imgui_title("Lights");
 		{
@@ -251,9 +272,13 @@ void update() {
 
 	}
 
-	ground.draw(shader);
-	shape.draw(shader);
+	texture.enable();
+	shape.draw(blockshader);
+	texture.disable();
+	
 	pilars.draw(shader);
+	ground.draw(blockshader);
+
 	
 	if(particle_settings.render) {
 		particle_system.update(particle_frag, particle_shader, engine.delta_time());
@@ -269,8 +294,13 @@ bool setup() {
 	particle_system.init();
 	create_pilars();
 
+	texture.load("/home/eeiuwie/Pictures/green.png");
+
 	shader.add_src("shader.glsl", vpanic::FRAGMENT_SHADER);
 	if(!shader.compile()) { return false; }
+	
+	blockshader.add_src("blockshader.glsl", vpanic::FRAGMENT_SHADER);
+	if(!blockshader.compile()) { return false; }
 
 	particle_shader.add_src("particle_shader.glsl", vpanic::COMPUTE_SHADER);
 	if(!particle_shader.compile()) { return false; }
@@ -284,13 +314,16 @@ bool setup() {
 	// now get vertex data for shape and calculate normals
 	// you can do this all by yourself if you want
 	std::vector<vpanic::Vertex> data;
-	vpanic::add_box_data(data);
+
+	vpanic::set_box_data(data);
 	vpanic::set_normals(data);
+	vpanic::set_texcoords(data);
 	shape.load(data);
 
 	data.clear();
-	vpanic::add_plane_data(data, vpanic::USING_TRIANGLE_STRIP);
+	vpanic::set_plane_data(data);
 	light_plane.load(data);
+
 	vpanic::set_normals(data);
 	ground.load(data);
 

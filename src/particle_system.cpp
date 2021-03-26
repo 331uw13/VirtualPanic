@@ -109,7 +109,6 @@ namespace vpanic {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		glDepthMask(GL_FALSE);
 		glDrawArrays(GL_POINTS, 0, m_max_count);
-		
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDepthMask(GL_TRUE);
 		t_shader.disable();

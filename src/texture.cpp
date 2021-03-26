@@ -19,7 +19,6 @@ namespace vpanic {
 		if(m_loaded) { return false; }
 
 		m_type = GL_TEXTURE_2D;
-
 		glGenTextures(1, &m_id);
 		glBindTexture(m_type, m_id);
 
@@ -35,9 +34,7 @@ namespace vpanic {
 	bool Texture::load_cube(const std::vector<const char*>& t_filenames) {
 		if(m_loaded) { return false; }
 		
-
 		m_type = GL_TEXTURE_CUBE_MAP;
-
 		glGenTextures(1, &m_id);
 		glBindTexture(m_type, m_id);
 
@@ -86,7 +83,7 @@ namespace vpanic {
 		
 		glGenerateMipmap(m_type);
 		
-		message(MType::OK, "Loaded texture: \"%s\"", t_filename);
+		message(MType::OK, "Loaded texture \"%s\"", t_filename);
 		m_loaded = true;
 		return true;
 	}

@@ -442,16 +442,6 @@ namespace ImGui
     IMGUI_API ImGuiID       GetID(const char* str_id_begin, const char* str_id_end);
     IMGUI_API ImGuiID       GetID(const void* ptr_id);
 
-
-	// this is defined in "libs/imgui/imconfig.h"
-#ifdef IMGUI_INCLUDE_VIRTUALPANIC
-	// Widgets: VirtualPanic stuff
-	namespace VPanic {
-		IMGUI_API void          TextRGB(const char* fmt, ...);
-	}
-#endif
-
-
     // Widgets: Text
     IMGUI_API void          TextUnformatted(const char* text, const char* text_end = NULL); // raw text without formatting. Roughly equivalent to Text("%s", text) but: A) doesn't require null terminated string if 'text_end' is specified, B) it's faster, no memory copy is done, no buffer size limits, recommended for long chunks of text.
     IMGUI_API void          Text(const char* fmt, ...)                                      IM_FMTARGS(1); // formatted text

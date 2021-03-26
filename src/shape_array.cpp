@@ -25,7 +25,6 @@ namespace vpanic {
 	void ShapeArray::fill_matrices(Matrix* t_matrices, const size_t t_size) {
 		if(t_matrices == nullptr) { return; }
 		if(m_mode != Mode::SHAPE) { return; }
-
 		glBindBuffer(GL_ARRAY_BUFFER, m_matrix_buffer);
 		void* ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 		if(ptr == nullptr) { return; }
@@ -37,7 +36,6 @@ namespace vpanic {
 	void ShapeArray::fill_point_pos(Vec3* t_positions, const size_t t_size) {
 		if(t_positions == nullptr) { return; }
 		if(m_mode != Mode::POINT) { return; }
-		
 		glBindBuffer(GL_ARRAY_BUFFER, m_position_buffer);
 		void* ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 		if(ptr == nullptr) { return; }

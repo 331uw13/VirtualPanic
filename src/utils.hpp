@@ -39,24 +39,26 @@ namespace vpanic {
 	Color imvec4_to_color(const ImVec4& v4);
 	void read_imgui_theme(const char* filename);
 
-	void add_plane_data(std::vector<Vertex>& out, const int t_settings = 0);
-	void add_box_data(std::vector<Vertex>& out);
-	void add_sphere_data(std::vector<Vertex>& out);
+	void set_plane_data(std::vector<Vertex>& out, const int t_settings = 0);
+	void set_box_data(std::vector<Vertex>& out);
+	void set_sphere_data(std::vector<Vertex>& out);
 	
-	void set_normals(std::vector<Vertex>& out, const int t_settings = 0);
+	void set_texcoords(std::vector<Vertex>& out);
+	void set_normals(std::vector<Vertex>& out);
+
+	void foreach_triangle(std::vector<Vertex>& vertices, const std::function<void(Vertex& p0, Vertex& p1, Vertex& p2)> f);
 
 	// TODO: Color fade_colors(blabla);
 	// TODO: uint32_t color_to_hex(const Color& t_color);
-	// TODO: Color hex_to_color(const uint32_t);
-
+	
 	Color hex_to_color(const uint32_t hex);
 	bool is_hex_string(const std::string& t_str);		
 
 	namespace ImGuiExt {
-		bool TextEdit(const char* label, std::string* str, 
-				const ImVec2& size, const int flags = 0);
 		bool ColorPicker(const char* label, ImVec4& color, const int flags = 0);
 		bool ColorEdit(const char* label, ImVec4& color, const int flags = 0);
+		bool TextEdit(const char* label, std::string* str, const ImVec2& size, const int flags = 0);
+		void TextRGB(const char* fmt, ...);
 	}
 
 }

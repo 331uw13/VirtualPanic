@@ -108,7 +108,6 @@ namespace vpanic {
 			return;
 		}
 
-	
 		//glEnable(GL_MULTISAMPLE);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
@@ -153,7 +152,7 @@ namespace vpanic {
 		_needs_render_back(false);
 
 		m_ubo.create({ sizeof(Matrix), sizeof(Vec3) });
-
+		
 		message(MType::OK, "Engine is ready! [%ims]", timer.elapsed_ms());
 		m_state.set(EngineState::INIT_OK);
 		_update_engine_ok_state();
@@ -225,6 +224,10 @@ namespace vpanic {
 			previous_count = current_count;
 			current_count = SDL_GetPerformanceCounter();
 			m_delta_time = (current_count-previous_count)/SDL_GetPerformanceFrequency();
+
+			if(m_delta_time < ticks_per_frame) {
+				SDL_Delay(ticks_per_frame-m_delta_time);
+			}
 
 			glClearColor(
 					background_color.r / 255.0f,
@@ -322,11 +325,6 @@ namespace vpanic {
 			}
 		
 			SDL_GL_SwapWindow(m_window);
-
-			const float elapsed = static_cast<float>(timer.elapsed_ms());
-			if(elapsed < ticks_per_frame) {
-				SDL_Delay(ticks_per_frame-elapsed);
-			}
 
 		}
 

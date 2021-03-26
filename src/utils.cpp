@@ -1,6 +1,7 @@
 #include <cmath>
 #include <vector>
 #include "libs/imgui/imgui.h"
+#include "libs/imgui/imgui_internal.h"
 
 #include "math.hpp"
 #include "utils.hpp"
@@ -161,8 +162,8 @@ namespace vpanic {
 
 	}
 	
-	void add_plane_data(std::vector<Vertex>& out, const int t_settings) {
-		std::vector<Vertex> tmp = [t_settings]() {
+	void set_plane_data(std::vector<Vertex>& out, const int t_settings) {
+		out = [t_settings]() {
 			if(t_settings & DOUBLE_SIDE) {
 				return std::vector<Vertex> {
 					Vertex(-0.5f, -0.5f,  0.0f),
@@ -182,29 +183,38 @@ namespace vpanic {
 			}
 			else {
 				return std::vector<Vertex> {
-					Vertex(-0.5f, -0.5f,  0.0f),
-					Vertex( 0.5f,  0.5f,  0.0f),
-					Vertex( 0.5f, -0.5f,  0.0f),
-					Vertex( 0.5f,  0.5f,  0.0f),
+					
 					Vertex(-0.5f, -0.5f,  0.0f),
 					Vertex(-0.5f,  0.5f,  0.0f),
+					Vertex( 0.5f,  0.5f,  0.0f),
+					
+					Vertex( 0.5f,  0.5f,  0.0f),
+					Vertex( 0.5f, -0.5f,  0.0f),
+					Vertex(-0.5f, -0.5f,  0.0f),
+						
+					/*
+					Vertex(-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f),
+					Vertex( 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f),
+					Vertex( 0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f),
+
+					Vertex( 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f),
+					Vertex(-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f),
+					Vertex(-0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f),
+					*/
 				};
 			}
 		}();
-
-		out.resize(out.size()+tmp.size());
-		out.assign(tmp.begin(), tmp.end());
-
+		set_texcoords(out);
 	}
 
-	void add_sphere_data(std::vector<Vertex>& out) {
+	void set_sphere_data(std::vector<Vertex>& out) {
 		// TODO: read with time:
 		// https://math.wikia.org/wiki/Icosahedron
 		// https://en.wikipedia.org/wiki/Icosahedron
 	}
 	
-	void add_box_data(std::vector<Vertex>& out) {	
-		std::vector<Vertex> tmp = {
+	void set_box_data(std::vector<Vertex>& out) {	
+		out = {
 			Vertex(-0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f, -0.5f),
@@ -247,32 +257,49 @@ namespace vpanic {
 			Vertex(-0.5f,  0.5f,  0.5f),
 			Vertex(-0.5f,  0.5f, -0.5f)
 		};
-
-		out.resize(out.size()+tmp.size());
-		out.assign(tmp.begin(), tmp.end());
 	}
 
-	void set_normals(std::vector<Vertex>& out, const int t_settings) {
-		if(out.empty()) { return; }
+	void set_texcoords(std::vector<Vertex>& out) {
+	/*
+					Vertex(-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f),
+					Vertex( 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f),
+					Vertex( 0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f),
 
-		Vec3 triangle[3];
+					Vertex( 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f),
+					Vertex(-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f),
+					Vertex(-0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f),
 
-		const size_t size = out.size();
-		for(size_t i = 0; i < size; i+=3) {
-			if(i+2 >= size) { break; }
-			triangle[0] = out[i].point;
-			triangle[1] = out[i+1].point;
-			triangle[2] = out[i+2].point;
+	   */
 
-			Vec3 normal = cross(triangle[1]-triangle[0], triangle[2]-triangle[0]);	
-			normal = (normal/normal.length()).invert();
+		if(out.size() < 6) { return; }
 
-			out[i].normal = normal;
-			out[i+1].normal = normal;
-			out[i+2].normal = normal;
+		for(size_t i = 0; i < out.size()-5; i+=6) {
+			for(uint32_t j = 0; j < 6; j++) {
+				Vertex& p = out[i+j];
+				p.tex_coords.x = p.point.x+0.5f;
+				p.tex_coords.y = p.point.y+0.5f;
+			}
+		}
+
+	}
+
+	void set_normals(std::vector<Vertex>& out) {	
+		foreach_triangle(out, [](Vertex& p0, Vertex& p1, Vertex& p2) {
+				Vec3 normal = cross(p1.point-p0.point, p2.point-p0.point);
+				normal = (normal/normal.length()).invert();
+				p0.normal = normal;
+				p1.normal = normal;
+				p2.normal = normal;
+				});
+	}
+
+	void foreach_triangle(std::vector<Vertex>& vertices, const std::function<void(Vertex& p0, Vertex& p1, Vertex& p2)> f) {
+		if(vertices.size() < 3) { return; }
+		for(size_t i = 0; i < vertices.size()-2; i+=3) {
+			f(vertices[i], vertices[i+1], vertices[i+2]);
 		}
 	}
-
+	
 	uint32_t color_to_hex(const Color& color) {
 		return (color.r<<16)|(color.g<<8)|color.b;
 	}
@@ -310,6 +337,118 @@ namespace vpanic {
 
 			return ImGui::InputTextMultiline(label, (char*)str->c_str(), str->capacity(), size, 
 					flags | ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize, callback, (void*)str);
+		}
+
+		void TextRGB(const char* fmt, ...) {
+			
+			ImGuiWindow* window = ImGui::GetCurrentWindow();
+			ImGuiContext& g = *GImGui;
+
+			const size_t max_buf_size = 2048;
+
+			char buf[max_buf_size];
+			va_list ap;
+			va_start(ap, fmt);
+			vsnprintf(buf, sizeof(buf), fmt, ap);
+			buf[sizeof(buf)-1] = '\0';
+			va_end(ap);
+
+			char text_buffer[max_buf_size];
+			char color_buffer[32];
+
+			uint32_t text_index = 0;
+			uint32_t color_index = 0;
+
+			bool pop_color = false;
+			bool write_color = false;
+			const uint32_t len = strlen(buf);
+
+			float cursor_y = window->DC.CursorPos.y;
+			float cursor_x = window->DC.CursorPos.x;
+			float old_cursor_x = cursor_x;
+
+			bool had_newline = false;
+
+			auto text_sameline = [&](const char* t_text_part) {
+				const char* text_end = t_text_part+strlen(t_text_part);
+				const ImVec2 text_pos(cursor_x, cursor_y);
+				const ImVec2 text_size = ImGui::CalcTextSize(t_text_part, text_end, false, 0);
+
+				ImRect bb(text_pos, ImVec2(text_pos.x+text_size.x, text_pos.y+text_size.y));
+				ImGui::ItemSize(ImVec2(text_size.x, g.Style.FramePadding.y), 0.0f);
+				
+				if (!ImGui::ItemAdd(bb, 0)) {
+					return;
+				}
+				
+				ImGui::RenderText(text_pos, t_text_part, text_end);
+				
+				if(had_newline) {
+					cursor_x = old_cursor_x;
+					cursor_y += text_size.y;
+					had_newline = false;
+				}
+				else {
+					cursor_x += text_size.x;
+				}
+			};
+
+			for(uint32_t i = 0; i < len; i++) {
+				if(buf[i] == '>') {
+					write_color = false;
+					if(color_index > 0) {
+						color_buffer[color_index] = '\0';
+						const bool can_use_color = is_hex_string(color_buffer);
+
+						if(pop_color) {
+							ImGui::PopStyleColor();
+						}
+						if(can_use_color) {
+							ImGui::PushStyleColor(ImGuiCol_Text, color_to_imvec4(hex_to_color(std::stoi(color_buffer, nullptr, 16))));
+							pop_color = true;
+						}
+						else if(color_buffer[0] == '/') { // "</>" sets back to default color
+							ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_Text));
+							pop_color = true;
+						}
+
+						strcpy(color_buffer, ""); // yes, all color values should be the same length but just to be more safe
+						color_index = 0;
+					}
+				}
+				else if(buf[i] == '<') {
+					write_color = true;
+					if(text_index > 0) {
+						text_buffer[text_index] = '\0';
+						text_sameline(text_buffer);
+						strcpy(text_buffer, "");
+						text_index = 0;
+					}
+				}
+				else if(write_color) {
+					color_buffer[color_index] = buf[i];
+					color_index++;
+				}
+				else {
+					text_buffer[text_index] = buf[i];
+					text_index++;
+				}
+
+				if(buf[i] == '\n') {
+					had_newline = true;
+				}
+
+			}
+
+			// if there was no color at the end (probably not), it needs to render the rest
+			if(text_index > 0) {
+				text_buffer[text_index] = '\0';
+				text_sameline(text_buffer);
+			}
+
+			if(pop_color) {
+				ImGui::PopStyleColor();
+			}
 		}
 	}
 
