@@ -57,19 +57,14 @@ namespace vpanic {
 	private:
 		
 		EngineState m_state;
+		UniformBuffer m_ubo;
 
 		struct Skybox {
-		
 			Texture texture;
 			Shape shape;
 			Shader shader;
-
 		} m_skybox;
 
-		UniformBuffer m_ubo;
-
-		//uint32_t m_ubo { 0 };  // "uniform buffer object"
-		
 		int m_width    { 0 };
 		int m_height   { 0 };
 		float m_delta_time { 0.0f };

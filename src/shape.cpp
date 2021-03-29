@@ -35,9 +35,11 @@ namespace vpanic {
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, normal)));
 		glEnableVertexAttribArray(1);
 
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
+		// texture coordinates
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, texcoords)));
 		glEnableVertexAttribArray(2);	
 		
+
 		const size_t data_size = t_data.size();
 
 		// TODO: option for GL_LINE_STRIP and GL_TRIANGLE_STRIP
@@ -125,12 +127,16 @@ namespace vpanic {
 			//t_shader.set_mat4("model", m_user_model_matrix);
 		}
 
+		if(m_texture != nullptr) {
+			m_texture->enable();
+		}
+
 		t_shader.set_vec3("shape_pos", pos);
 		t_shader.set_color("shape_color", color);
 		t_shader.set_mat4("model", model);
 		t_shader.set_int("mode", internal::shader_mode__shape);
-		
-		if(m_type == GL_LINES) {
+
+		if(line_thickness > 0.0f) {
 			glLineWidth(line_thickness);
 		}
 /*
@@ -167,12 +173,22 @@ namespace vpanic {
 		}
 		*/
 		t_shader.disable();
+		if(m_texture != nullptr) {
+			m_texture->disable();
+		}
 	}
 	
 	uint8_t Shape::get_type() const {
 		return m_type;
 	}
 
+	void Shape::attach_texture(Texture* t_texture_attachment) {
+		m_texture = t_texture_attachment;
+	}
+
+	void Shape::detach_texture() {
+		m_texture = nullptr;
+	}
 }
 
 

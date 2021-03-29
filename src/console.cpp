@@ -46,7 +46,7 @@ namespace vpanic {
 			m_input_needs_focus = true;
 		}
 
-		// so focus for input text can be set from anywhere not just when pressing enter or something
+		// focus for input text can be set from anywhere not just when pressing enter or something
 		if(m_input_needs_focus) {
 			ImGui::SetItemDefaultFocus();
 			ImGui::SetKeyboardFocusHere(-1);
@@ -57,6 +57,9 @@ namespace vpanic {
 
 		ImGui::End();
 	}
+
+
+	// TODO: rewrite printting... xdd
 
 	void Console::print(const char* t_text, ...) {
 		char buf[600];
@@ -84,7 +87,7 @@ namespace vpanic {
 		m_text.clear();
 	}
 	
-	void Console::set_callback(void(*t_callback)(const std::vector<std::string>&)) {
+	void Console::callback(void(*t_callback)(const std::vector<std::string>&)) {
 		m_callback = t_callback;
 	}
 	

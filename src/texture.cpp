@@ -24,8 +24,10 @@ namespace vpanic {
 
 		glTexParameteri(m_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(m_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(m_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-		glTexParameteri(m_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glTexParameteri(m_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+		glTexParameteri(m_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		
+		//glTexParameteri(m_type, GL_TEXTURE_MAX_LOD, 4);
 
 		stbi_set_flip_vertically_on_load(true);
 		return _generate_image(t_filename, m_type);
@@ -52,9 +54,6 @@ namespace vpanic {
 		return true;
 	}
 	
-	bool Texture::load_cube(const char* t_filename) {
-		return load_cube({ t_filename, t_filename, t_filename, t_filename, t_filename, t_filename }); // lol
-	}
 
 	bool Texture::_generate_image(const char* t_filename, const int t_type) {
 		int width = 0;
@@ -71,6 +70,7 @@ namespace vpanic {
 
 		const uint32_t channel = [num_channels]() {
 			switch(num_channels) {
+				case 1: return GL_RED;
 				case 2: return GL_RG;
 				case 3: return GL_RGB;
 				case 4: return GL_RGBA;
@@ -101,6 +101,10 @@ namespace vpanic {
 	
 	uint8_t Texture::get_type() const {
 		return m_type;
+	}
+
+	uint32_t Texture::get_id() const {
+		return m_id;
 	}
 
 	void Texture::enable() {

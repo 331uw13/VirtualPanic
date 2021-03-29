@@ -7,6 +7,7 @@
 #include "messages.hpp"
 #include "timer.hpp"
 #include "console.hpp"
+#include "framebuffer.hpp"
 
 
 namespace vpanic {
@@ -207,15 +208,86 @@ namespace vpanic {
 		if(!m_state[EngineState::OK]) { return; }
 		if(m_state[EngineState::KEEP_LOOP]) { return; }
 		m_state.set(EngineState::KEEP_LOOP);
+	
+
+
+		// NOTE: currently testing stuff with framebuffers ...
+
+		const float quad_vertices[] = {
+			-1.0f, -1.0f,  0.0f, 0.0f,
+			-1.0f,  1.0f,  0.0f, 1.0f,
+			 1.0f,  1.0f,  1.0f, 1.0f,
+
+			 1.0f,  1.0f,  1.0f, 1.0f,
+			 1.0f, -1.0f,  1.0f, 0.0f,
+			-1.0f, -1.0f,  0.0f, 0.0f
+		};
+
 		
-		mouse_to_window_center();
+		const std::string screen_vertex = 
+			"#version 430 core\n"
+		
+			"layout(location = 0) in vec2 l_pos;\n"
+			"layout(location = 1) in vec2 l_texcoord;\n"
+
+			"out vec2 texcoord;"
+
+			"void main() {"
+				" texcoord = l_texcoord;"
+				" gl_Position = vec4(l_pos.x, l_pos.y, 0.0f, 1.0f);"
+			"}";
+		
+		const std::string screen_fragment =
+			"#version 430 core\n"
+
+			"in vec2 texcoord;"
+			"out vec4 out_color;"
+
+			"uniform sampler2D screen;"
+
+			"void main() {"
+				" vec4 col = texture(screen, texcoord);"
+				" out_color = col;"
+			"}";
+
+
+		uint32_t quad_vao = 0;
+		uint32_t quad_vbo = 0;
+	
+		Framebuffer framebuffer;
+		framebuffer.create(1, window_size());
+		
+		
+		Shader screen_shader;
+		screen_shader.add_src_from_memory(screen_vertex, VERTEX_SHADER);
+		screen_shader.add_src_from_memory(screen_fragment, FRAGMENT_SHADER);
+		screen_shader.compile();
+
+
+		glGenVertexArrays(1, &quad_vao);
+		glBindVertexArray(quad_vao);
+
+		glGenBuffers(1, &quad_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), &quad_vertices, GL_STATIC_DRAW);
+		
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)(sizeof(float)*2));
+		glEnableVertexAttribArray(1);
+
+		screen_shader.use();
+		screen_shader.set_int("screen", 0);
 
 		Timer timer;
 		SDL_Event event;
 
-		const float ticks_per_frame = 1000.f/60.f;
+		const float ticks_per_frame = 1000.f/70.f;
 		float previous_count = 0.0f;
 		float current_count = SDL_GetPerformanceCounter();
+		
+		mouse_to_window_center();
 
 		while(!m_state[EngineState::QUIT]) {
 			_update_engine_ok_state();
@@ -228,6 +300,8 @@ namespace vpanic {
 			if(m_delta_time < ticks_per_frame) {
 				SDL_Delay(ticks_per_frame-m_delta_time);
 			}
+
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id());
 
 			glClearColor(
 					background_color.r / 255.0f,
@@ -268,13 +342,15 @@ namespace vpanic {
 			_needs_render_back(false);	
 */
 			
+			
 			if(m_update_callback != nullptr) {
 				m_update_callback();
 			}
 
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
+	
+			
 			// handle events
 			while(SDL_PollEvent(&event)) {
 				ImGui_ImplSDL2_ProcessEvent(&event);
@@ -323,9 +399,20 @@ namespace vpanic {
 					default: break;
 				}
 			}
-		
-			SDL_GL_SwapWindow(m_window);
+	
+			//glBlitNamedFramebuffer(framebuffer, 0, 0, 0, m_width/4, m_height/4, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+			
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+			screen_shader.use();
+			glBindVertexArray(quad_vao);
+			glBindTexture(GL_TEXTURE_2D, framebuffer.colattm_id(0));
+			
+			glDisable(GL_DEPTH_TEST);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glEnable(GL_DEPTH_TEST);
+			
+			SDL_GL_SwapWindow(m_window);
 		}
 
 		m_state.unset(EngineState::KEEP_LOOP);

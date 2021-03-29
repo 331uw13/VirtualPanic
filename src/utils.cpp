@@ -79,6 +79,14 @@ namespace vpanic {
 
 		return Color(r, g, b);
 	}
+	
+	Color random_color(const uint8_t min, const uint8_t max) {
+		return Color(
+					static_cast<uint8_t>(random(min, max)),
+					static_cast<uint8_t>(random(min, max)),
+					static_cast<uint8_t>(random(min, max)),
+					255);
+	}
 
 	ImVec4 color_to_imvec4(const Color& color) {
 		return ImVec4(
@@ -183,24 +191,12 @@ namespace vpanic {
 			}
 			else {
 				return std::vector<Vertex> {
-					
 					Vertex(-0.5f, -0.5f,  0.0f),
 					Vertex(-0.5f,  0.5f,  0.0f),
-					Vertex( 0.5f,  0.5f,  0.0f),
-					
+					Vertex( 0.5f,  0.5f,  0.0f),	
 					Vertex( 0.5f,  0.5f,  0.0f),
 					Vertex( 0.5f, -0.5f,  0.0f),
 					Vertex(-0.5f, -0.5f,  0.0f),
-						
-					/*
-					Vertex(-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f),
-					Vertex( 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f),
-					Vertex( 0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f),
-
-					Vertex( 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f),
-					Vertex(-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f),
-					Vertex(-0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f),
-					*/
 				};
 			}
 		}();
@@ -213,14 +209,14 @@ namespace vpanic {
 		// https://en.wikipedia.org/wiki/Icosahedron
 	}
 	
-	void set_box_data(std::vector<Vertex>& out) {	
+	void set_box_data(std::vector<Vertex>& out) {
 		out = {
 			Vertex(-0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f, -0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f, -0.5f),
 			Vertex( 0.5f,  0.5f, -0.5f),
 			Vertex(-0.5f,  0.5f, -0.5f),
-			Vertex(-0.5f, -0.5f, -0.5f),	
+			Vertex(-0.5f, -0.5f, -0.5f),
 
 			Vertex(-0.5f, -0.5f,  0.5f),
 			Vertex( 0.5f,  0.5f,  0.5f),
@@ -259,25 +255,14 @@ namespace vpanic {
 		};
 	}
 
-	void set_texcoords(std::vector<Vertex>& out) {
-	/*
-					Vertex(-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f),
-					Vertex( 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f),
-					Vertex( 0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f),
-
-					Vertex( 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f),
-					Vertex(-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f),
-					Vertex(-0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f),
-
-	   */
-
+	void set_texcoords(std::vector<Vertex>& out, const float t) {
 		if(out.size() < 6) { return; }
 
 		for(size_t i = 0; i < out.size()-5; i+=6) {
 			for(uint32_t j = 0; j < 6; j++) {
 				Vertex& p = out[i+j];
-				p.tex_coords.x = p.point.x+0.5f;
-				p.tex_coords.y = p.point.y+0.5f;
+				p.texcoords.x = (p.point.x+0.5f)*t;
+				p.texcoords.y = (p.point.y+0.5f)*t;
 			}
 		}
 
@@ -313,6 +298,33 @@ namespace vpanic {
 		return (find_result == std::string::npos) && !t_str.empty();
 	}
 
+	Shader create_default_image_shader() {
+		Shader shader;
+
+		const char* const fs =
+			"#version 430\n"
+			"uniform sampler2D texture0;"
+			"in vec2 img_texcoord;"
+			"out vec4 out_color;"
+			"void main() {"
+				" out_color = texture(texture0, texcoord);"
+			"}";
+
+		const char* const vs = 
+			"#version 430\n"
+			"layout(location = 0) in vec2 pos;\n"
+			"layout(location = 1) in vec2 texcoord;\n"
+			"out vec2 img_texcoord;"
+			"void main() {"
+				" gl_Position = pos;"
+				" im_texcoord = texcoord;"
+			"}";
+
+		shader.add_src_from_memory(vs, VERTEX_SHADER);
+		shader.add_src_from_memory(fs, FRAGMENT_SHADER);
+		shader.compile();
+		return shader;
+	}
 
 	namespace ImGuiExt {
 	

@@ -151,7 +151,7 @@ namespace vpanic {
 		glEnableVertexAttribArray(1);
 
 		// texture coordinates
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, tex_coords)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offsetof(Vertex, texcoords)));
 		glEnableVertexAttribArray(2);	
 	
 		// color

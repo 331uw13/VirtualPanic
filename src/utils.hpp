@@ -8,10 +8,11 @@
 #include "matrix.hpp"
 #include "color.hpp"
 #include "vertex.hpp"
+#include "shader.hpp"
+
 
 struct ImVec4;
 struct ImVec2;
-
 
 namespace vpanic {
 
@@ -33,6 +34,7 @@ namespace vpanic {
 
 	Color mix_color(const Color& start, const Color& end, float t);
 	Color illuminate(const Color& color, const int8_t t); // NOTE: needs better name maybe
+	Color random_color(const uint8_t min, const uint8_t max);
 	void invert_color(Color& color);
 
 	ImVec4 color_to_imvec4(const Color& color);
@@ -43,7 +45,7 @@ namespace vpanic {
 	void set_box_data(std::vector<Vertex>& out);
 	void set_sphere_data(std::vector<Vertex>& out);
 	
-	void set_texcoords(std::vector<Vertex>& out);
+	void set_texcoords(std::vector<Vertex>& out, const float t = 1.0f);
 	void set_normals(std::vector<Vertex>& out);
 
 	void foreach_triangle(std::vector<Vertex>& vertices, const std::function<void(Vertex& p0, Vertex& p1, Vertex& p2)> f);
@@ -53,6 +55,8 @@ namespace vpanic {
 	
 	Color hex_to_color(const uint32_t hex);
 	bool is_hex_string(const std::string& t_str);		
+
+	Shader create_default_image_shader();
 
 	namespace ImGuiExt {
 		bool ColorPicker(const char* label, ImVec4& color, const int flags = 0);

@@ -20,7 +20,7 @@ namespace vpanic {
 		void clear_text();
 		void print(const char* t_text, ...);
 		void print(const Color& t_color, const char* t_text, ...);
-		void set_callback(void(*t_callback)(const std::vector<std::string>&));
+		void callback(void(*t_callback)(const std::vector<std::string>&));
 		void set_font_size(const float t_size);
 		float get_font_size() const;
 

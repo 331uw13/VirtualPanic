@@ -10,14 +10,6 @@
 
 namespace vpanic {
 
-	/*
-	
-		draw individual shape with its own position, rotation, scale and color.
-		drawing too many of these will ofcourse slow your program down,
-	   	check out 'ShapeArray' for drawing many shapes
-
-	*/
-
 	class Shape {
 	public:
 
@@ -38,8 +30,10 @@ namespace vpanic {
 		bool is_loaded() const;
 		uint8_t get_type() const;
 
+		void attach_texture(Texture* t_texture_attachment);
+		void detach_texture();
+
 		void set_model_matrix(const Matrix& t_matrix);
-		//void set_model_matrix(const glm::mat4& t_matrix);
 		void update_vertex(const Vertex& t_vertex, const int t_index);
 		void update_vertices(const std::vector<Vertex>& t_vertices);
 		
@@ -61,11 +55,11 @@ namespace vpanic {
 		
 		bool m_outline { false };
 		Shader* m_outline_shader { nullptr };
+		Texture* m_texture { nullptr };
 
 		mutable bool m_has_user_model_matrix { false };
 		Matrix m_user_model_matrix { Matrix(1.0f) };
-		//glm::mat4 m_user_model_matrix { glm::mat4(1.0f) };
-
+		
 	};
 }
 

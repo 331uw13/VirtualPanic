@@ -12,11 +12,11 @@ namespace vpanic {
 		// TODO: settings for loading texture and flipping it
 		bool load(const char* t_filename);
 		bool load_cube(const std::vector<const char*>& t_filenames);
-		bool load_cube(const char* t_filename);
-
+		
 		void unload();
 		bool is_loaded() const;
 		uint8_t get_type() const;
+		uint32_t get_id() const;
 
 		void enable();
 		void disable();

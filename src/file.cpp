@@ -15,8 +15,7 @@
 
 namespace vpanic {
 	
-	void find_all(const char* t_directory, std::vector<File>* t_out, const int t_settings) {
-		if(t_out == nullptr) { return; }
+	void find_all(const char* t_directory, std::vector<File>& t_out, const int t_settings) {
 		struct dirent* dir;
 		DIR* d = opendir(t_directory);
 		if(!d) { 
@@ -27,9 +26,10 @@ namespace vpanic {
 		if(full.back() != 0x2F) {
 			full.push_back(0x2F);
 		}
+
 		while((dir = readdir(d)) != NULL) {
 			if(dir->d_type == DT_REG || t_settings == INCLUDE_SUB_DIRECTORIES) {
-				t_out->push_back(File { dir->d_name, [dir, full]() { return full+dir->d_name; }() });
+				t_out.push_back(File { dir->d_name, full+dir->d_name });
 			}
 		}
 	}
@@ -46,9 +46,7 @@ namespace vpanic {
 		return true;
 	}
 
-	bool read_file(const char* t_filename, std::string* t_out) {
-		if(t_out == nullptr) { return false; }
-
+	bool read_file(const char* t_filename, std::string& t_out) {
 		struct stat buf;
 		const int fd = open(t_filename, O_RDONLY);
 		if(fd < 0) {
@@ -80,7 +78,7 @@ namespace vpanic {
 			return false;
 		}
 	
-		t_out->append(addr);
+		t_out.append(addr);
 		munmap(addr, length);
 		close(fd);
 		return true;
