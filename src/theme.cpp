@@ -15,7 +15,7 @@ namespace vpanic {
 
 		std::fstream f(t_filename);
 		if(!f.is_open()) {
-			message(MType::ERROR, "Cannot open file \"%s\"", t_filename);
+			message(MSG_ERROR, "Cannot open file \"%s\"", t_filename);
 			return false;
 		}
 

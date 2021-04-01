@@ -2,8 +2,8 @@
 #include "libs/gl3w.h"
 
 #include "shape_array.hpp"
-#include "messages.hpp"
 #include "internal.hpp"
+#include "messages.hpp"
 
 
 namespace vpanic {
@@ -98,7 +98,7 @@ namespace vpanic {
 			glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 			glBufferData(GL_ARRAY_BUFFER, data_size*sizeof(Vertex), &t_data[0], GL_STATIC_DRAW);
 			
-			message(MType::DEBUG, "ShapeArray::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
+			message(MSG_DEBUG, "ShapeArray::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
 
 			// TODO: option for GL_LINE_STRIP and GL_TRIANGLE_STRIP
 			if(data_size >= 3) {

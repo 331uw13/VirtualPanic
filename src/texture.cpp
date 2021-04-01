@@ -5,6 +5,7 @@
 #include "texture.hpp"
 #include "messages.hpp"
 
+
 namespace vpanic {
 
 	Texture::Texture() {
@@ -63,7 +64,7 @@ namespace vpanic {
 
 		data = stbi_load(t_filename, &width, &height, &num_channels, 0);
 		if(data == nullptr) {
-			message(MType::ERROR, "Cannot load texture from file: \"%s\" | reason: \"%s\"", t_filename, stbi_failure_reason());
+			message(MSG_ERROR, "Cannot load texture from file: \"%s\" | reason: \"%s\"", t_filename, stbi_failure_reason());
 			stbi_image_free(data);
 			return true;
 		}
@@ -83,7 +84,7 @@ namespace vpanic {
 		
 		glGenerateMipmap(m_type);
 		
-		message(MType::OK, "Loaded texture \"%s\"", t_filename);
+		message(MSG_OK, "Loaded texture \"%s\"", t_filename);
 		m_loaded = true;
 		return true;
 	}

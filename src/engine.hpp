@@ -5,8 +5,6 @@
 
 #include "color.hpp"
 #include "utils.hpp"
-#include "timer.hpp"
-#include "settings.hpp"
 #include "shader.hpp"
 #include "camera.hpp"
 #include "shape.hpp"
@@ -37,23 +35,19 @@ namespace vpanic {
 		Vec2 window_size() const;
 		float aspect_ratio() const;
 		float delta_time() const;
-
-		// It needs to know what shaders wants to know camera matrix.
-		// TODO: This can be done in Shader::compile() if its fragment shader.
-		//        Remove this from engine...
-		void setup_shaders(const std::vector<Shader*>& t_shaders);
+		
 		void use_camera(Camera* t_cam_ptr);
 		// TODO: own file for skybox and "Engine::use_skybox(Skybox)"
 		bool load_skybox(const std::vector<const char*> t_files);
 		void unload_skybox();
+		void vsync(const bool b);
+		void fullscreen(const bool b);
 		void lock_mouse(const bool b);
-		void vsync(const bool b); // REMOVE ME
-		void fullscreen(const bool b); // REMOVE ME
 		void winding_order(const int t_order); // vpanic::CLOCKWISE, vpanic::COUNTER_CLOCKWISE
 		void mouse_to_window_center();
 
-		EngineState copy_state() const;
-		EngineState& get_state_ref(); // TODO: rename to "state"
+		State copy_state() const;
+		State& state();
 
 		float gamma      { 1.1f };
 		float exposure   { 1.2f };
@@ -61,7 +55,7 @@ namespace vpanic {
 
 	private:
 		
-		EngineState m_state;
+		State m_state;
 		UniformBuffer m_ubo;
 
 

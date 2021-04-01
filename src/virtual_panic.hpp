@@ -4,6 +4,7 @@
 
 // TODO: clean this
 
+#include "settings.hpp"
 #include "engine.hpp"
 #include "keyboard.hpp"
 #include "shape_array.hpp"

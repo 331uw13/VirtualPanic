@@ -4,8 +4,6 @@
 
 namespace vpanic {
 
-	// TODO: error messages (rewrite messages/logging)
-
 	void Framebuffer::create(const uint32_t t_colattm_count, const Vec2& t_frame_size) {
 		if(m_created) { return; }
 		if((t_colattm_count == 0 || t_colattm_count >= GL_MAX_COLOR_ATTACHMENTS)) {

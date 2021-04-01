@@ -5,6 +5,7 @@
 #include "messages.hpp"
 #include "utils.hpp"
 #include "internal.hpp"
+#include "settings.hpp"
 
 
 namespace vpanic {
@@ -23,7 +24,7 @@ namespace vpanic {
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*t_data.size(), &t_data[0], GL_STATIC_DRAW);
-		message(MType::DEBUG, "Shape::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
+		message(MSG_DEBUG, "Shape::load(): %i bytes, %i vertices", sizeof(Vertex)*t_data.size(), t_data.size());
 
 		const uint32_t stride = sizeof(Vec3)*2+sizeof(Vec2);
 

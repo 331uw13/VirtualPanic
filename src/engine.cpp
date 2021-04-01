@@ -34,43 +34,37 @@ namespace vpanic {
 	void Engine::use_camera(Camera* t_cam_ptr) {
 		if(t_cam_ptr == nullptr) { return; }
 		m_cam = t_cam_ptr;
-		if(m_state[EngineState::INIT_OK]) {
+		if(m_state[ENGINE_INIT_OK]) {
 			m_cam->aspect_ratio = aspect_ratio();
 		}
 	}
 
-	EngineState Engine::copy_state() const {
+	State Engine::copy_state() const {
 		return m_state;
 	}
 
-	EngineState& Engine::get_state_ref() {
+	State& Engine::state() {
 		return m_state;
 	}
 
 	void Engine::_update_engine_ok_state() {
-		if(m_window == nullptr || m_context == NULL || !m_state[EngineState::INIT_OK]) {
-			m_state.unset(EngineState::OK);
-		}
-		else {
-			m_state.set(EngineState::OK);
-		}
+		m_state.set(ENGINE_OK, (m_window != nullptr && m_context != NULL && m_state[ENGINE_INIT_OK]));
 	}
 
 	void Engine::init(const char* t_title, const Vec2& t_size, const int t_settings) {
-		if(m_state[EngineState::INIT_OK]) { 
-			message(MType::WARNING, "Already initialized?!");
+		if(m_state[ENGINE_INIT_OK]) { 
+			message(MSG_WARNING, "Already initialized?");
 			return;
 	   	}
 
 		m_state.clear();
 		Timer timer;
-		message(MType::INFO, "Hello!");
 
 		if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-			message(MType::ERROR, "Failed to initialize SDL (%s)", SDL_GetError());
+			message(MSG_ERROR, "Failed to initialize SDL (%s)", SDL_GetError());
 			return;
 		}	
-		message(MType::OK, "Initialized SDL");
+		message(MSG_OK, "Initialized SDL");
 
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);	
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -78,33 +72,33 @@ namespace vpanic {
 		//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 		m_window = SDL_CreateWindow(t_title, 0, 0, t_size.x, t_size.y,
-			   	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_ALLOW_HIGHDPI*/);	
+				SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_ALLOW_HIGHDPI*/);	
 		
 		if(m_window == nullptr) {
-			message(MType::ERROR, "Failed to create window! (%s)", SDL_GetError());
+			message(MSG_ERROR, "Failed to create window! (%s)", SDL_GetError());
 			quit();
 			return;	
 		}
 		
-		message(MType::OK, "Created new window");
+		message(MSG_OK, "Created new window");
 		
 		//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		m_context = SDL_GL_CreateContext(m_window);
 		SDL_GL_MakeCurrent(m_window, m_context);
 	
 		if(m_context != NULL) {
-			message(MType::OK, "Created context");
+			message(MSG_OK, "Created context");
 		}
 
 		if(gl3wInit()) {
-			message(MType::ERROR, "Failed to initialize gl3w!");
+			message(MSG_ERROR, "Failed to initialize gl3w!");
 			quit();
 			return;		
 		}
 
-		message(MType::OK, "Initialized gl3w");
+		message(MSG_OK, "Initialized gl3w");
 		if(!gl3wIsSupported(4, 3)) {
-			message(MType::ERROR, "OpenGL 4.3 version is not supported :(");
+			message(MSG_ERROR, "OpenGL 4.3 version is not supported :(");
 			quit();
 			return;
 		}
@@ -120,8 +114,8 @@ namespace vpanic {
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 		glStencilMask(0);
 
-		message(MType::INFO, "%s", glGetString(GL_VERSION));
-		message(MType::INFO, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+		message(MSG_INFO, "%s", glGetString(GL_VERSION));
+		message(MSG_INFO, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 		glClearColor(background_color.r/255.0f, background_color.g/255.0f, background_color.b/255.0f, 1.0f);
 		SDL_GL_SwapWindow(m_window);
@@ -132,15 +126,15 @@ namespace vpanic {
 		
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		message(MType::OK, "Initialized ImGui");
+		message(MSG_OK, "Initialized ImGui");
 
 		if(t_settings & FULLSCREEN) {
-			message(MType::INFO, "Using Fullscreen");
+			message(MSG_INFO, "Using Fullscreen");
 			fullscreen(true);
 		}
 
 		if(t_settings & VSYNC) {
-			message(MType::INFO, "Using VSync");
+			message(MSG_INFO, "Using VSync");
 			vsync(true);
 		}
 		
@@ -152,45 +146,51 @@ namespace vpanic {
 		}
 		_needs_render_back(false);
 
-		m_ubo.create({ sizeof(Matrix), sizeof(Vec3) });
-		
-		message(MType::OK, "Engine is ready! [%ims]", timer.elapsed_ms());
-		m_state.set(EngineState::INIT_OK);
+
+		std::vector<uint32_t> ubo_layout = {
+			sizeof(Matrix),
+			sizeof(Vec3)
+		};
+
+		m_ubo.create_layout(ubo_layout, ENGINE_UBO_BINDING);
+	
+		message(MSG_OK, "Engine is ready! [%ims]", timer.elapsed_ms());
+		m_state.set(ENGINE_INIT_OK, 1);
 		_update_engine_ok_state();
 	}
 
 	void Engine::request_shutdown() {
-		m_state.set(EngineState::QUIT);
+		m_state.set(ENGINE_QUIT, 1);
 	}
 
 	void Engine::quit() {
-		if(!m_state[EngineState::QUIT] && !m_state[EngineState::KEEP_LOOP]) {
+		if(!m_state[ENGINE_QUIT] && !m_state[ENGINE_KEEP_LOOP]) {
 			return;
 	   	}
 
 		// cleanup some memory,  TODO: check for memory leaks
 
-		message(MType::INFO, "Quitting...");
+		message(MSG_INFO, "Quitting...");
 
 		unload_skybox();
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplSDL2_Shutdown();
 		ImGui::DestroyContext();
-		message(MType::OK, "Unloaded ImGui");
+		message(MSG_OK, "Unloaded ImGui");
 		
 		if(m_window != nullptr) {
 			SDL_DestroyWindow(m_window);
-			message(MType::OK, "Destroyed window");
+			message(MSG_OK, "Destroyed window");
 		}
 
 		if(m_context != NULL) {
 			SDL_GL_DeleteContext(m_context);
-			message(MType::OK, "Destroyed context");
+			message(MSG_OK, "Destroyed context");
 		}
 
 		SDL_Quit();	
-		message(MType::OK, "Destroyed SDL");
-		message(MType::INFO, "Reset settings and state");	
+		message(MSG_OK, "Destroyed SDL");
+		message(MSG_INFO, "Reset settings and state");	
 		
 		m_update_callback        = nullptr;
 		m_keydown_callback       = nullptr;
@@ -200,14 +200,14 @@ namespace vpanic {
 		m_context  = NULL;
 
 		m_state.clear();
-		message(MType::INFO, "Engine cleanup done!");
+		message(MSG_INFO, "Engine cleanup done!");
 		// NOTE: some stuff may have calls in their destructor when exiting!
 	}
 
 	void Engine::start() {
-		if(!m_state[EngineState::OK]) { return; }
-		if(m_state[EngineState::KEEP_LOOP]) { return; }
-		m_state.set(EngineState::KEEP_LOOP);
+		if(!m_state[ENGINE_OK]) { return; }
+		if(m_state[ENGINE_KEEP_LOOP]) { return; }
+		m_state.set(ENGINE_KEEP_LOOP, 1);
 	
 
 
@@ -292,9 +292,9 @@ namespace vpanic {
 		
 		mouse_to_window_center();
 
-		while(!m_state[EngineState::QUIT]) {
+		while(!m_state[ENGINE_QUIT]) {
 			_update_engine_ok_state();
-			if(!m_state[EngineState::OK]) { break; }
+			if(!m_state[ENGINE_OK]) { break; }
 
 			previous_count = current_count;
 			current_count = SDL_GetPerformanceCounter();
@@ -349,7 +349,7 @@ namespace vpanic {
 			if(m_update_callback != nullptr) {
 				m_update_callback();
 			}
-
+			
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	
@@ -364,7 +364,7 @@ namespace vpanic {
 
 					case SDL_WINDOWEVENT:
 						if(event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-							message(MType::DEBUG, "New window size: %ix%i", event.window.data1, event.window.data2);
+							message(MSG_DEBUG, "New window size: %ix%i", event.window.data1, event.window.data2);
 							m_width = event.window.data1;
 							m_height = event.window.data2;
 							glViewport(0, 0, m_width, m_height);
@@ -380,7 +380,7 @@ namespace vpanic {
 										static_cast<float>(event.motion.x), static_cast<float>(event.motion.y),
 										static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel)});
 						}
-						if(m_state[EngineState::LOCK_MOUSE]) {
+						if(m_state[ENGINE_LOCK_MOUSE]) {
 							mouse_to_window_center();
 						}
 						break;
@@ -392,7 +392,7 @@ namespace vpanic {
 						break;
 					
 					case SDL_KEYDOWN:
-						//message(MType::DEBUG, "KEY: %s", SDL_GetKeyName(event.key.keysym.sym));	
+						//message(MSG_DEBUG, "KEY: %s", SDL_GetKeyName(event.key.keysym.sym));	
 						if(m_keydown_callback != nullptr) {
 							m_keydown_callback(event.key.keysym.sym);
 						}
@@ -403,10 +403,8 @@ namespace vpanic {
 				}
 			}
 	
-			//glBlitNamedFramebuffer(framebuffer, 0, 0, 0, m_width/4, m_height/4, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
-			
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+			
 			screen_shader.use();
 			screen_shader.set_float("gamma", gamma);
 			screen_shader.set_float("exposure", exposure);
@@ -420,7 +418,7 @@ namespace vpanic {
 			SDL_GL_SwapWindow(m_window);
 		}
 
-		m_state.unset(EngineState::KEEP_LOOP);
+		m_state.set(ENGINE_KEEP_LOOP, 0);
 		quit();
 	}
 
@@ -486,24 +484,16 @@ namespace vpanic {
 		SDL_SetRelativeMouseMode(b ? SDL_TRUE : SDL_FALSE);
 		SDL_ShowCursor(!b);
 		mouse_to_window_center();
-		if(b) {
-			m_state.set(EngineState::LOCK_MOUSE);
-		}
-		else {
-			m_state.unset(EngineState::LOCK_MOUSE);
-		}
+		m_state.set(ENGINE_LOCK_MOUSE, b);
 	}
 
 	void Engine::vsync(const bool b) {
+		uint8_t e = 1;
 		if(SDL_GL_SetSwapInterval(b)) {
-			message(MType::ERROR, "Error with VSync! %s", SDL_GetError());
+			message(MSG_ERROR, "Error with VSync! %s", SDL_GetError());
+			e = 0;
 		}
-		if(b) {
-			m_state.set(EngineState::VSYNC_ENABLED);
-		}
-		else {
-			m_state.unset(EngineState::VSYNC_ENABLED);
-		}
+		m_state.set(VSYNC, e);
 	}
 
 	void Engine::fullscreen(const bool b) {
@@ -513,12 +503,8 @@ namespace vpanic {
 		if(m_cam != nullptr) {
 			m_cam->aspect_ratio = aspect_ratio();
 		}
-		if(b) {
-			m_state.set(EngineState::FULLSCREEN_ENABLED);
-		}
-		else {
-			m_state.unset(EngineState::FULLSCREEN_ENABLED);
-		}
+		
+		m_state.set(FULLSCREEN, b);
 	}
 
 	void Engine::_needs_render_back(const bool b) {
@@ -528,12 +514,6 @@ namespace vpanic {
 	
 	void Engine::winding_order(const int t_order) {
 		glFrontFace((t_order <= 1) ? GL_CW : GL_CCW);
-	}
-	
-	void Engine::setup_shaders(const std::vector<Shader*>& t_shaders) {
-		for(size_t i = 0; i < t_shaders.size(); i++) {
-			t_shaders[i]->add_uniform_binding("vertex_data");
-		}
 	}
 	
 	void Engine::mouse_to_window_center() {

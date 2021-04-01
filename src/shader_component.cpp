@@ -8,7 +8,7 @@ namespace vpanic {
 
 	void ShaderComponent::compile(const int t_type) {
 		if(src.length() <= 1) { 
-			message(MType::ERROR, "ShaderComponent source is empty");
+			message(MSG_ERROR, "ShaderComponent source is empty");
 			return;
 		};
 

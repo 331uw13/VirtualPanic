@@ -38,7 +38,7 @@ namespace vpanic {
 
 		void use() const;
 		void disable() const;
-		void add_uniform_binding(const char* t_name);
+		void add_uniform_binding(const char* t_name, const uint8_t t_binding_point);
 
 		// TODO: rename some stuff
 		void set_color  (const char* t_name, const Color& t_color)   const;
@@ -71,7 +71,6 @@ namespace vpanic {
 	
 		bool m_raw { false };
 		bool m_loaded { false };
-		uint32_t m_bind_count { 0 };
 
 	};
 }

@@ -14,6 +14,7 @@ static constexpr float default_camera_speed { 3.8f };
 static float camera_speed { 0.0f };
 static bool menu_open { false };
 
+
 struct Light {
 	vpanic::Vec3 pos;
 	vpanic::Color color;
@@ -37,9 +38,35 @@ void add_box() {
 	boxes.push_back(box);
 }
 
+
+void cmd__gamma(const std::vector<std::string>& args) {
+	if(args.size() > 1) {
+		engine.gamma = vpanic::convert_str<float>(args[1]);
+	}
+	vpanic::console::print("Gamma: %f", engine.gamma);
+}
+
+void cmd__exposure(const std::vector<std::string>& args) {
+	if(args.size() > 1) {
+		engine.exposure = vpanic::convert_str<float>(args[1]);
+	}
+	vpanic::console::print("Exposure: %f", engine.exposure);
+}
+
+
+
+void add_commands() {
+
+	vpanic::console::add_command("gamma", cmd__gamma);
+	vpanic::console::add_command("exposure", cmd__exposure);
+
+
+}
+
+
 void command_callback(const std::vector<std::string>& args) {
 	if(args.empty()) { return; }
-
+	
 	const size_t args_size = args.size();
 
 	/*
@@ -161,6 +188,7 @@ void update() {
 
 		vpanic::console::render();
 
+
 		//vpanic::Console::instance().update();
 
 		/*
@@ -192,6 +220,7 @@ void update() {
 }
 
 bool setup() {
+	add_commands();
 	//vpanic::Console::instance().callback(command_callback);
 	ImGui::GetIO().Fonts->AddFontFromFileTTF("font.otf", 16.f);
 
@@ -239,17 +268,14 @@ void keydown(uint8_t t_key) {
 		case 0xa7:
 			menu_open =! menu_open;
 			engine.lock_mouse(!menu_open);
-			vpanic::console::state().set(vpanic::ConsoleState::FOCUS_INPUT_BOX);
+			vpanic::console::state().set(vpanic::CONSOLE_GET_FOCUS, 1);
+			//vpanic::console::state().set(vpanic::ConsoleState::FOCUS_INPUT_BOX);
 			break;
 
 		case 'f':
 			if(!menu_open) {
 				add_box();
 			}
-			break;
-			
-		case 'r':
-			vpanic::console::print("random float: <00FF00>%f", vpanic::random(0.0f, 1000.f));
 			break;
 			
 			// ...
@@ -270,11 +296,13 @@ void mouse_moved(const vpanic::MouseData& t_mdata) {
 
 int main() {
 
+
 	// initialize and check if its ok to continue
 	engine.init("libVirtualPanic [Testing]", vpanic::Vec2(1200, 900));
-	if(!engine.copy_state()[vpanic::EngineState::OK]) {
+	if(!engine.copy_state()[vpanic::ENGINE_OK]) {
 		return -1;
 	}
+	
 
 	// set callbacks
 	engine.update_callback(update);

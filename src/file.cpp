@@ -19,7 +19,7 @@ namespace vpanic {
 		struct dirent* dir;
 		DIR* d = opendir(t_directory);
 		if(!d) { 
-			message(MType::ERROR, "Failed to open directory \"%s\"", t_directory);
+			message(MSG_ERROR, "Failed to open directory \"%s\"", t_directory);
 			return;
 	   	}
 		std::string full = t_directory;	
@@ -37,7 +37,7 @@ namespace vpanic {
 	bool read_file_lines(const char* t_filename, std::function<void(const std::string& line)> t_lmbd) {
 		std::fstream f(t_filename, std::fstream::in);
 		if(!f.is_open()) {
-			message(MType::ERROR, "Failed to open file \"%s\"", t_filename);
+			message(MSG_ERROR, "Failed to open file \"%s\"", t_filename);
 			return false;
 		}
 		std::string l;
@@ -50,14 +50,14 @@ namespace vpanic {
 		struct stat buf;
 		const int fd = open(t_filename, O_RDONLY);
 		if(fd < 0) {
-			message(MType::ERROR, "[%i] Failed to open file \"%s\"", fd, t_filename);
+			message(MSG_ERROR, "[%i] Failed to open file \"%s\"", fd, t_filename);
 			perror("open()");
 			return false;
 		}
 
 		const int fs = fstat(fd, &buf);
 		if(fs < 0) {
-			message(MType::ERROR, "[%i] Failed to get information about file \"%s\"", fs, t_filename);
+			message(MSG_ERROR, "[%i] Failed to get information about file \"%s\"", fs, t_filename);
 			perror("stat()");
 			close(fd);
 			return false;
@@ -65,7 +65,7 @@ namespace vpanic {
 		
 		const size_t length = buf.st_size;
 		if(length == 0) {
-			message(MType::WARNING, "File is empty or failed to get file length from \"%s\"", t_filename);
+			message(MSG_WARNING, "File is empty or failed to get file length from \"%s\"", t_filename);
 			return false;
 		}
 
@@ -74,7 +74,7 @@ namespace vpanic {
 		
 		if(addr == nullptr) {
 			close(fd);
-			message(MType::ERROR, "Failed to map file \"%s\"", t_filename);
+			message(MSG_ERROR, "Failed to map file \"%s\"", t_filename);
 			return false;
 		}
 	

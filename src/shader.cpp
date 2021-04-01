@@ -6,6 +6,7 @@
 #include "messages.hpp"
 #include "timer.hpp"
 #include "file.hpp"
+#include "settings.hpp"
 
 
 namespace vpanic {
@@ -38,11 +39,11 @@ namespace vpanic {
 				sc.compile(t_type);
 				if(_succeeded(sc.id, SHADER)) {
 					m_type_bits |= t_type;
-					message(MType::OK, "Compiled shader component \"%s\" (took %ims)", t_filename, timer.elapsed_ms());
+					message(MSG_OK, "Compiled shader component \"%s\" (took %ims)", t_filename, timer.elapsed_ms());
 				}
 				else {
 					sc.type = INVALID_SHADER;
-					message(MType::ERROR, "Failed to compile shader component \"%s\"", t_filename);
+					message(MSG_ERROR, "Failed to compile shader component \"%s\"", t_filename);
 					error_occurred = true;
 				}
 			}	
@@ -66,11 +67,11 @@ namespace vpanic {
 			sc.compile(t_type);
 			if(_succeeded(sc.id, SHADER)) {
 				m_type_bits |= t_type;
-				message(MType::OK, "Compiled shader component (%i) (took %ims)", t_type, timer.elapsed_ms());
+				message(MSG_OK, "Compiled shader component (%i) (took %ims)", t_type, timer.elapsed_ms());
 			}
 			else {
 				sc.type = INVALID_SHADER;
-				message(MType::ERROR, "Failed to compile shader component (%i)", t_type);
+				message(MSG_ERROR, "Failed to compile shader component (%i)", t_type);
 				error_occurred = true;
 			}
 		}
@@ -106,10 +107,10 @@ namespace vpanic {
 				msg[max_length-2] = 0; // remove '\n'
 				if(p != GL_TRUE) {
 					error_occurred = true;
-					message(MType::SHADER_ERROR, "%s", msg);
+					message(MSG_ERROR, "%s", msg);
 				}
 				else {
-					message(MType::SHADER_WARNING, "%s", msg);
+					message(MSG_WARNING, "%s", msg);
 				}
 				free(msg);
 			}
@@ -140,7 +141,7 @@ namespace vpanic {
 
 			if(!has_vs && !add_src_from_memory(vertex.src, VERTEX_SHADER)) {
 				// thats bad... ;-;
-				message(MType::ERROR, "Oops! Failed to compile vertex shader from memory. Please visit <link to bug report page>");
+				message(MSG_ERROR, "Oops! Failed to compile vertex shader from memory. Please visit <link to bug report page>");
 				error_occurred = true;
 			}
 			
@@ -160,7 +161,11 @@ namespace vpanic {
 			id = 0;
 		}
 		else {
-			message(MType::OK, "Compiled shader program (took %ims)", timer.elapsed_ms());
+			message(MSG_OK, "Compiled shader program (took %ims)", timer.elapsed_ms());
+		}
+
+		if(m_type_bits & FRAGMENT_SHADER) {
+			add_uniform_binding("vpanic_vertex_data", ENGINE_UBO_BINDING);
 		}
 
 		_clear_sources();
@@ -230,11 +235,10 @@ namespace vpanic {
 		glUseProgram(0);
 	}
 	
-	void Shader::add_uniform_binding(const char* t_name) {
+	void Shader::add_uniform_binding(const char* t_name, const uint8_t t_binding_point) {
 		if(!m_loaded) { return; }
 		const uint32_t block_index = glGetUniformBlockIndex(id, t_name);
-		glUniformBlockBinding(id, block_index, m_bind_count);
-		m_bind_count++;
+		glUniformBlockBinding(id, block_index, t_binding_point);
 	}
 
 	void Shader::unload() {
@@ -382,7 +386,7 @@ namespace vpanic {
 					"layout(location = 10) in vec4 particle_color;\n"
 
 					
-					"layout (std140) uniform vertex_data {"
+					"layout (std140, binding = "+std::to_string(ENGINE_UBO_BINDING)+") uniform vpanic_vertex_data {"
 						" uniform mat4 matrix;"
 						" uniform vec3 cam_pos;"
 					"};"
