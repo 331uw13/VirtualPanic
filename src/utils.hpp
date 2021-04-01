@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <functional>
+#include <sstream>
 
 #include "vec3.hpp"
 #include "vec2.hpp"
@@ -28,8 +29,18 @@ namespace vpanic {
 	void set_seed(const int new_seed);
 	int fast_rand();
 
+	Color hex_to_color(const uint32_t hex);
+	bool is_hex_string(const std::string& t_str);		
+	
 	template<typename T> void clamp(T& value, const T& min, const T& max) {
 		value = ((value > max) ? max : (value < min) ? min : value);
+	}
+
+	template<typename T> T convert_str(const std::string& t_str) {
+		T result;
+		std::istringstream iss(t_str);
+		iss >> (is_hex_string(t_str) ? std::hex : std::dec) >> result;
+		return result;
 	}
 
 	Color mix_color(const Color& start, const Color& end, float t);
@@ -53,8 +64,6 @@ namespace vpanic {
 	// TODO: Color fade_colors(blabla);
 	// TODO: uint32_t color_to_hex(const Color& t_color);
 	
-	Color hex_to_color(const uint32_t hex);
-	bool is_hex_string(const std::string& t_str);		
 
 	Shader create_default_image_shader();
 

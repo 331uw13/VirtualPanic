@@ -1,15 +1,97 @@
-#include <cstring>
-#include <string>
+//#include <cstring>
+//#include <string>
+#include <vector>
 #include <stdarg.h>
+#include <cmath>
 
 #include "libs/imgui/imgui.h"
-
 #include "console.hpp"
 #include "utils.hpp"
 
 
+static std::vector<const char*> g_buffer;
+static char g_input_buffer[1024];
+static int g_scroll { 0 };
+static vpanic::ConsoleState g_state;
+
+
 namespace vpanic {
 
+	void console::render() {
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(3.0f, 0.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 0.0f));
+		
+		ImGui::Begin("Console", (bool*)nullptr, ImGuiWindowFlags_NoScrollbar);
+		ImVec2 size = ImGui::GetWindowSize();
+		
+		ImGui::BeginChild("##console_scroll_region", ImVec2(size.x, size.y-50), true);
+		const ImGuiStyle& style = ImGui::GetStyle();
+		const ImGuiIO& io = ImGui::GetIO();
+		
+		// TODO: 
+		// -  when clicked on "scroll region" set focus to input box
+		// -  if mouse is hovered on text color its background to some other color?
+
+		// update size because of "scroll region"
+		size = ImGui::GetWindowSize();
+
+		const uint32_t max_size = g_buffer.size();
+		g_scroll -= static_cast<int>(io.MouseWheel);
+		clamp<int>(g_scroll, 0, max_size);
+	
+		int iend = g_scroll+(size.y/ImGui::GetTextLineHeight());
+		clamp<int>(iend, g_scroll, max_size);
+
+		for(int i = g_scroll; i < iend; i++) {
+			ImGuiExt::TextRGB(g_buffer[i]);
+		}
+		
+
+		ImGui::EndChild();
+
+        ImGui::SetNextItemWidth(size.x-30);
+		if(ImGui::InputText("##input", g_input_buffer, 1024, ImGuiInputTextFlags_EnterReturnsTrue)) {
+			//g_buffer.push_back(strdup(g_input_buffer));
+			memset(g_input_buffer, 0, 1024);
+			g_state.set(ConsoleState::FOCUS_INPUT_BOX);
+		}
+
+		// Focus for input box can be set from anywhere and not just when pressing enter or something.
+		// Example if you want to focus console input box when opening it
+		if(g_state[ConsoleState::FOCUS_INPUT_BOX]) {
+			ImGui::SetItemDefaultFocus();
+			ImGui::SetKeyboardFocusHere(-1);
+			g_state.unset(ConsoleState::FOCUS_INPUT_BOX);
+		}
+
+		ImGui::End();
+		ImGui::PopStyleVar(3);
+	}
+
+	void console::clear() {
+		g_buffer.clear();
+	}
+
+	ConsoleState console::copy_state() {
+		return g_state;
+	}
+
+	ConsoleState& console::state() {
+		return g_state;
+	}
+
+	void console::print(const char* t_fmt, ...) {
+		va_list a;
+		va_start(a, t_fmt);
+		char buf[1024];
+		vsnprintf(buf, sizeof(buf), t_fmt, a);
+		buf[sizeof(buf)-1] = '\0';
+		va_end(a);
+		g_buffer.push_back(strdup(buf));
+	}
+
+	/*
 	void Console::update() {
 		ImGui::Begin("Console", (bool*)NULL, ImGuiWindowFlags_NoScrollbar);
 		ImVec2 size = ImGui::GetWindowSize();
@@ -125,6 +207,7 @@ namespace vpanic {
 	void Console::focus() {
 		m_input_needs_focus = true;
 	}
+	*/
 
 
 }

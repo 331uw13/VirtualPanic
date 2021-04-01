@@ -243,11 +243,13 @@ namespace vpanic {
 			"in vec2 texcoord;"
 			"out vec4 out_color;"
 
+			"uniform float gamma;"
+			"uniform float exposure;"
 			"uniform sampler2D screen;"
 
 			"void main() {"
-				" vec4 col = texture(screen, texcoord);"
-				" out_color = col;"
+				" vec3 col = texture(screen, texcoord).rgb;"
+				" out_color = vec4(pow(vec3(1.0f)-(exp(-col*exposure)), vec3(1.0f/gamma)), 1.0f);"
 			"}";
 
 
@@ -276,6 +278,7 @@ namespace vpanic {
 
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)(sizeof(float)*2));
 		glEnableVertexAttribArray(1);
+
 
 		screen_shader.use();
 		screen_shader.set_int("screen", 0);
@@ -405,6 +408,8 @@ namespace vpanic {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			screen_shader.use();
+			screen_shader.set_float("gamma", gamma);
+			screen_shader.set_float("exposure", exposure);
 			glBindVertexArray(quad_vao);
 			glBindTexture(GL_TEXTURE_2D, framebuffer.colattm_id(0));
 			

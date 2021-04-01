@@ -40,7 +40,7 @@ namespace vpanic {
 	}
 
 	float random(const float min, const float max) {
-		return min + static_cast<float>(fast_rand()) / (static_cast<float>((float)0x7FFF / (float)(max - min)));
+		return min+static_cast<float>(fast_rand())/static_cast<float>((float)0x7FFF/(float)(max-min));
 	}
 	
 	int fast_rand() {
@@ -352,11 +352,11 @@ namespace vpanic {
 		}
 
 		void TextRGB(const char* fmt, ...) {
-			
-			ImGuiWindow* window = ImGui::GetCurrentWindow();
-			ImGuiContext& g = *GImGui;
+			if(fmt == nullptr) { return; }
 
-			const size_t max_buf_size = 2048;
+			ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+			const uint32_t max_buf_size = 2048;
 
 			char buf[max_buf_size];
 			va_list ap;
@@ -366,11 +366,117 @@ namespace vpanic {
 			va_end(ap);
 
 			char text_buffer[max_buf_size];
-			char color_buffer[32];
 
 			uint32_t text_index = 0;
-			uint32_t color_index = 0;
+			uint32_t color_count = 0;
 
+			std::string_view viewb(buf);
+			const uint32_t buf_length = strlen(buf);
+			
+			ImVec2 pos(window->DC.CursorPos.x, window->DC.CursorPos.y+window->DC.CurrLineTextBaseOffset);
+			ImRect text_rect(pos, pos);
+
+			auto _enable_color = [&](const uint32_t i) {
+				uint32_t color_size = 0;
+				const uint32_t end_pos = viewb.find('>', i);
+				if(end_pos != std::string_view::npos) {
+					const uint32_t start_pos = i+1;
+					const uint32_t len = end_pos-start_pos;
+					color_size = len+1;
+					
+					char* colorstr = (char*)viewb.substr(start_pos, len).data();
+					colorstr[len] = '\0';
+					
+					if(is_hex_string(colorstr)) {
+						if(start_pos+len < buf_length) {
+							if(color_count > 0) {
+								ImGui::PopStyleColor();
+							}
+
+							//uint32_t color = convert_str<uint32_t>(colorstr);
+							//color |= 24 << 255;
+							//ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4(color));
+
+							ImGui::PushStyleColor(ImGuiCol_Text, color_to_imvec4(hex_to_color(convert_str<uint32_t>(colorstr))));
+							color_count++;
+						}
+					}
+					// TODO: "</>" resets color
+				}
+
+				return color_size;
+			};
+
+			auto _render_text = [&]() {
+				if(text_index == 0 || text_index >= max_buf_size) { return; }
+				text_buffer[text_index] = '\0';
+				const uint32_t text_length = strlen(text_buffer);
+				const char* text_buffer_end = text_buffer+text_length;
+				const ImVec2 text_size = ImGui::CalcTextSize(text_buffer, text_buffer_end, false, 0.0f);
+
+				//float line_height = ImGui::GetTextLineHeight();
+				//float off = s.ItemSpacing.y;
+				
+				ImGui::RenderText(pos, text_buffer, text_buffer_end);
+
+				pos.x += text_size.x;
+				text_rect.Max = text_size;
+				memset(text_buffer, 0, text_index);
+				text_index = 0;
+			};
+
+
+			for(uint32_t i = 0; i < buf_length; i++) {
+				const char ch = buf[i];
+				switch(ch) {
+
+					// start of color tag
+					case '<':
+						_render_text();
+						i += _enable_color(i);
+						break;
+						
+						
+					case '\n':
+						pos.y += ImGui::GetTextLineHeight();
+						break;
+						
+
+					default:
+						text_buffer[text_index] = ch;
+						text_index++;
+						break;
+				}
+			}
+			
+			ImGui::ItemSize(ImVec2(0, ImGui::GetTextLineHeight()), 0.0f);
+			ImGui::ItemAdd(text_rect, 0);
+
+			_render_text();
+
+			if(color_count > 0) {
+				ImGui::PopStyleColor();
+			}
+			
+				
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			/*
 			bool pop_color = false;
 			bool write_color = false;
 			const uint32_t len = strlen(buf);
@@ -384,15 +490,11 @@ namespace vpanic {
 			auto text_sameline = [&](const char* t_text_part) {
 				const char* text_end = t_text_part+strlen(t_text_part);
 				const ImVec2 text_pos(cursor_x, cursor_y);
-				const ImVec2 text_size = ImGui::CalcTextSize(t_text_part, text_end, false, 0);
-
+				ImVec2 text_size = ImGui::CalcTextSize(t_text_part, text_end);
 				ImRect bb(text_pos, ImVec2(text_pos.x+text_size.x, text_pos.y+text_size.y));
-				ImGui::ItemSize(ImVec2(text_size.x, g.Style.FramePadding.y), 0.0f);
-				
-				if (!ImGui::ItemAdd(bb, 0)) {
-					return;
-				}
-				
+				ImGui::ItemSize(ImVec2(text_size.x,
+						   	g.FontSize/2+ImGui::GetStyle().ItemSpacing.y), 0.0f);
+				ImGui::ItemAdd(bb, 0);
 				ImGui::RenderText(text_pos, t_text_part, text_end);
 				
 				if(had_newline) {
@@ -424,7 +526,7 @@ namespace vpanic {
 							pop_color = true;
 						}
 
-						strcpy(color_buffer, ""); // yes, all color values should be the same length but just to be more safe
+						strcpy(color_buffer, ""); // yes, all color values should be the same length
 						color_index = 0;
 					}
 				}
@@ -454,6 +556,7 @@ namespace vpanic {
 
 			// if there was no color at the end (probably not), it needs to render the rest
 			if(text_index > 0) {
+				had_newline = true;
 				text_buffer[text_index] = '\0';
 				text_sameline(text_buffer);
 			}
@@ -461,6 +564,7 @@ namespace vpanic {
 			if(pop_color) {
 				ImGui::PopStyleColor();
 			}
+			*/
 		}
 	}
 

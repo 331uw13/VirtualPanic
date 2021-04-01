@@ -52,6 +52,8 @@ namespace vpanic {
 		EngineState copy_state() const;
 		EngineState& get_state_ref();
 
+		float gamma { 1.1f };
+		float exposure { 1.2f };
 		Color background_color   { Color(0, 0, 0) };
 
 	private:

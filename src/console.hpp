@@ -1,12 +1,25 @@
 #pragma once
-#include <vector>
-#include <string>
 
 #include "color.hpp"
+#include "state.hpp"
 
 
 namespace vpanic {
 
+	namespace console {
+
+		void render();
+		void clear();
+		
+		ConsoleState copy_state();
+		ConsoleState& state();
+
+		void print(const char* t_fmt, ...);
+
+	}
+
+
+	/*
 	class Console {
 	public:
 
@@ -38,6 +51,7 @@ namespace vpanic {
 		
 		void _exec(const char* t_cmd);
 	};
+	*/
 
 }
 
