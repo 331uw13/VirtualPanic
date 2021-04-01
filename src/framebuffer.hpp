@@ -8,7 +8,9 @@ namespace vpanic {
 
 	class Framebuffer {
 	public:
-
+		
+		// NOTE:  oops i forgot destructor.. do it later   hehe
+		
 		void create(const uint32_t t_colattm_count, const Vec2& t_frame_size);
 		void destroy();
 
