@@ -1,3 +1,6 @@
+
+// NOTE: just make this like output log, no one needs "console" ...
+
 #include <stdarg.h>
 #include <cmath>
 #include <unordered_map>
