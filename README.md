@@ -8,16 +8,7 @@
 
 Todo:
 
-- [x] Particle system
-- [ ] Terrain
-- [ ] Materials
-- [ ] Model loading
-- [ ] Better light system
-- [ ] Physics
-- [ ] Collision detection
-- [ ] Trail effects
-- [ ] Bloom
-- [ ] Motion blur
+- [ ]  rewrite in C
 
 # 
 
