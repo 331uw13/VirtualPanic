@@ -17,13 +17,4 @@ https://learnopengl.com/  thanks for reading material :heart:
 
 #### Screenshots
 
-![](https://github.com/331uw13/VirtualPanic/blob/master/Images/better-particles.png)
-
-![](https://github.com/331uw13/VirtualPanic/blob/master/Images/skybox-test2.png)
-
-![](https://github.com/331uw13/VirtualPanic/blob/master/Images/unnamed-04419-15-04.png)
-
-![](https://github.com/331uw13/VirtualPanic/blob/master/Images/first-test-with-noise.png)
-
-![](https://github.com/331uw13/VirtualPanic/blob/master/Images/pink.png)
 
