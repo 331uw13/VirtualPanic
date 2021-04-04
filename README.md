@@ -8,7 +8,7 @@
 
 Todo:
 
-- [ ]  rewrite in C
+- [ ]  Rewrite in C
 
 # 
 
