@@ -26,6 +26,24 @@ void VNullMatrix(VMatrix* m) {
 	m->data[3][3] = 1.0f;
 }
 
+void VMatrixScale(VMatrix* dest, float x, float y, float z) {
+	if(dest == NULL) { return; }
+	dest->data[0][0] *= x;
+	dest->data[0][1] *= x;
+	dest->data[0][2] *= x;
+	dest->data[0][3] *= x;
+	
+	dest->data[1][0] *= y;
+	dest->data[1][1] *= y;
+	dest->data[1][2] *= y;
+	dest->data[1][3] *= y;
+	
+	dest->data[2][0] *= z;
+	dest->data[2][1] *= z;
+	dest->data[2][2] *= z;
+	dest->data[2][3] *= z;
+}
+
 void VMatrixTranslate(VMatrix* dest, float x, float y, float z) {
 	if(dest == NULL) { return; }
 	dest->data[3][0] = dest->data[0][0]*x + dest->data[1][0]*y + dest->data[2][0]*z + dest->data[3][0];
@@ -34,37 +52,18 @@ void VMatrixTranslate(VMatrix* dest, float x, float y, float z) {
 	dest->data[3][3] = dest->data[0][3]*x + dest->data[1][3]*y + dest->data[2][3]*z + dest->data[3][3];
 }
 
-void VMatrixScale(VMatrix* m, float x, float y, float z) {
-	if(m == NULL) { return; }
-	m->data[0][0] *= x;
-	m->data[0][1] *= x;
-	m->data[0][2] *= x;
-	m->data[0][3] *= x;
-	
-	m->data[1][0] *= y;
-	m->data[1][1] *= y;
-	m->data[1][2] *= y;
-	m->data[1][3] *= y;
-	
-	m->data[2][0] *= z;
-	m->data[2][1] *= z;
-	m->data[2][2] *= z;
-	m->data[2][3] *= z;
+
+void VMatrixRotateX(VMatrix* dest, float angle) {
+	if(dest == NULL) { return; }
 }
 
-/*
-void VMatrixRotateX(VMatrix* m, float angle) {
-	if(m == NULL) { return; }
+void VMatrixRotateY(VMatrix* dest, float angle) {
+	if(dest == NULL) { return; }
 }
 
-void VMatrixRotateY(VMatrix* m, float angle) {
-	if(m == NULL) { return; }
+void VMatrixRotateZ(VMatrix* dest, float angle) {
+	if(dest == NULL) { return; }
 }
-
-void VMatrixRotateZ(VMatrix* m, float angle) {
-	if(m == NULL) { return; }
-}
-*/
 
 
 void VMatrixCopyRotation(VMatrix* dest, VMatrix* src) {
@@ -73,7 +72,7 @@ void VMatrixCopyRotation(VMatrix* dest, VMatrix* src) {
 }
 
 
-void VCreateProjectionMatrix(VMatrix* dest, float fov, float aspect_ratio, float z_near, float z_far) {
+void VComputeProjectionMatrix(VMatrix* dest, float fov, float aspect_ratio, float z_near, float z_far) {
 	if(dest == NULL) { return; }
 	VNullMatrix(dest);
 

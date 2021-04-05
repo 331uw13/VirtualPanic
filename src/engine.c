@@ -15,6 +15,7 @@ static int engine_time_scale = 1;
 static GLFWwindow* window = NULL;
 static VPlayer* current_player = NULL;
 
+
 static void(*engine_setup_callback)() = NULL;
 static void(*engine_update_callback)(double) = NULL;
 static void VEngineUpdateStatus_I();
@@ -24,59 +25,99 @@ static void VEngineUpdateView_I();
 /*
 
 
-	- Planes
-		- Shader can be attached.
-		- Texture can be attached.
-		- Color can be changed.
+    Some random notes:
 
-		- Create new plane:
+	Optimize normals and texture coordinates to save memory.
+
+	
+
+    DrawableData
+   		Save vertex array object (vao)
+		Save vertex buffer object (vbo)
+		Save texture.
+		Save shader id for rendering.
+		Dont save matrix here because some stuff wont need it.
+
+
+	Shape
+		DrawableData
+		Color can be changed.
+		Needs matrix
+
+		Create new shape:
+			VShape* shape = VCreateNewShape(vertices, count);
+
+
+	Planes
+		DrawableData
+		Color can be changed.
+		Needs matrix.
+
+		Create new plane:
 			VPlane* plane = VCreateNewPlane(width, height);
 
-		- Draw one plane:
+		Draw one plane:
 			VRenderPlane(plane);
 
-		- Draw planes instanced:
+		Draw planes instanced:
 			VRenderPlanesInstanced(plane, matrices, count);
-		
-		- Destroy it
+
+		Destroy it
 			VDestroyPlane(plane);
 
 
 
-	- Box
-		- Shader can be attached.
-		- Texture can be attached.
-		- Color can be changed.
+	Box
+		DrawableData
+		Color can be changed.
+		Needs matrix.
 
-		- Create new box:
+		Create new box:
 			VBox* box = VCreateNewBox();
 
-		- Draw one box:
+		Draw one box:
 			VRenderBox(box);
 
-		- Draw boxes instanced:
+		Draw boxes instanced:
 			VRenderBoxesInstanced(box, matrices, count);
 		
-		- Destroy it
+ 		Destroy it
 			VDestroyBox(box);
 
 
+	Line
+		DrawableData
+		String force can be applied.
+		Color can be changed.
+		Doesnt need matrix.
 
-	- Terrain
-		- Shader can be attached.
-		- Texture can be attached.
-		- Color can be changed.
-		- Terrain can be resized.
-		- Doesnt need matrix.
-		- Give height map to shader and use geometry shader?
+		Create new line:
+		  VLine* line = VCreateNewLine();
 
-		- Create new terrain:
-			VTerrain* terrain = VCreateNewTerrain();
+		Draw one line:
+		  VRenderLine(line);
 
-		- Draw terrain:
-			VRenderTerrain(terrain);
+		Draw lines instanced:
+		  VRenderLinesInstanced(lines, Vector3 points, count);
 
-		- Destroy it
+		Destoy it
+			VDestroyLine(line);
+
+
+	Terrain
+		DrawableData
+		Color can be changed.
+		Terrain can be resized.
+		Give height map to shader and use geometry shader?
+		Doesnt need matrix.
+
+		Create new terrain:
+		  VTerrain* terrain = VCreateNewTerrain();
+
+		Draw terrain:
+		  VRenderTerrain(terrain);
+
+		Destroy it
 			VDestroyTerrain(terrain);
 
 
@@ -183,8 +224,8 @@ void VEngineInit(const char* title) {
 		VEngineFree();
 		return;
 	}
-
 	VMessageSameLine("OK");
+	
 	glfwMakeContextCurrent(window);
 	glfwSetWindowPos(window, mon_x, mon_y);
 	glfwSwapInterval(1);
@@ -270,6 +311,8 @@ void VEngineStart() {
 
 		if(engine_status & VENGINE_CAMERA_ENABLED) {
 			if(prev_mouse_x != mouse_x || prev_mouse_y != mouse_y) {
+				// x:  -1.0 --> +1.0
+				// y:  +1.0 --> -1.0
 				current_player->camera.yaw += (mouse_x - prev_mouse_x)*current_player->camera.sensetivity*delta_time;
 				current_player->camera.pitch -= (mouse_y - prev_mouse_y)*current_player->camera.sensetivity*delta_time;
 				VSetSFlag(&engine_status, VENGINE_UPDATE_VIEW, TRUE);
@@ -279,7 +322,6 @@ void VEngineStart() {
 		if(engine_status & VENGINE_UPDATE_VIEW) {
 			VEngineUpdateView_I();
 			VSetSFlag(&engine_status, VENGINE_UPDATE_VIEW, FALSE);
-			static int counter = 0;
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
