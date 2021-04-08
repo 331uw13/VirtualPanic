@@ -11,7 +11,7 @@ static VPlayer* player;
 
 VPlayer* VCreateNewPlayer() {
 	if(player == NULL) {
-		if((player = (VPlayer*)malloc(sizeof(VPlayer))) != NULL) {
+		if((player = malloc(sizeof *player)) != NULL) {
 			player->position.x = 0.0f;
 			player->position.y = 0.0f;
 			player->position.z = 0.0f;
