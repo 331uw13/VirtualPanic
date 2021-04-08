@@ -2,25 +2,26 @@
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "engine.h"
 #include "messages.h"
 #include "utils.h"
+#include "render.h"
 #include "internal/core.h"
 #include "internal/utils.h"
 
 
-static int engine_status = 0;
-static int engine_time_scale = 1;
+static int engine_status;
+static float engine_valuesf[VENGINE_MAX_VALUES];
+static VUniformBuffer engine_ubo;
 static GLFWwindow* window = NULL;
-static VPlayer* current_player = NULL;
-
 
 static void(*engine_setup_callback)() = NULL;
 static void(*engine_update_callback)(double) = NULL;
 static void VEngineUpdateStatus_I();
 static void VEngineUpdatePlayer_I(double delta_time);
-static void VEngineUpdateView_I();
+static void VEngineUpdateProjection_I();
 
 /*
 
@@ -123,67 +124,82 @@ static void VEngineUpdateView_I();
 
 */
 
+
 void VEngineUpdatePlayer_I(double delta_time) {
-	uint8 did_move = 0;
-	const float speed = current_player->speed * delta_time;
+	VPlayer* plr = VGetPlayer();
+	if(plr == NULL) { return; }
+
+	const float speed = plr->speed * delta_time;
 	const Vector3 up = { 0.0f, 1.0f, 0.0f };
-	VCamera* cam = &current_player->camera;
+	VMatrix view;
+	
+	// Handle player movement
 	
 	if(VKeyDown('W')) {
-		did_move = 1;
-		current_player->position.x += cam->direction.x * speed;
-		current_player->position.y += cam->direction.y * speed;
-		current_player->position.z += cam->direction.z * speed;
+		plr->position.x += plr->camera.direction.x * speed;
+		plr->position.y += plr->camera.direction.y * speed;
+		plr->position.z += plr->camera.direction.z * speed;
 	}
 	if(VKeyDown('S')) {
-		did_move = 1;
-		current_player->position.x -= cam->direction.x * speed;
-		current_player->position.y -= cam->direction.y * speed;
-		current_player->position.z -= cam->direction.z * speed;
+		plr->position.x -= plr->camera.direction.x * speed;
+		plr->position.y -= plr->camera.direction.y * speed;
+		plr->position.z -= plr->camera.direction.z * speed;
 	}
 	if(VKeyDown('A')) {
-		did_move = 1;
-		current_player->position.x -= VCross(cam->direction, up).x * speed;
-		current_player->position.z -= VCross(cam->direction, up).z * speed;
+		plr->position.x -= VCross(plr->camera.direction, up).x * speed;
+		plr->position.z -= VCross(plr->camera.direction, up).z * speed;
 	}
 	if(VKeyDown('D')) {
-		did_move = 1;
-		current_player->position.x += VCross(cam->direction, up).x * speed;
-		current_player->position.z += VCross(cam->direction, up).z * speed;
+		plr->position.x += VCross(plr->camera.direction, up).x * speed;
+		plr->position.z += VCross(plr->camera.direction, up).z * speed;
 	}
 
-	if(did_move) {
-		VSetSFlag(&engine_status, VENGINE_UPDATE_VIEW, TRUE);
+	if(VKeyDown(VKEY_SPACE)) {
+		plr->position.y += speed;
 	}
-}
+	else if(VKeyDown(VKEY_LSHIFT)) {
+		plr->position.y -= speed;
+	}
+	
+	// Update player view matrix
 
-
-
-// NOTE: rename to VEngineUpdatePlayerView() ?
-void VEngineUpdateView_I() {
-	VCamera* cam = &current_player->camera;
-
-	const float y = VRadians(cam->yaw);
-	const float p = VRadians(cam->pitch);
+	const float y = VRadians(plr->camera.yaw);
+	const float p = VRadians(plr->camera.pitch);
 	Vector3 direction = { 
 		cos(y)*cos(p),
 		sin(p),
 		sin(y)*cos(p)
 	};
-	cam->direction = direction;
-	cam->position = current_player->position;
-	cam->position.y += current_player->height;
+	plr->camera.direction = direction;
+	plr->camera.position = plr->position;
+	plr->camera.position.y += plr->height;
 
-	VComputeViewMatrix(&current_player->camera.matrix, cam->position, cam->direction);
+	VComputeViewMatrix(&view, plr->camera.position, plr->camera.direction);
+	VUniformBufferData(&engine_ubo, &view, sizeof(VMatrix), 0);
 }
 
+
+void VEngineUpdateProjection_I() {
+	VMatrix proj;
+
+	VComputeProjectionMatrix(&proj, 
+			engine_valuesf[VENGINE_FOV],
+		   	engine_valuesf[VENGINE_ASPECT_RATIO],
+		   	engine_valuesf[VENGINE_ZNEAR],
+		   	engine_valuesf[VENGINE_ZFAR]);
+	
+	VUniformBufferData(&engine_ubo, &proj, sizeof(VMatrix), sizeof(VMatrix));
+}
 
 
 void VEngineUpdateStatus_I() {
-	VSetSFlag(&engine_status, VENGINE_OK, window != NULL &&
-			!(engine_status & VENGINE_QUIT) && (engine_status & VENGINE_INIT_OK));
+	if((engine_status & VENGINE_INIT_OK) && window != NULL) {
+		engine_status |= VENGINE_OK;
+	}
+	else {
+		engine_status &= ~VENGINE_OK;
+	}
 }
-
 
 
 void VEngineInit(const char* title) {
@@ -192,7 +208,6 @@ void VEngineInit(const char* title) {
 		return;
 	}
 	engine_status = 0;
-	engine_time_scale = 1;
 
 	VMessage(VMSG_INFO, "Initialize glfw... ");
 	if(!glfwInit()) {
@@ -205,6 +220,7 @@ void VEngineInit(const char* title) {
 	int mon_y = 0;
 	int mon_w = 0;
 	int mon_h = 0;
+
 	GLFWmonitor* pm = glfwGetPrimaryMonitor();
 	glfwGetMonitorWorkarea(pm, &mon_x, &mon_y, &mon_w, &mon_h);
 	
@@ -217,7 +233,7 @@ void VEngineInit(const char* title) {
 	glfwWindowHint(GLFW_CENTER_CURSOR, GLFW_TRUE);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-	
+
 	window = glfwCreateWindow(mon_w, mon_h, title, NULL, NULL);
 	if(window == NULL) {
 		VMessage(VMSG_ERROR, "Failed to create window.");
@@ -245,39 +261,38 @@ void VEngineInit(const char* title) {
 		return;
 	}
 	
+	int fwidth = 0;
+	int fheight = 0;
+	glfwGetFramebufferSize(window, &fwidth, &fheight);
+	glViewport(0, 0, fwidth, fheight);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	//glEnable(GL_STENCIL_TEST);
 
-	if(current_player == NULL) {
-		current_player = (VPlayer*)malloc(sizeof(VPlayer));
-		current_player->speed = 8.0f;
-		current_player->gravity = 0.0f; // todo
-		current_player->height = 4.0f;
-		current_player->position.x = 0.0f;
-		current_player->position.y = 0.0f;
-		current_player->position.z = 0.0f;
-		current_player->camera.position.x = 0.0f;
-		current_player->camera.position.y = current_player->height;
-		current_player->camera.position.z = 0.0f;
-		current_player->camera.sensetivity = 7.0f;
-		current_player->camera.yaw = -90.f;
-		current_player->camera.pitch = 0.0f;
-		current_player->camera.noclip = FALSE; // todo
-	}
+	// Create uniform buffer for projection and view matrix. 
+	// Use high binding point so user can use them starting from 0.
+	engine_ubo = VCreateUniformBuffer((sizeof(VMatrix)*2)+sizeof(Vector3), 83);
+		
 	
-	VSetSFlag(&engine_status, VENGINE_INIT_OK, TRUE);
+	engine_valuesf[VENGINE_FOV] = 70.f;
+	engine_valuesf[VENGINE_ASPECT_RATIO] = (float)mon_w/(float)mon_h;
+	engine_valuesf[VENGINE_ZNEAR] = 0.05f;
+	engine_valuesf[VENGINE_ZFAR] = 1000.f;
+	engine_valuesf[VENGINE_TIME_SCALE] = 1.0f;
+
+	engine_status &= ~VENGINE_INIT_OK;
 	VEngineSetCameraEnabled(TRUE);
 	VEngineUpdateStatus_I();
-
 	VCoreCompileDefaultVertexModule();
+	VCreateNewPlayer();
+	
+	VMessage(VMSG_OK, "Engine is ready!");
 	if(engine_setup_callback != NULL) {
 		engine_setup_callback();
 	}
 
 }
-
 
 
 void VEngineStart() {
@@ -286,6 +301,7 @@ void VEngineStart() {
 		return;
 	}
 
+
 	double current_time = glfwGetTime();
 	double previous_time = 0.0;
 	double mouse_x = 0.0;
@@ -293,69 +309,70 @@ void VEngineStart() {
 	double prev_mouse_x = 0.0;
 	double prev_mouse_y = 0.0;
 	
-	VSetSFlag(&engine_status, VENGINE_UPDATE_VIEW, TRUE);
-	VSetSFlag(&engine_status, VENGINE_STARTED, TRUE);
-
+	engine_status |= VENGINE_STARTED;
+	VEngineUpdateProjection_I();
+	
 	while(!(engine_status & VENGINE_QUIT) && !glfwWindowShouldClose(window)) {
 
 		previous_time = current_time;
 		current_time = glfwGetTime();
-		const double delta_time = (current_time - previous_time) * engine_time_scale;
+		const double delta_time = (current_time - previous_time) * engine_valuesf[VENGINE_TIME_SCALE];
 
 		glfwPollEvents();
-		VEngineUpdatePlayer_I(delta_time);
 
 		prev_mouse_x = mouse_x;
 		prev_mouse_y = mouse_y;
 		glfwGetCursorPos(window, &mouse_x, &mouse_y);
 
+		// Check if mouse is moved when camera is enabled.
+		// If so set update view bit
 		if(engine_status & VENGINE_CAMERA_ENABLED) {
 			if(prev_mouse_x != mouse_x || prev_mouse_y != mouse_y) {
+				VPlayer* plr = VGetPlayer();
 				// x:  -1.0 --> +1.0
 				// y:  +1.0 --> -1.0
-				current_player->camera.yaw += (mouse_x - prev_mouse_x)*current_player->camera.sensetivity*delta_time;
-				current_player->camera.pitch -= (mouse_y - prev_mouse_y)*current_player->camera.sensetivity*delta_time;
-				VSetSFlag(&engine_status, VENGINE_UPDATE_VIEW, TRUE);
+				plr->camera.yaw += (mouse_x - prev_mouse_x) * plr->camera.sensetivity * delta_time;
+				plr->camera.pitch -= (mouse_y - prev_mouse_y) * plr->camera.sensetivity * delta_time;
+				if(plr->camera.pitch < -89.9f) {
+					plr->camera.pitch = -89.9f;
+				}
+				else if(plr->camera.pitch > 89.9f) {
+					plr->camera.pitch = 89.9f;
+				}
 			}
-		}
-
-		if(engine_status & VENGINE_UPDATE_VIEW) {
-			VEngineUpdateView_I();
-			VSetSFlag(&engine_status, VENGINE_UPDATE_VIEW, FALSE);
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.0, 0.0, 0.0, 1.0);
 
-
 		if(engine_update_callback != NULL) {
 			engine_update_callback(delta_time);
+			VEngineUpdatePlayer_I(delta_time);
 		}
-	
+
 		glfwSwapBuffers(window);
 	}
+	engine_status &= ~VENGINE_STARTED;
 }
-
 
 
 void VEngineFree() {
 	VMessage(VMSG_DEBUG, __FUNCTION__);
 	glfwTerminate();
 	glfwDestroyWindow(window);
-	free(current_player);
+	VDestroyAllRenderData();
+	VDestroyUniformBuffer(&engine_ubo);
+	VDestroyPlayer();
 
-	current_player = NULL;
 	window = NULL;
 	engine_update_callback = NULL;
 	engine_status = 0;
 }
 
 
-
 void VEngineShutdown() {
-	VSetSFlag(&engine_status, VENGINE_QUIT, TRUE);
+	engine_status |= VENGINE_QUIT;
 }
-
 
 
 int VGetEngineStatus() {
@@ -363,18 +380,42 @@ int VGetEngineStatus() {
 }
 
 
-
 void VEngineSetCameraEnabled(uint8 b) {
 	glfwSetInputMode(window, GLFW_CURSOR, b ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-	VSetSFlag(&engine_status, VENGINE_CAMERA_ENABLED, b);
+	b ? (engine_status |= VENGINE_CAMERA_ENABLED) : (engine_status &= ~VENGINE_CAMERA_ENABLED);
 }
 
 
+void VEngineSetf(uint32 flag, float value) {
+	if(flag >= VENGINE_MAX_VALUES) {
+		VMessage(VMSG_WARNING, "%i --> Invalid flag!", __FUNCTION__);
+	}
+	else {
+		engine_valuesf[flag] = value;
+		switch(flag) {
+			case VENGINE_FOV:
+			case VENGINE_ASPECT_RATIO:
+			case VENGINE_ZNEAR:
+			case VENGINE_ZFAR:
+				VEngineUpdateProjection_I();
+				break;
 
-void VEngineSetTimeScale(uint32 time_scale) {
-	engine_time_scale = time_scale;
+			default: break;
+		}
+	}
 }
 
+
+float VEngineGetf(uint32 flag) {
+	float res = -1.0f;
+	if(flag >= VENGINE_MAX_VALUES) {
+		VMessage(VMSG_WARNING, "%i --> Invalid flag!", __FUNCTION__);
+	}
+	else {
+		res = engine_valuesf[flag];
+	}
+	return res;
+}
 
 
 void VEngineSetupCallback(void(*user_callback)()) {
@@ -382,42 +423,15 @@ void VEngineSetupCallback(void(*user_callback)()) {
 }
 
 
-
 void VEngineUpdateCallback(void(*user_callback)(double)) {
 	engine_update_callback = user_callback;
 }
 
 
-
-VPlayer* VGetPlayer() {
-	return current_player;
-}
-
-
-
-uint8 VKeyDown(char c) {
+uint8 VKeyDown(uint32 k) {
+	// If k is not printable character just set c to k else make sure its upper case.
+	const uint32 c = (k > 0x7E) ? k : (k < 0x61) ? k : k - 0x20;
 	return (glfwGetKey(window, c) == GLFW_PRESS);
-}
-
-
-
-uint32 VLoadShader(const char* src) {
-	if(src == NULL) { return 0; }
-	uint32 shader = 0;
-	uint32 module_id = VCoreCompileShaderModule(src, GL_FRAGMENT_SHADER, VCORE_COMPILE_USER_SHADER);
-	if(module_id != 0) {
-		shader = VCoreLinkShaderModule(module_id);
-	}
-
-	return shader;
-}
-
-
-
-void VUnloadShader(uint32* id) {
-	if(id == NULL) { return; }
-	glDeleteProgram(*id);
-	*id = 0;
 }
 
 

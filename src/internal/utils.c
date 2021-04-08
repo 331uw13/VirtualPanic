@@ -1,8 +1,8 @@
-#include "utils.h"
+#include <stdlib.h>
+#include <string.h>
 
-void VSetSFlag(int* status, int flag, uint8 on_off) {
-	on_off ? (*status |= flag) : (*status &= ~flag);
-}
+#include "../messages.h"
+#include "utils.h"
 
 
 

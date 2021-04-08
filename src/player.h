@@ -14,4 +14,10 @@ typedef struct {
 } VPlayer;
 
 
+//void VSetMaxPlayers(uint16 n); // not needed yet.
+VPlayer* VCreateNewPlayer();
+void VDestroyPlayer();
+VPlayer* VGetPlayer();
+
+
 #endif

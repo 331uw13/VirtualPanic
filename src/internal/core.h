@@ -11,7 +11,9 @@
 
 uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag);
 uint32 VCoreLinkShaderModule(uint32 module_id);
+
 void VCoreCompileDefaultVertexModule();
+uint32 VCoreGetVertexModule();
 
 
 #endif

@@ -5,7 +5,5 @@
 
 
 
-void VSetSFlag(int* status, int flag, uint8 on_off);
-
 
 #endif

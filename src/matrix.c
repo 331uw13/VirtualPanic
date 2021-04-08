@@ -52,26 +52,6 @@ void VMatrixTranslate(VMatrix* dest, float x, float y, float z) {
 	dest->data[3][3] = dest->data[0][3]*x + dest->data[1][3]*y + dest->data[2][3]*z + dest->data[3][3];
 }
 
-
-void VMatrixRotateX(VMatrix* dest, float angle) {
-	if(dest == NULL) { return; }
-}
-
-void VMatrixRotateY(VMatrix* dest, float angle) {
-	if(dest == NULL) { return; }
-}
-
-void VMatrixRotateZ(VMatrix* dest, float angle) {
-	if(dest == NULL) { return; }
-}
-
-
-void VMatrixCopyRotation(VMatrix* dest, VMatrix* src) {
-	if(dest == NULL || src == NULL) { return; }
-
-}
-
-
 void VComputeProjectionMatrix(VMatrix* dest, float fov, float aspect_ratio, float z_near, float z_far) {
 	if(dest == NULL) { return; }
 	VNullMatrix(dest);

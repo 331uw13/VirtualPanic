@@ -8,7 +8,6 @@
 typedef struct {
 	Vector3 position;
 	Vector3 direction;
-	VMatrix matrix;
 	float sensetivity;
 	float yaw;
 	float pitch;

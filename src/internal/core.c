@@ -67,22 +67,32 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 	return module_id;
 }
 
+
 void VCoreCompileDefaultVertexModule() {
+	VMessage(VMSG_DEBUG, __FUNCTION__);
 	const char buf[] = {
 		"#version 430 core\n"
 		"layout(location = 0) in vec3 i_pos;\n"
 		"layout(location = 1) in vec3 i_normal;\n"
+	
+		"layout (std140, binding = 83) uniform vpanic__vertex_data {"
+			" uniform mat4 view;"
+			" uniform mat4 proj;"
+		"};"
+		
+		"uniform mat4 model_matrix;"
 
-		"uniform mat4 proj;"
-		"uniform mat4 view;"
-		"uniform mat4 model;"
 
 		"void main() {"
-			" gl_Position = proj*view*model*vec4(i_pos, 1.0f);"
+			" gl_Position = proj*view*model_matrix*vec4(i_pos, 1.0f);"
 		"}"};
 
 	vertex_module = VCoreCompileShaderModule(buf, GL_VERTEX_SHADER, VCORE_COMPILE_INTERNAL_SHADER);
+	if(!VCoreIsShaderOk(vertex_module, VCORE_SHADER_MODULE)) {
+		VMessage(VMSG_ERROR, "Failed to compile default vertex module! Please visit <link to bug report page>");
+	}
 }
+
 
 uint32 VCoreLinkShaderModule(uint32 module_id) {
 	uint32 program_id = glCreateProgram();	
@@ -104,5 +114,9 @@ uint32 VCoreLinkShaderModule(uint32 module_id) {
 	return program_id;
 }
 
+
+uint32 VCoreGetVertexModule() {
+	return vertex_module;
+}
 
 
