@@ -287,6 +287,7 @@ void VEngineInit(const char* title) {
 	VCoreCompileDefaultVertexModule();
 	VCreateNewPlayer();
 	
+
 	VMessage(VMSG_OK, "Engine is ready!");
 	if(engine_setup_callback != NULL) {
 		engine_setup_callback();

@@ -11,12 +11,12 @@ uint32 VGetRenderDataCount();
 void VDestroyRenderData(VRenderData* box);
 void VDestroyAllRenderData();
 
-
-VRenderData* VCreateNewBox(float inital_x, float initial_y, float initial_z);
+VRenderData* VCreateNewBox(float initial_x, float initial_y, float initial_z);
+VRenderData* VCreateNewPlane(float initial_x, float initial_y, float initial_z);
 VRenderData* VCreateNewShape(float* points, uint32 size);
 
-void VRender(VRenderData* rdata);
 
+void VRender(VRenderData* rdata);
 
 
 #endif

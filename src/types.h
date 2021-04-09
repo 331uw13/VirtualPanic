@@ -30,4 +30,5 @@ typedef struct {
 	float z;
 } Vector3;
 
+
 #endif

@@ -17,7 +17,6 @@ VPlayer* VCreateNewPlayer() {
 			player->position.z = 0.0f;
 			player->height = VPLAYER_DEFAULT_HEIGHT;
 			player->speed = VPLAYER_DEFAULT_SPEED;
-			player->gravity = 0.0f; // todo
 			player->camera.position.x = 0.0f;
 			player->camera.position.y = VPLAYER_DEFAULT_HEIGHT;
 			player->camera.position.z = 0.0f;
@@ -25,6 +24,7 @@ VPlayer* VCreateNewPlayer() {
 			player->camera.yaw = -90.f;
 			player->camera.pitch = 0.0f;
 			player->camera.noclip = FALSE; // todo
+			player->gravity = 0.0f; // todo
 		}
 		else {
 			VMessage(VMSG_ERROR, "Failed to allocate memory for new player!");

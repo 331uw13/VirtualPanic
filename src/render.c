@@ -6,6 +6,7 @@
 #include "render.h"
 #include "messages.h"
 #include "status.h"
+#include "internal/core.h"
 
 
 static VRenderData** renderable_data = NULL;
@@ -26,6 +27,7 @@ VRenderData* VCreateEmptyRenderData() {
 		if(renderable_data[i] == NULL) {
 			found_free = 1;
 			next_free_index = i;
+			break;
 		}
 	}	
 	
@@ -59,7 +61,7 @@ VRenderData* VCreateEmptyRenderData() {
 			}
 		}
 	   	else {
-			VMessage(VMSG_ERROR, "%s --> Failed to allocate memory.", __FUNCTION__);
+			VMessage(VMSG_ERROR, "Failed to allocate memory for new render data!");
 			if(errno == ENOMEM) {
 				VMessage(VMSG_ERROR, "Out of memory!");
 			}
@@ -76,7 +78,7 @@ VRenderData* VCreateEmptyRenderData() {
 	   	}
 	}
 	else {
-		VMessage(VMSG_ERROR, "%s --> Failed to allocate memory.", __FUNCTION__);
+		VMessage(VMSG_ERROR, "Failed to allocate memory for new render data!");
 		if(errno == ENOMEM) {
 			VMessage(VMSG_ERROR, "Out of memory!");
 		}
@@ -159,33 +161,96 @@ void VDestroyAllRenderData() {
 VRenderData* VCreateNewShape(float* points, uint32 size) {
 	VRenderData* rdata = VCreateEmptyRenderData();
 	if(rdata != NULL) {
-		rdata->points = (size/sizeof(float))/3;
-		
 		glBindVertexArray(rdata->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, rdata->vbo);
-		
 		glBufferData(GL_ARRAY_BUFFER, size, points, GL_STREAM_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, 0);
 		glEnableVertexAttribArray(0);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		rdata->points = (size/sizeof(float))/3;
 	}
 
 	return rdata;
 }
 
 
-VRenderData* VCreateNewBox(float inital_x, float initial_y, float initial_z) {
-	return NULL; // TODO
+VRenderData* VCreateNewBox(float initial_x, float initial_y, float initial_z) {
+	float box_points[] = {
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f	
+	};
+	
+	VRenderData* rdata = VCreateNewShape(box_points, sizeof box_points);
+	if(rdata != NULL) {
+		VMatrixTranslate(&rdata->matrix, initial_x, initial_y, initial_z);
+	}
+	return rdata;
+}
+
+VRenderData* VCreateNewPlane(float initial_x, float initial_y, float initial_z) {
+	float plane_points[] = {
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
+	};
+	
+	VRenderData* rdata = VCreateNewShape(plane_points, sizeof plane_points);
+	if(rdata != NULL) {
+		VMatrixTranslate(&rdata->matrix, initial_x, initial_y, initial_z);
+	}
+	return rdata;
 }
 
 
 void VRender(VRenderData* rdata) {
 	if(rdata == NULL) { return; }
-
 	glUseProgram(rdata->shader);
-	glUniformMatrix4fv(glGetUniformLocation(rdata->shader, "model_matrix"), 1, GL_FALSE, &rdata->matrix.data[0][0]);
+	VShaderSetMatrix(rdata->shader, VCORE_MODEL_MATRIX_INDEX, &rdata->matrix);
 	glBindVertexArray(rdata->vao);
 	glDrawArrays(GL_TRIANGLES, 0, rdata->points);
-
 }	
 
 

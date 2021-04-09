@@ -20,7 +20,7 @@
 #define VENGINE_MAX_VALUES 5
 
 #define VPLAYER_DEFAULT_SPEED 8.5f
-#define VPLAYER_DEFAULT_HEIGHT 5.3f
+#define VPLAYER_DEFAULT_HEIGHT 4.0f
 
 
 // https://www.glfw.org/docs/latest/group__keys.html
