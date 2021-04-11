@@ -164,11 +164,20 @@ VRenderData* VCreateNewShape(float* points, uint32 size) {
 		glBindVertexArray(rdata->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, rdata->vbo);
 		glBufferData(GL_ARRAY_BUFFER, size, points, GL_STREAM_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, 0);
+		float stride = sizeof(float)*6;
+		
+		// Points
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
 		glEnableVertexAttribArray(0);
+		
+		// Normals
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float)*3));
+		glEnableVertexAttribArray(1);
+		
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		rdata->points = (size/sizeof(float))/3;
+		rdata->points = ((size/2)/sizeof(float))/3;	
+		rdata->size = size/sizeof(float);
 	}
 
 	return rdata;
@@ -177,47 +186,47 @@ VRenderData* VCreateNewShape(float* points, uint32 size) {
 
 VRenderData* VCreateNewBox(float initial_x, float initial_y, float initial_z) {
 	float box_points[] = {
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		-0.5f,  0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 
-		-0.5f, -0.5f,  0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 
-		-0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f	
+		-0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f
 	};
 	
 	VRenderData* rdata = VCreateNewShape(box_points, sizeof box_points);
@@ -229,12 +238,12 @@ VRenderData* VCreateNewBox(float initial_x, float initial_y, float initial_z) {
 
 VRenderData* VCreateNewPlane(float initial_x, float initial_y, float initial_z) {
 	float plane_points[] = {
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f
 	};
 	
 	VRenderData* rdata = VCreateNewShape(plane_points, sizeof plane_points);

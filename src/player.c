@@ -27,7 +27,7 @@ VPlayer* VCreateNewPlayer() {
 			player->gravity = 0.0f; // todo
 		}
 		else {
-			VMessage(VMSG_ERROR, "Failed to allocate memory for new player!");
+			VMessage(VMSG_ERROR, "Failed to allocate memory for player!");
 		}
 	}
 	return player;

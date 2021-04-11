@@ -40,7 +40,6 @@ void VDestroyShader(VShader* id) {
 
 
 void VShaderAddUniformBlockBinding(VShader shader, const char* block_name, uint32 binding_point) {
-	VMessage(VMSG_DEBUG, __FUNCTION__);
 	const uint32 i = glGetUniformBlockIndex(shader, block_name);
 	if(i != GL_INVALID_INDEX) {
 		glUniformBlockBinding(shader, i, binding_point);

@@ -231,7 +231,7 @@ void VEngineInit(const char* title) {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 	glfwWindowHint(GLFW_CENTER_CURSOR, GLFW_TRUE);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	//glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
 	window = glfwCreateWindow(mon_w, mon_h, title, NULL, NULL);
@@ -274,7 +274,6 @@ void VEngineInit(const char* title) {
 	// Use high binding point so user can use them starting from 0.
 	engine_ubo = VCreateUniformBuffer((sizeof(VMatrix)*2)+sizeof(Vector3), 83);
 		
-	
 	engine_valuesf[VENGINE_FOV] = 70.f;
 	engine_valuesf[VENGINE_ASPECT_RATIO] = (float)mon_w/(float)mon_h;
 	engine_valuesf[VENGINE_ZNEAR] = 0.05f;
@@ -429,10 +428,18 @@ void VEngineUpdateCallback(void(*user_callback)(double)) {
 }
 
 
+
+// TODO: rename to VKeyInput and pass flag to this and remove VKeyUp.
+
 uint8 VKeyDown(uint32 k) {
 	// If k is not printable character just set c to k else make sure its upper case.
 	const uint32 c = (k > 0x7E) ? k : (k < 0x61) ? k : k - 0x20;
 	return (glfwGetKey(window, c) == GLFW_PRESS);
 }
 
+
+uint8 VKeyUp(uint32 k) {
+	const uint32 c = (k > 0x7E) ? k : (k < 0x61) ? k : k - 0x20;
+	return (glfwGetKey(window, c) == GLFW_RELEASE);
+}
 

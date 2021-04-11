@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include "types.h"
+#include "renderable.h"
 
 
 float VRadians(float a);
@@ -10,6 +11,8 @@ float VLength(Vector3 v);
 float VDot(Vector3 v0, Vector3 v1);
 Vector3 VNormalized(Vector3 v);
 Vector3 VCross(Vector3 v0, Vector3 v1);
+
+void VComputeNormals(VRenderData* rdata);
 
 
 #endif

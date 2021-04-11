@@ -9,6 +9,7 @@
 typedef struct {
 	uint32 vao;
 	uint32 vbo;
+	uint32 size;
 	VShader shader;
 	uint32 texture;
 	uint32 points;

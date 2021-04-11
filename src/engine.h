@@ -23,6 +23,7 @@ void VEngineSetupCallback(void(*user_callback)());
 void VEngineUpdateCallback(void(*user_callback)(double));
 
 uint8 VKeyDown(uint32 k);
+uint8 VKeyUp(uint32 k); // DELETE THIS
 
 
 #endif
