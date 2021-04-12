@@ -13,9 +13,11 @@ VShader VCreateShader(const char* src) {
 	VMessage(VMSG_DEBUG, __FUNCTION__);
 	uint32 shader = 0;
 	const uint32 module_id = VCoreCompileShaderModule(src, GL_FRAGMENT_SHADER, VCORE_COMPILE_USER_SHADER);
+	
 	if(module_id != 0) {
 		shader = VCoreLinkShaderModule(module_id);
 		VShaderAddUniformBlockBinding(shader, "vpanic__vertex_data", 83);
+		VShaderAddUniformBlockBinding(shader, "vpanic__fragment_data", 82);
 
 		if(first_created_shader == 0) {
 			first_created_shader = shader;

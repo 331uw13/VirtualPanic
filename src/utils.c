@@ -43,6 +43,8 @@ Vector3 VCross(Vector3 v0, Vector3 v1) {
 void VComputeNormals(VRenderData* rdata) {
 	if(rdata == NULL) { return; }
 
+	// Loop through each triangle and compute normals for them.
+
 	glBindBuffer(GL_ARRAY_BUFFER, rdata->vbo);
 	float* vertices = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
 
@@ -52,17 +54,50 @@ void VComputeNormals(VRenderData* rdata) {
 		return;
 	}
 
-	int rows = 0;
+	Vector3 triangle[3];
+	int k = 0;
+	
 	for(uint32 i = 0; i < rdata->size; i += 6) {
-		printf("%1.2f, %1.2f, %1.2f\n", vertices[i], vertices[i+1], vertices[i+2]);
-		rows++;
-		if(rows >= 6) {
-			rows = 0;
-			puts("");
+		const Vector3 current_point = { vertices[i], vertices[i+1], vertices[i+2] };
+		triangle[k] = current_point;
+
+		k++;
+
+		if(k >= 3) {
+			const Vector3 a = { 
+				triangle[1].x - triangle[0].x,
+				triangle[1].y - triangle[0].y,
+				triangle[1].z - triangle[0].z
+			};
+
+			const Vector3 b = { 
+				triangle[2].x - triangle[0].x,
+				triangle[2].y - triangle[0].y,
+				triangle[2].z - triangle[0].z
+			};
+
+			const Vector3 p = VCross(a, b);
+			const Vector3 normal = VNormalized(p);
+
+			// point 2 normals
+			vertices[i+3] = -normal.x;
+			vertices[i+4] = -normal.y;
+			vertices[i+5] = -normal.z;
+			
+			// point 1 normals
+			vertices[i-3] = -normal.x;
+			vertices[i-2] = -normal.y;
+			vertices[i-1] = -normal.z;
+			
+			// point 0 normals
+			vertices[i-9] = -normal.x;
+			vertices[i-8] = -normal.y;
+			vertices[i-7] = -normal.z;
+
+			k = 0;	
 		}
+		//printf("%1.2f, %1.2f, %1.2f\n", vertices[i], vertices[i+1], vertices[i+2]);
 	}
-
-
 
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 }

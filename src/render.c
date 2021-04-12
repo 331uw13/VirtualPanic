@@ -186,6 +186,9 @@ VRenderData* VCreateNewShape(float* points, uint32 size) {
 
 VRenderData* VCreateNewBox(float initial_x, float initial_y, float initial_z) {
 	float box_points[] = {
+
+		// TODO: optimize these.
+		
 		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
@@ -194,32 +197,32 @@ VRenderData* VCreateNewBox(float initial_x, float initial_y, float initial_z) {
 		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 
 		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-
 		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		
+		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-
+		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 
 		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-
+		
 		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 
 		-0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
@@ -238,8 +241,11 @@ VRenderData* VCreateNewBox(float initial_x, float initial_y, float initial_z) {
 
 VRenderData* VCreateNewPlane(float initial_x, float initial_y, float initial_z) {
 	float plane_points[] = {
+		
+		// TODO: optimize these.
+
 		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+	     0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
 		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,

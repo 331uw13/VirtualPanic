@@ -26,6 +26,7 @@ void VNullMatrix(VMatrix* m) {
 	m->data[3][3] = 1.0f;
 }
 
+
 void VMatrixScale(VMatrix* dest, float x, float y, float z) {
 	if(dest == NULL) { return; }
 	dest->data[0][0] *= x;
@@ -44,6 +45,7 @@ void VMatrixScale(VMatrix* dest, float x, float y, float z) {
 	dest->data[2][3] *= z;
 }
 
+
 void VMatrixTranslate(VMatrix* dest, float x, float y, float z) {
 	if(dest == NULL) { return; }
 	dest->data[3][0] = dest->data[0][0]*x + dest->data[1][0]*y + dest->data[2][0]*z + dest->data[3][0];
@@ -51,6 +53,33 @@ void VMatrixTranslate(VMatrix* dest, float x, float y, float z) {
 	dest->data[3][2] = dest->data[0][2]*x + dest->data[1][2]*y + dest->data[2][2]*z + dest->data[3][2];
 	dest->data[3][3] = dest->data[0][3]*x + dest->data[1][3]*y + dest->data[2][3]*z + dest->data[3][3];
 }
+
+
+void VMatrixMerge(VMatrix* dest, VMatrix* a, VMatrix* b) {
+
+	// TODO: for loop... but make sure it works first.. lol
+	
+	dest->data[0][0] = a->data[0][0]*b->data[0][0] + a->data[1][0]*b->data[0][1] + a->data[2][0]*b->data[0][2] + a->data[3][0]*b->data[0][3]; 
+	dest->data[0][1] = a->data[0][1]*b->data[0][0] + a->data[1][1]*b->data[0][1] + a->data[2][1]*b->data[0][2] + a->data[3][1]*b->data[0][3]; 
+	dest->data[0][2] = a->data[0][2]*b->data[0][0] + a->data[1][2]*b->data[0][1] + a->data[2][2]*b->data[0][2] + a->data[3][2]*b->data[0][3]; 
+	dest->data[0][3] = a->data[0][3]*b->data[0][0] + a->data[1][3]*b->data[0][1] + a->data[2][3]*b->data[0][2] + a->data[3][3]*b->data[0][3]; 
+
+	dest->data[1][0] = a->data[0][0]*b->data[1][0] + a->data[1][0]*b->data[1][1] + a->data[2][0]*b->data[1][2] + a->data[3][0]*b->data[1][3]; 
+	dest->data[1][1] = a->data[0][1]*b->data[1][0] + a->data[1][1]*b->data[1][1] + a->data[2][1]*b->data[1][2] + a->data[3][1]*b->data[1][3]; 
+	dest->data[1][2] = a->data[0][2]*b->data[1][0] + a->data[1][2]*b->data[1][1] + a->data[2][2]*b->data[1][2] + a->data[3][2]*b->data[1][3]; 
+	dest->data[1][3] = a->data[0][3]*b->data[1][0] + a->data[1][3]*b->data[1][1] + a->data[2][3]*b->data[1][2] + a->data[3][3]*b->data[1][3]; 
+
+	dest->data[2][0] = a->data[0][0]*b->data[2][0] + a->data[1][0]*b->data[2][1] + a->data[2][0]*b->data[2][2] + a->data[3][0]*b->data[2][3]; 
+	dest->data[2][1] = a->data[0][1]*b->data[2][0] + a->data[1][1]*b->data[2][1] + a->data[2][1]*b->data[2][2] + a->data[3][1]*b->data[2][3]; 
+	dest->data[2][2] = a->data[0][2]*b->data[2][0] + a->data[1][2]*b->data[2][1] + a->data[2][2]*b->data[2][2] + a->data[3][2]*b->data[2][3]; 
+	dest->data[2][3] = a->data[0][3]*b->data[2][0] + a->data[1][3]*b->data[2][1] + a->data[2][3]*b->data[2][2] + a->data[3][3]*b->data[2][3]; 
+	
+	dest->data[0][0] = a->data[0][0]*b->data[3][0] + a->data[1][0]*b->data[3][1] + a->data[2][0]*b->data[3][2] + a->data[3][0]*b->data[3][3]; 
+	dest->data[0][1] = a->data[0][1]*b->data[3][0] + a->data[1][1]*b->data[3][1] + a->data[2][1]*b->data[3][2] + a->data[3][1]*b->data[3][3]; 
+	dest->data[0][2] = a->data[0][2]*b->data[3][0] + a->data[1][2]*b->data[3][1] + a->data[2][2]*b->data[3][2] + a->data[3][2]*b->data[3][3]; 
+	dest->data[0][3] = a->data[0][3]*b->data[3][0] + a->data[1][3]*b->data[3][1] + a->data[2][3]*b->data[3][2] + a->data[3][3]*b->data[3][3]; 
+}
+
 
 void VComputeProjectionMatrix(VMatrix* dest, float fov, float aspect_ratio, float z_near, float z_far) {
 	if(dest == NULL) { return; }
@@ -66,6 +95,7 @@ void VComputeProjectionMatrix(VMatrix* dest, float fov, float aspect_ratio, floa
 	dest->data[2][3] = -1.0f;
 	dest->data[3][3] = 0.0f;
 }
+
 
 void VComputeViewMatrix(VMatrix* dest, Vector3 position, Vector3 direction) {
 	if(dest == NULL) { return; }
@@ -96,6 +126,8 @@ void VComputeViewMatrix(VMatrix* dest, Vector3 position, Vector3 direction) {
 	dest->data[3][0] = -VDot(s, position);
 	dest->data[3][1] = -VDot(u, position);
 	dest->data[3][2] =  VDot(f, position);
+
+
 }
 
 

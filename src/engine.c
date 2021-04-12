@@ -23,106 +23,6 @@ static void VEngineUpdateStatus_I();
 static void VEngineUpdatePlayer_I(double delta_time);
 static void VEngineUpdateProjection_I();
 
-/*
-
-
-    Some random notes:
-
-	Optimize normals and texture coordinates to save memory.
-
-	
-
-    DrawableData
-   		Save vertex array object (vao)
-		Save vertex buffer object (vbo)
-		Save texture.
-		Save shader id for rendering.
-		Dont save matrix here because some stuff wont need it.
-
-
-	Shape
-		DrawableData
-		Color can be changed.
-		Needs matrix
-
-		Create new shape:
-			VShape* shape = VCreateNewShape(vertices, count);
-
-
-	Planes
-		DrawableData
-		Color can be changed.
-		Needs matrix.
-
-		Create new plane:
-			VPlane* plane = VCreateNewPlane(width, height);
-
-		Draw one plane:
-			VRenderPlane(plane);
-
-		Draw planes instanced:
-			VRenderPlanesInstanced(plane, matrices, count);
-
-		Destroy it
-			VDestroyPlane(plane);
-
-
-
-	Box
-		DrawableData
-		Color can be changed.
-		Needs matrix.
-
-		Create new box:
-			VBox* box = VCreateNewBox();
-
-		Draw one box:
-			VRenderBox(box);
-
-		Draw boxes instanced:
-			VRenderBoxesInstanced(box, matrices, count);
-		
- 		Destroy it
-			VDestroyBox(box);
-
-
-	Line
-		DrawableData
-		String force can be applied.
-		Color can be changed.
-		Doesnt need matrix.
-
-		Create new line:
-		  VLine* line = VCreateNewLine();
-
-		Draw one line:
-		  VRenderLine(line);
-
-		Draw lines instanced:
-		  VRenderLinesInstanced(lines, Vector3 points, count);
-
-		Destoy it
-			VDestroyLine(line);
-
-
-	Terrain
-		DrawableData
-		Color can be changed.
-		Terrain can be resized.
-		Give height map to shader and use geometry shader?
-		Doesnt need matrix.
-
-		Create new terrain:
-		  VTerrain* terrain = VCreateNewTerrain();
-
-		Draw terrain:
-		  VRenderTerrain(terrain);
-
-		Destroy it
-			VDestroyTerrain(terrain);
-
-
-*/
 
 
 void VEngineUpdatePlayer_I(double delta_time) {
@@ -133,7 +33,7 @@ void VEngineUpdatePlayer_I(double delta_time) {
 	const Vector3 up = { 0.0f, 1.0f, 0.0f };
 	VMatrix view;
 	
-	// Handle player movement
+	// Handle player movement.
 	
 	if(VKeyDown('W')) {
 		plr->position.x += plr->camera.direction.x * speed;
@@ -161,7 +61,7 @@ void VEngineUpdatePlayer_I(double delta_time) {
 		plr->position.y -= speed;
 	}
 	
-	// Update player view matrix
+	// Update player view matrix and camera.
 
 	const float y = VRadians(plr->camera.yaw);
 	const float p = VRadians(plr->camera.pitch);
@@ -175,7 +75,8 @@ void VEngineUpdatePlayer_I(double delta_time) {
 	plr->camera.position.y += plr->height;
 
 	VComputeViewMatrix(&view, plr->camera.position, plr->camera.direction);
-	VUniformBufferData(&engine_ubo, &view, sizeof(VMatrix), 0);
+	VUniformBufferData(&engine_ubo, &view, sizeof view, 0);
+	VUniformBufferData(&engine_ubo, &plr->camera.position, sizeof plr->camera.position, sizeof view * 2);
 }
 
 
@@ -188,7 +89,7 @@ void VEngineUpdateProjection_I() {
 		   	engine_valuesf[VENGINE_ZNEAR],
 		   	engine_valuesf[VENGINE_ZFAR]);
 	
-	VUniformBufferData(&engine_ubo, &proj, sizeof(VMatrix), sizeof(VMatrix));
+	VUniformBufferData(&engine_ubo, &proj, sizeof proj, sizeof proj);
 }
 
 
@@ -266,11 +167,11 @@ void VEngineInit(const char* title) {
 	glfwGetFramebufferSize(window, &fwidth, &fheight);
 	glViewport(0, 0, fwidth, fheight);
 
+	glFrontFace(GL_CCW);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	//glEnable(GL_STENCIL_TEST);
 
-	// Create uniform buffer for projection and view matrix. 
 	// Use high binding point so user can use them starting from 0.
 	engine_ubo = VCreateUniformBuffer((sizeof(VMatrix)*2)+sizeof(Vector3), 83);
 		
@@ -286,7 +187,6 @@ void VEngineInit(const char* title) {
 	VCoreCompileDefaultVertexModule();
 	VCreateNewPlayer();
 	
-
 	VMessage(VMSG_OK, "Engine is ready!");
 	if(engine_setup_callback != NULL) {
 		engine_setup_callback();
@@ -300,7 +200,6 @@ void VEngineStart() {
 		VMessage(VMSG_WARNING, "%s --> Engine is already started!", __FUNCTION__);
 		return;
 	}
-
 
 	double current_time = glfwGetTime();
 	double previous_time = 0.0;

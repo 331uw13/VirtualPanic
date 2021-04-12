@@ -55,95 +55,117 @@ uint8 VCoreIsShaderOk(uint32 id, uint8 flag) {
 
 uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 	uint32 module_id = glCreateShader(type);
-	
-	if(flag == VCORE_COMPILE_USER_SHADER) {
-		const char src_utils[] = 
-			"#version 430 core\n"
-		
-			"struct Fragment {"
-				"vec3 pos;"
-				"vec3 normal;"
-			"};"
-
-			"in vec3 camera_pos;"
-			"in Fragment frag;"
-
-			// TODO: Light system!
-			"\n"
-			"#define LIGHT_AMBIENT   1.0f\n"
-			"#define LIGHT_DIFFUSE   1.0f\n"
-			"#define LIGHT_SPECULAR  1.0f\n"
-			"#define LIGHT_SHINE     64.f\n"
-			"vec3 light_pos = vec3(0.0f, 3.0f, 0.0f);"
-			"vec4 light_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);"
-			"float light_radius = 15.0f;"
-
-			"vec4 shape_color = vec4(0.05f, 1.0f, 0.05f, 1.0f);"
-
-
-			"vec3 compute_light() {"
-				" vec3 item_color = shape_color.xyz * light_color.xyz;"
+	if(module_id == 0) {
+		VMessage(VMSG_ERROR, "Failed to create shader module!");
+	}
+	else {
+		if(flag == VCORE_COMPILE_USER_SHADER) {
+			const char src_utils[] = 
+				"#version 430 core\n"
+			
+				"struct Fragment {\n"
+					" vec3 pos;\n"
+					" vec3 normal;\n"
+				"};\n"
 				
-				" vec3 norm = normalize(frag.normal);"
-				" vec3 light_dir = normalize(light_pos - frag.pos);"
-				" vec3 view_dir = normalize(camera_pos - frag.pos);"
-				" vec3 reflect_dir = reflect(-light_dir, norm);"
+				"struct Light {\n"
+					" vec3 pos;\n"
+					" float radius;\n"
+					" float ambience;\n"
+					" float diffusion;\n"
+					" float specularity;\n"
+				"};\n"
 				
-				// Diffuse
-				"float diff = max(dot(norm, light_dir), 0.0f);"
-				"vec3 diffuse = LIGHT_DIFFUSE * diff * item_color;"
-
-				// Specular
-				"float spec = pow(max(dot(normalize(light_dir + view_dir), norm), 0.0f), LIGHT_SHINE);"
-				"vec3 specular = LIGHT_SPECULAR * spec * item_color;"
-
-				// Ambient
-				" vec3 ambient = LIGHT_AMBIENT * item_color;"
+				"layout(std140, binding = 82) uniform vpanic__fragment_data {\n"
+					" Light lights[];\n"
+				"};\n"
 
 
-				"light_radius *= 0.5f;"
-				"float dist = length(light_pos - frag.pos);"
-				"float att = smoothstep(light_radius + dist, 0.0f, dist);"
+				"in vec3 camera_pos;\n"
+				"in Fragment frag;\n"
 
-				"diffuse *= att;"
-				"specular *= att;"
-				"ambient *= att;"
+				// TODO: Light system!
+				"\n"
+				"#define LIGHT_AMBIENT   0.65f\n"
+				"#define LIGHT_DIFFUSE   0.2f\n"
+				"#define LIGHT_SPECULAR  0.3f\n"
+				"#define LIGHT_SHINE     64.f\n"
+				"vec3 light_pos = vec3(0.0f, 2.0f, 0.0f);\n"
+				"vec4 light_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
+				"float light_radius = 15.0f;\n"
 
-				"return ambient+diffuse+specular;"
-			"}";
+				"vec4 shape_color = vec4(0.05f, 1.0f, 0.05f, 1.0f);\n"
 
-		const int src_length = strlen(src);
-		const int src_utils_length = strlen(src_utils);
+
+				"vec3 compute_light() {\n"
+					" vec3 item_color = shape_color.xyz * light_color.xyz;\n"
+					
+					//" light_pos = camera_pos;" // DELETE THIS
+
+					" vec3 norm = normalize(frag.normal);\n"
+					" vec3 light_dir = normalize(light_pos - frag.pos);\n"
+					" vec3 view_dir = normalize(camera_pos - frag.pos);\n"
+					" vec3 halfway_dir = normalize(light_dir + view_dir);\n"
+					//" vec3 reflect_dir = reflect(-light_dir, norm);"
+					
+					// Diffuse
+					"float diff = max(dot(norm, light_dir), 0.0f);\n"
+					"vec3 diffuse = LIGHT_DIFFUSE * diff * item_color;\n"
+
+					// Specular
+					"float spec = pow(max(dot(halfway_dir, norm), 0.0f), LIGHT_SHINE);\n"
+					"vec3 specular = LIGHT_SPECULAR * spec * item_color;\n"
+
+					// Ambient
+					" vec3 ambient = LIGHT_AMBIENT * item_color;\n"
+
+					"light_radius *= 0.5f;\n"
+					"float dist = length(light_pos - frag.pos);\n"
+					"float att = smoothstep(light_radius + dist, 0.0f, dist);\n"
+
+					"diffuse *= att;\n"
+					"specular *= att;\n"
+					"ambient *= att;\n"
+
+					"return ambient+diffuse+specular;\n"
+				"}\n";
+
+			const int src_length = strlen(src);
+			const int src_utils_length = strlen(src_utils);
+			
+			char* buf = NULL;
+			int buf_length = src_length + src_utils_length;
+			buf = malloc(buf_length);
+
+			if(buf == NULL) {
+				VMessage(VMSG_ERROR, "Failed to allocate memory for shader source!");
+				glDeleteShader(module_id);
+				module_id = 0;
+			}
+			else {
+				memmove(buf, src_utils, src_utils_length);
+				memmove(buf + src_utils_length, src, src_length);
+				buf[buf_length] = '\0';
+			
+				VMessage(VMSG_DEBUG, "glShaderSource(%p) | module_id: %i (VCORE_COMPILE_USER_SHADER)", buf, module_id);
+				glShaderSource(module_id, 1, (const char* const*)&buf, NULL);
+				free(buf);
+			}
+		}
+		else {
+			VMessage(VMSG_DEBUG, "glShaderSource(%p) | module_id: %i (VCORE_COMPILE_INTERNAL_SHADER)", src, module_id);
+			glShaderSource(module_id, 1, &src, NULL);
+		}
+
+		glCompileShader(module_id);
 		
-		char* buf = NULL;
-		int buf_length = src_length + src_utils_length;
-		buf = malloc(buf_length);
-
-		if(buf == NULL) {
-			VMessage(VMSG_ERROR, "Failed to allocate memory for shader source!");
+		if(!VCoreIsShaderOk(module_id, VCORE_SHADER_MODULE)) {
+			VMessage(VMSG_ERROR, "Failed to compile shader module!");
 			glDeleteShader(module_id);
 			module_id = 0;
 		}
-		else {
-			memmove(buf, src_utils, src_utils_length);
-			memmove(buf + src_utils_length, src, src_length);
-			buf[buf_length] = '\0';
-			glShaderSource(module_id, 1, &buf, NULL);
-			free(buf);
-		}
-	}
-	else {
-		glShaderSource(module_id, 1, &src, NULL);
 	}
 
-	glCompileShader(module_id);
-
-	if(!VCoreIsShaderOk(module_id, VCORE_SHADER_MODULE)) {
-		VMessage(VMSG_ERROR, "Failed to compile shader module!");
-		glDeleteShader(module_id);
-		module_id = 0;
-	}
-	
 	return module_id;
 }
 
@@ -153,31 +175,34 @@ void VCoreCompileDefaultVertexModule() {
 		"#version 430 core\n"
 		"layout(location = 0) in vec3 i_pos;\n"
 		"layout(location = 1) in vec3 i_normal;\n"
-		"layout (std140, binding = 0) uniform vpanic__vertex_data {\n"
-			" uniform mat4 view;"
-			" uniform mat4 proj;"
-		"};"
+
+		"layout (std140, binding = 83) uniform vpanic__vertex_data {\n"
+			" uniform mat4 view;\n"
+			" uniform mat4 proj;\n"
+			" uniform vec3 cam_pos;\n"
+		"};\n"
 			
-		"struct Fragment {"
-			"vec3 pos;"
-			"vec3 normal;"
-		"};"
+		"struct Fragment {\n"
+			"vec3 pos;\n"
+			"vec3 normal;\n"
+		"};\n"
 
-		"out vec3 camera_pos;"
-		"out Fragment frag;"
+		"out vec3 camera_pos;\n"
+		"out Fragment frag;\n"
 		
-		"uniform mat4 model_matrix;"
+		"uniform mat4 model_matrix;\n"
 
 
-		"void main() {"
-			" vec4 pos = proj * view * model_matrix * vec4(i_pos, 1.0f);"
-			" gl_Position = pos;"
+		"void main() {\n"
+			
+			" vec4 pos = proj * view * model_matrix * vec4(i_pos, 1.0f);\n"
+			" gl_Position = pos;\n"
 
-			" frag.pos = pos.xyz;"
-			" frag.normal = pos.xyz;"
-			" camera_pos = view[3].xyz;"
+			" frag.pos = vec3(model_matrix * vec4(i_pos, 1.0f));\n"
+			" frag.normal = i_normal;\n"
+			" camera_pos = cam_pos;\n"
 
-		"}";
+		"}\n";
 
 	vertex_module = VCoreCompileShaderModule(buf, GL_VERTEX_SHADER, VCORE_COMPILE_INTERNAL_SHADER);
 	if(!VCoreIsShaderOk(vertex_module, VCORE_SHADER_MODULE)) {
@@ -188,18 +213,21 @@ void VCoreCompileDefaultVertexModule() {
 
 uint32 VCoreLinkShaderModule(uint32 module_id) {
 	uint32 program_id = glCreateProgram();	
-
-	glAttachShader(program_id, vertex_module);
-	glAttachShader(program_id, module_id);
-	glLinkProgram(program_id);
-
-	glDeleteShader(module_id);
-	if(!VCoreIsShaderOk(program_id, VCORE_SHADER_PROGRAM)) {
-		VMessage(VMSG_ERROR, "Failed to link shader!");
-		glDeleteProgram(program_id);
-		program_id = 0;
+	if(program_id == 0) {
+		VMessage(VMSG_ERROR, "Failed to create shader program!");
 	}
+	else {
+		glAttachShader(program_id, vertex_module);
+		glAttachShader(program_id, module_id);
+		glLinkProgram(program_id);
 
+		glDeleteShader(module_id);
+		if(!VCoreIsShaderOk(program_id, VCORE_SHADER_PROGRAM)) {
+			VMessage(VMSG_ERROR, "Failed to link shader!");
+			glDeleteProgram(program_id);
+			program_id = 0;
+		}
+	}
 	return program_id;
 }
 
