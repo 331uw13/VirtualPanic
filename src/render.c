@@ -12,6 +12,9 @@
 static VRenderData** renderable_data = NULL;
 static uint32 renderable_data_size = 0;
 
+// WHY DID I EVER DO THIS LIKE THIS PLEASE???????
+// TODO: rewrite..
+
 
 VRenderData* VCreateEmptyRenderData() {
 	VMessage(VMSG_DEBUG, __FUNCTION__);
