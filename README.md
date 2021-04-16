@@ -4,7 +4,7 @@
 [Visit Wiki](https://331uw13.github.io/VirtualPanicWiki/)
 
 ### Aims to be very simple and fast 3D graphics library with OpenGL
-( work in progress )
+( work in progress(nevermind... they took my meds away and i cant get anything done.) )
 
 Todo:
 
