@@ -3,7 +3,7 @@
 
 
 ### Aims to be very simple and fast 3D graphics library with OpenGL
-(nevermind... they took my meds away and i cant get anything done.)
+(work in progress)
 
 Todo:
 
