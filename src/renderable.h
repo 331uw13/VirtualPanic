@@ -12,10 +12,8 @@ typedef struct {
 	uint32 size;
 	VShader shader;
 	uint32 texture;
-	uint32 points; // delete this
 	uint32 id;
 	VMatrix matrix;
-	uint8 wireframe; // delete this
 } VRenderData;
 
 

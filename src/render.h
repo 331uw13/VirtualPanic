@@ -15,7 +15,7 @@ VRenderData* VCreateNewBox(float initial_x, float initial_y, float initial_z);
 VRenderData* VCreateNewPlane(float initial_x, float initial_y, float initial_z);
 VRenderData* VCreateNewShape(float* points, uint32 size);
 
-
+void VSetWireframeEnabled(uint8 b);
 void VRender(VRenderData* rdata);
 
 

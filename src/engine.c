@@ -152,7 +152,6 @@ void VEngineInit(const char* title) {
 	
 	glfwMakeContextCurrent(window);
 	glfwSetWindowPos(window, mon_x, mon_y);
-	glfwSwapInterval(1);
 
 	VMessage(VMSG_INFO, "Initialize gl3w... ");
 	if(gl3wInit()) {
@@ -284,6 +283,11 @@ void VEngineShutdown() {
 
 int VGetEngineStatus() {
 	return engine_status;
+}
+
+
+void VEngineSetVSyncEnabled(uint8 b) {
+	glfwSwapInterval(b);
 }
 
 

@@ -15,6 +15,7 @@ void VEngineStart();
 void VEngineFree();
 void VEngineShutdown();
 int VGetEngineStatus();
+void VEngineSetVSyncEnabled(uint8 b);
 void VEngineSetCameraEnabled(uint8 b);
 void VEngineSetf(uint32 flag, float value);
 float VEngineGetf(uint32 flag);

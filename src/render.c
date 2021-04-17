@@ -12,13 +12,13 @@
 static VRenderData** renderable_data = NULL;
 static uint32 renderable_data_size = 0;
 
-
 VRenderData* VCreateEmptyRenderData() {
 	VMessage(VMSG_DEBUG, __FUNCTION__);
 	
 	VRenderData* res = NULL;
-	VRenderData** tmpdata_ptr = NULL;
-	
+	//VRenderData** tmpdata_ptr = NULL;
+
+/*	
 	// First check if there is any free space left for use.
 	uint8 found_free = 0;
 	uint32 next_free_index = 0;
@@ -30,12 +30,26 @@ VRenderData* VCreateEmptyRenderData() {
 			break;
 		}
 	}	
-	
-	if(!found_free) {
-		// No free space were found so allocate more.
-		// When renderable_data is equal to NULL this realloc call will be equal to malloc(sizeof *renderable_data)
-		tmpdata_ptr = realloc(renderable_data, sizeof *renderable_data * (renderable_data_size+1));
+*/	
+
+
+	if(VCoreUAllocBack(&renderable_data, sizeof *renderable_data * renderable_data_size, &res, sizeof(VRenderData))) {
+		res->id = renderable_data_size;
+		res->vao = 0;
+		res->vbo = 0;
+		res->shader = VGetFirstCreatedShader();
+		res->texture = 0;
+		VNullMatrix(&res->matrix);
+		glGenVertexArrays(1, &res->vao);
+		glGenBuffers(1, &res->vbo);
+
+		renderable_data[renderable_data_size] = res;
+		renderable_data_size++;
 	}
+
+	/*
+	// When renderable_data is equal to NULL this realloc call will be equal to malloc(sizeof *renderable_data)
+	tmpdata_ptr = realloc(renderable_data, sizeof *renderable_data * (renderable_data_size+1));
 
 	if(found_free || tmpdata_ptr != NULL) {
 		renderable_data = tmpdata_ptr;
@@ -52,13 +66,8 @@ VRenderData* VCreateEmptyRenderData() {
 			glGenVertexArrays(1, &res->vao);
 			glGenBuffers(1, &res->vbo);
 
-			if(found_free) {
-				renderable_data[next_free_index] = res;
-			}
-			else {
-				renderable_data[renderable_data_size] = res;
-				renderable_data_size++;
-			}
+			renderable_data[renderable_data_size] = res;
+			renderable_data_size++;
 		}
 	   	else {
 			VMessage(VMSG_ERROR, "Failed to allocate memory for new render data!");
@@ -66,7 +75,7 @@ VRenderData* VCreateEmptyRenderData() {
 				VMessage(VMSG_ERROR, "Out of memory!");
 			}
 
-			if(!found_free && renderable_data_size > 0) {
+			if(renderable_data_size > 0) {
 				// Shrink 'renderable_data' by one because it is not needed anymore.
 				// I dont how this could go wrong but just to be safe from memory leaks anyway.
 				tmpdata_ptr = NULL;
@@ -83,6 +92,7 @@ VRenderData* VCreateEmptyRenderData() {
 			VMessage(VMSG_ERROR, "Out of memory!");
 		}
    	}
+	*/
 
 	return res;
 }
@@ -176,7 +186,7 @@ VRenderData* VCreateNewShape(float* points, uint32 size) {
 		
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		rdata->points = (size/sizeof(float))/6;
+		//rdata->points = (size/sizeof(float))/6;
 
 		rdata->size = size/sizeof(float);
 	}
@@ -261,12 +271,17 @@ VRenderData* VCreateNewPlane(float initial_x, float initial_y, float initial_z) 
 }
 
 
+void VSetWireframeEnabled(uint8 b) {
+	glPolygonMode(GL_FRONT_AND_BACK, b ? GL_LINE : GL_FILL);
+}
+
+
 void VRender(VRenderData* rdata) {
-	//if(rdata == NULL) { return; }
+	if(rdata == NULL) { return; }
 	glUseProgram(rdata->shader);
 	VShaderSetMatrix(rdata->shader, "model_matrix", &rdata->matrix);
 	glBindVertexArray(rdata->vao);
-	glDrawArrays(GL_TRIANGLES, 0, rdata->points);
+	glDrawArrays(GL_TRIANGLES, 0, rdata->size/6);
 }	
 
 
