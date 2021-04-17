@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "libs/gl3w.h"
 
 #include "utils.h"
@@ -37,8 +38,6 @@ Vector3 VCross(Vector3 v0, Vector3 v1) {
 	return c;
 }
 
-
-#include <stdio.h>
 
 void VComputeNormals(VRenderData* rdata) {
 	if(rdata == NULL) { return; }

@@ -16,8 +16,8 @@ VShader VCreateShader(const char* src) {
 	
 	if(module_id != 0) {
 		shader = VCoreLinkShaderModule(module_id);
-		VShaderAddUniformBlockBinding(shader, "vpanic__vertex_data", 83);
-		VShaderAddUniformBlockBinding(shader, "vpanic__fragment_data", 82);
+		VShaderAddUniformBlockBinding(shader, "vpanic_vertex_data", 83);
+		VShaderAddUniformBlockBinding(shader, "vpanic_fragment_data", 82);
 
 		if(first_created_shader == 0) {
 			first_created_shader = shader;
@@ -52,33 +52,36 @@ void VShaderAddUniformBlockBinding(VShader shader, const char* block_name, uint3
 }
 
 
-void VShaderSetMatrix(VShader shader, uint32 uniform_index, VMatrix* m) {
+// TODO: optimize this!
+// currently its getting uniform location for everytime setting it..
+
+void VShaderSetMatrix(VShader shader, const char* name, VMatrix* m) {
 	glUseProgram(shader);
-	glUniformMatrix4fv(uniform_index, 1, GL_FALSE, &m->data[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shader, name), 1, GL_FALSE, &m->data[0][0]);
 }
 
 
-void VShaderSetColor(VShader shader, uint32 uniform_index, VColor* c) {
+void VShaderSetVector3(VShader shader, const char* name, Vector3* v) {
 	glUseProgram(shader);
-	glUniform4f(uniform_index, (float)c->r/255.f, (float)c->g/255.f, (float)c->b/255.f, (float)c->a/255.f);
+	glUniform3f(glGetUniformLocation(shader, name), v->x, v->y, v->z);
 }
 
 
-void VShaderSetVector3(VShader shader, uint32 uniform_index, Vector3* v) {
+void VShaderSetVector4(VShader shader, const char* name, Vector4* v) {
 	glUseProgram(shader);
-	glUniform3f(uniform_index, v->x, v->y, v->z);
+	glUniform4f(glGetUniformLocation(shader, name), v->x, v->y, v->z, v->w);
 }
 
 
-void VShaderSetFloat(VShader shader, uint32 uniform_index, float f) {
+void VShaderSetFloat(VShader shader, const char* name, float f) {
 	glUseProgram(shader);
-	glUniform1f(uniform_index, f);
+	glUniform1f(glGetUniformLocation(shader, name), f);
 }
 
 
-void VShaderSetInt(VShader shader, uint32 uniform_index, int i) {
+void VShaderSetInt(VShader shader, const char* name, int i) {
 	glUseProgram(shader);
-	glUniform1i(uniform_index, i);
+	glUniform1i(glGetUniformLocation(shader, name), i);
 }
 
 

@@ -26,4 +26,8 @@ uint8 VKeyDown(uint32 k);
 uint8 VKeyUp(uint32 k); // DELETE THIS
 
 
+VMatrix VEngineGetProjection();
+VMatrix VEngineGetView();
+
+
 #endif

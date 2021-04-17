@@ -69,14 +69,15 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 				"};\n"
 				
 				"struct Light {\n"
-					" vec3 pos;\n"
+					" vec4 pos;\n" 
+					" vec4 color;\n"
 					" float radius;\n"
 					" float ambience;\n"
 					" float diffusion;\n"
 					" float specularity;\n"
 				"};\n"
 				
-				"layout(std140, binding = 82) uniform vpanic__fragment_data {\n"
+				"layout(std140, binding = 82) uniform vpanic_fragment_data {\n"
 					" Light lights[];\n"
 				"};\n"
 
@@ -84,44 +85,34 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 				"in vec3 camera_pos;\n"
 				"in Fragment frag;\n"
 
-				// TODO: Light system!
-				"\n"
-				"#define LIGHT_AMBIENT   0.65f\n"
-				"#define LIGHT_DIFFUSE   0.2f\n"
-				"#define LIGHT_SPECULAR  0.3f\n"
-				"#define LIGHT_SHINE     64.f\n"
-				"vec3 light_pos = vec3(0.0f, 2.0f, 0.0f);\n"
-				"vec4 light_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
-				"float light_radius = 15.0f;\n"
-
-				"vec4 shape_color = vec4(0.05f, 1.0f, 0.05f, 1.0f);\n"
+				"vec4 shape_color = vec4(1.0f);\n"
 
 
-				"vec3 compute_light() {\n"
-					" vec3 item_color = shape_color.xyz * light_color.xyz;\n"
-					
-					//" light_pos = camera_pos;" // DELETE THIS
-
-					" vec3 norm = normalize(frag.normal);\n"
-					" vec3 light_dir = normalize(light_pos - frag.pos);\n"
-					" vec3 view_dir = normalize(camera_pos - frag.pos);\n"
-					" vec3 halfway_dir = normalize(light_dir + view_dir);\n"
-					//" vec3 reflect_dir = reflect(-light_dir, norm);"
+				"vec3 compute_light(Light light) {\n"
+				
+					" vec3 item_color = shape_color.xyz * light.color.xyz;\n"
+	
+					"vec3 norm = normalize(frag.normal);\n"
+					"vec3 light_dir = normalize(light.pos.xyz - frag.pos);\n"
+					"vec3 view_dir = normalize(camera_pos - frag.pos);\n"
+					"vec3 halfway_dir = normalize(light_dir + view_dir);\n"
 					
 					// Diffuse
 					"float diff = max(dot(norm, light_dir), 0.0f);\n"
-					"vec3 diffuse = LIGHT_DIFFUSE * diff * item_color;\n"
+					"vec3 diffuse = light.diffusion * diff * item_color;\n"
 
 					// Specular
-					"float spec = pow(max(dot(halfway_dir, norm), 0.0f), LIGHT_SHINE);\n"
-					"vec3 specular = LIGHT_SPECULAR * spec * item_color;\n"
+					"float spec = pow(max(dot(halfway_dir, norm), 0.0f), 64.f);\n"
+					"vec3 specular = light.specularity * spec * item_color;\n"
 
 					// Ambient
-					" vec3 ambient = LIGHT_AMBIENT * item_color;\n"
+					" vec3 ambient = light.ambience * item_color;\n"
 
-					"light_radius *= 0.5f;\n"
-					"float dist = length(light_pos - frag.pos);\n"
-					"float att = smoothstep(light_radius + dist, 0.0f, dist);\n"
+					"light.radius *= 0.5f;\n"
+					"light.radius = max(light.radius, 0.0f);"
+					"float rd = 15.f*0.5;"
+					"float dist = length(light.pos.xyz - frag.pos);\n"
+					"float att = smoothstep(light.radius + dist, 0.0f, dist);\n"
 
 					"diffuse *= att;\n"
 					"specular *= att;\n"
@@ -132,10 +123,10 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 
 			const int src_length = strlen(src);
 			const int src_utils_length = strlen(src_utils);
-			
+		
 			char* buf = NULL;
 			int buf_length = src_length + src_utils_length;
-			buf = malloc(buf_length);
+			buf = malloc(buf_length+1);
 
 			if(buf == NULL) {
 				VMessage(VMSG_ERROR, "Failed to allocate memory for shader source!");
@@ -146,7 +137,7 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 				memmove(buf, src_utils, src_utils_length);
 				memmove(buf + src_utils_length, src, src_length);
 				buf[buf_length] = '\0';
-			
+		
 				VMessage(VMSG_DEBUG, "glShaderSource(%p) | module_id: %i (VCORE_COMPILE_USER_SHADER)", buf, module_id);
 				glShaderSource(module_id, 1, (const char* const*)&buf, NULL);
 				free(buf);
@@ -176,7 +167,7 @@ void VCoreCompileDefaultVertexModule() {
 		"layout(location = 0) in vec3 i_pos;\n"
 		"layout(location = 1) in vec3 i_normal;\n"
 
-		"layout (std140, binding = 83) uniform vpanic__vertex_data {\n"
+		"layout (std140, binding = 83) uniform vpanic_vertex_data {\n"
 			" uniform mat4 view;\n"
 			" uniform mat4 proj;\n"
 			" uniform vec3 cam_pos;\n"
@@ -192,7 +183,7 @@ void VCoreCompileDefaultVertexModule() {
 		
 		"uniform mat4 model_matrix;\n"
 
-
+		
 		"void main() {\n"
 			
 			" vec4 pos = proj * view * model_matrix * vec4(i_pos, 1.0f);\n"

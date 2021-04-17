@@ -8,6 +8,7 @@
 #include "messages.h"
 #include "utils.h"
 #include "render.h"
+#include "light.h"
 #include "internal/core.h"
 #include "internal/utils.h"
 
@@ -23,6 +24,8 @@ static void VEngineUpdateStatus_I();
 static void VEngineUpdatePlayer_I(double delta_time);
 static void VEngineUpdateProjection_I();
 
+static VMatrix engine_proj_matrix;
+static VMatrix engine_view_matrix;
 
 
 void VEngineUpdatePlayer_I(double delta_time) {
@@ -77,6 +80,9 @@ void VEngineUpdatePlayer_I(double delta_time) {
 	VComputeViewMatrix(&view, plr->camera.position, plr->camera.direction);
 	VUniformBufferData(&engine_ubo, &view, sizeof view, 0);
 	VUniformBufferData(&engine_ubo, &plr->camera.position, sizeof plr->camera.position, sizeof view * 2);
+	
+	engine_view_matrix = view;
+
 }
 
 
@@ -90,6 +96,7 @@ void VEngineUpdateProjection_I() {
 		   	engine_valuesf[VENGINE_ZFAR]);
 	
 	VUniformBufferData(&engine_ubo, &proj, sizeof proj, sizeof proj);
+	engine_proj_matrix = proj;
 }
 
 
@@ -186,7 +193,8 @@ void VEngineInit(const char* title) {
 	VEngineUpdateStatus_I();
 	VCoreCompileDefaultVertexModule();
 	VCreateNewPlayer();
-	
+	VCreateLightUniformBuffer();
+
 	VMessage(VMSG_OK, "Engine is ready!");
 	if(engine_setup_callback != NULL) {
 		engine_setup_callback();
@@ -340,5 +348,13 @@ uint8 VKeyDown(uint32 k) {
 uint8 VKeyUp(uint32 k) {
 	const uint32 c = (k > 0x7E) ? k : (k < 0x61) ? k : k - 0x20;
 	return (glfwGetKey(window, c) == GLFW_RELEASE);
+}
+
+VMatrix VEngineGetProjection() {
+	return engine_proj_matrix;
+}
+
+VMatrix VEngineGetView() {
+	return engine_view_matrix;
 }
 

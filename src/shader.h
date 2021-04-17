@@ -12,11 +12,11 @@ VShader VGetFirstCreatedShader();
 void VDestroyShader(VShader* id);
 void VShaderAddUniformBlockBinding(VShader shader, const char* block_name, uint32 binding_point);
 
-void VShaderSetMatrix(VShader shader, uint32 uniform_index, VMatrix* m);
-void VShaderSetColor(VShader shader, uint32 uniform_index, VColor* c);
-void VShaderSetVector3(VShader shader, uint32 uniform_index, Vector3* v);
-void VShaderSetFloat(VShader shader, uint32 uniform_index, float f);
-void VShaderSetInt(VShader shader, uint32 uniform_index, int i);
+void VShaderSetMatrix(VShader shader, const char* name, VMatrix* m);
+void VShaderSetVector3(VShader shader, const char* name, Vector3* v);
+void VShaderSetVector4(VShader shader, const char* name, Vector4* v);
+void VShaderSetFloat(VShader shader, const char* name, float f);
+void VShaderSetInt(VShader shader, const char* name, int i);
 
 
 #endif

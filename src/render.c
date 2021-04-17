@@ -12,9 +12,6 @@
 static VRenderData** renderable_data = NULL;
 static uint32 renderable_data_size = 0;
 
-// WHY DID I EVER DO THIS LIKE THIS PLEASE???????
-// TODO: rewrite..
-
 
 VRenderData* VCreateEmptyRenderData() {
 	VMessage(VMSG_DEBUG, __FUNCTION__);
@@ -179,7 +176,8 @@ VRenderData* VCreateNewShape(float* points, uint32 size) {
 		
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		rdata->points = ((size/2)/sizeof(float))/3;	
+		rdata->points = (size/sizeof(float))/6;
+
 		rdata->size = size/sizeof(float);
 	}
 
@@ -264,9 +262,9 @@ VRenderData* VCreateNewPlane(float initial_x, float initial_y, float initial_z) 
 
 
 void VRender(VRenderData* rdata) {
-	if(rdata == NULL) { return; }
+	//if(rdata == NULL) { return; }
 	glUseProgram(rdata->shader);
-	VShaderSetMatrix(rdata->shader, VCORE_MODEL_MATRIX_INDEX, &rdata->matrix);
+	VShaderSetMatrix(rdata->shader, "model_matrix", &rdata->matrix);
 	glBindVertexArray(rdata->vao);
 	glDrawArrays(GL_TRIANGLES, 0, rdata->points);
 }	
