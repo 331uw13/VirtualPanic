@@ -266,7 +266,7 @@ void VEngineFree() {
 	VMessage(VMSG_DEBUG, __FUNCTION__);
 	glfwTerminate();
 	glfwDestroyWindow(window);
-	VDestroyAllRenderData();
+	//VDestroyAllRenderData();
 	VDestroyUniformBuffer(&engine_ubo);
 	VDestroyPlayer();
 

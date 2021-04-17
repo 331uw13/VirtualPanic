@@ -16,14 +16,14 @@ void VMaxLights(uint32 count) {
 }
 
 
-void VUpdateLights(VLight* lights, uint32 size) {
+void VUpdateLights(VLight* lights, uint32 index, uint32 size) {
 
 	// TODO: map buffer.. its faster.
 	
 	//VUniformBufferData(&light_ubo, lights, sizeof *lights * size, 0);
 	
 	uint32 off = 0;
-	for(uint32 i = 0; i < size; i++) {
+	for(uint32 i = index; i < size; i++) {
 
 		VLight* l = &lights[i];
 

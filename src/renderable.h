@@ -12,7 +12,7 @@ typedef struct {
 	uint32 size;
 	VShader shader;
 	uint32 texture;
-	uint32 id;
+//	uint32 id;
 	VMatrix matrix;
 } VRenderData;
 

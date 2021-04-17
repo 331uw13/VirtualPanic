@@ -15,7 +15,7 @@ typedef struct {
 
 void VCreateLightUniformBuffer();
 void VMaxLights(uint32 count);
-void VUpdateLights(VLight* lights, uint32 size);
+void VUpdateLights(VLight* lights, uint32 index, uint32 size);
 
 
 #endif

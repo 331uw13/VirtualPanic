@@ -17,8 +17,9 @@
 
 static VShader shader = 0;
 
-VRenderData* box = NULL;
-VRenderData* plane = NULL;
+
+VRenderData box;
+VRenderData plane;
 
 VLight lights[2];
 float add = 0.0f;
@@ -38,12 +39,11 @@ void update(double delta_time) {
 
 	add += 0.03f;
 
-	VUpdateLights(lights, 2);
+	VUpdateLights(lights, 0, 2);
 	
 
-	VRender(box);
-	VRender(plane);
-	
+	VRender(&box);
+	VRender(&plane);
 
 	if(VKeyDown('T') && !keywasdown) {
 		VEngineSetCameraEnabled(camera_enabled =! camera_enabled);
@@ -74,11 +74,17 @@ void setup() {
 			"}"
 			);
 
-	box = VCreateNewBox(0.0f, 0.0f, -10.0f);
-	plane = VCreateNewPlane(0.0f, -1.0f, 0.0f);
+	VCreateNewBox(&box);
+	VCreateNewPlane(&plane);
 
-	VComputeNormals(box);
-	VComputeNormals(plane);
+	VMatrixTranslate(&box.matrix, 0.0f, 0.0f, -10.f);
+	VMatrixTranslate(&plane.matrix, 0.0f, -1.0f, 0.0f);
+	VMatrixScale(&plane.matrix, 50.f, 0.0f, 50.f);
+	
+	VComputeNormals(&box);
+	VComputeNormals(&plane);
+
+
 
 	float ambience = 0.65f;
 	float diffusion = 0.3f;
@@ -106,11 +112,13 @@ void setup() {
 	lights[1].diffusion = diffusion;
 	lights[1].specularity = specularity;
 
-	VUpdateLights(lights, 2);
+	VUpdateLights(lights, 0, 2);
 
 
-	VMatrixScale(&plane->matrix, 50.f, 0.0f, 50.f);
 	VEngineStart();
+
+	VDestroyRenderData(&box);
+	VDestroyRenderData(&plane);
 }
 
 
