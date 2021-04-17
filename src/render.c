@@ -7,6 +7,7 @@
 #include "messages.h"
 #include "status.h"
 #include "internal/core.h"
+#include "internal/utils.h"
 
 
 static VRenderData** renderable_data = NULL;
