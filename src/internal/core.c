@@ -67,6 +67,13 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 					" vec3 pos;\n"
 					" vec3 normal;\n"
 				"};\n"
+
+				"struct Material {\n"
+					" vec4 color;"
+					" float reflectivity;"
+					//" float smoothness;"
+					//" float test;"
+				"};\n"
 				
 				"struct Light {\n"
 					" vec4 pos;\n" 
@@ -85,32 +92,28 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 				"in vec3 camera_pos;\n"
 				"in Fragment frag;\n"
 
-				"vec4 shape_color = vec4(1.0f);\n"
+				"uniform Material material;"
 
 
 				"vec3 compute_light(Light light) {\n"
 				
-					" vec3 item_color = shape_color.xyz * light.color.xyz;\n"
+					" vec3 item_color = material.color.xyz * light.color.xyz;\n"
 	
 					"vec3 norm = normalize(frag.normal);\n"
 					"vec3 light_dir = normalize(light.pos.xyz - frag.pos);\n"
 					"vec3 view_dir = normalize(camera_pos - frag.pos);\n"
 					"vec3 halfway_dir = normalize(light_dir + view_dir);\n"
 					
-					// Diffuse
 					"float diff = max(dot(norm, light_dir), 0.0f);\n"
 					"vec3 diffuse = light.diffusion * diff * item_color;\n"
 
-					// Specular
-					"float spec = pow(max(dot(halfway_dir, norm), 0.0f), 64.f);\n"
+					"float spec = pow(max(dot(halfway_dir, norm), 0.0f), material.reflectivity);\n"
 					"vec3 specular = light.specularity * spec * item_color;\n"
 
-					// Ambient
 					" vec3 ambient = light.ambience * item_color;\n"
 
 					"light.radius *= 0.5f;\n"
 					"light.radius = max(light.radius, 0.0f);"
-					"float rd = 15.f*0.5;"
 					"float dist = length(light.pos.xyz - frag.pos);\n"
 					"float att = smoothstep(light.radius + dist, 0.0f, dist);\n"
 

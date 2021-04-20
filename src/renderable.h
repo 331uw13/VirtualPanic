@@ -4,6 +4,7 @@
 #include "matrix.h"
 #include "types.h"
 #include "shader.h"
+#include "material.h"
 
 
 typedef struct {
@@ -12,8 +13,8 @@ typedef struct {
 	uint32 size;
 	VShader shader;
 	uint32 texture;
-//	uint32 id;
 	VMatrix matrix;
+	VMaterial material;
 } VRenderData;
 
 

@@ -125,8 +125,13 @@ void VSetWireframeEnabled(uint8 b) {
 
 void VRender(VRenderData* rdata) {
 	if(rdata == NULL) { return; }
-	glUseProgram(rdata->shader);
+
+	//glUseProgram(rdata->shader);
 	VShaderSetMatrix(rdata->shader, "model_matrix", &rdata->matrix);
+	VShaderSetVector4(rdata->shader, "material.color", &rdata->material.color);
+	VShaderSetFloat(rdata->shader, "material.reflectivity", rdata->material.reflectivity);
+	//VShaderSetFloat(rdata->shader, "material.smoothness", &rdata->material.smoothness);
+	//VShaderSetFloat(rdata->shader, "material.test", rdata->material.test);
 	glBindVertexArray(rdata->vao);
 	glDrawArrays(GL_TRIANGLES, 0, rdata->size/6);
 }	

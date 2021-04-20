@@ -8,7 +8,6 @@
 static VPlayer* player;
 
 
-
 VPlayer* VCreateNewPlayer() {
 	if(player == NULL) {
 		if((player = malloc(sizeof *player)) != NULL) {
