@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "engine.h"
 #include "messages.h"
@@ -193,6 +194,7 @@ void VEngineInit(const char* title) {
 	VCoreCompileDefaultVertexModule();
 	VCreateNewPlayer();
 	VCreateLightUniformBuffer();
+	VSetSeed(time(0));
 
 	VMessage(VMSG_OK, "Engine is ready!");
 	if(engine_setup_callback != NULL) {

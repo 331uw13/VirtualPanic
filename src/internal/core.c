@@ -96,7 +96,6 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 
 
 				"vec3 compute_light(Light light) {\n"
-				
 					" vec3 item_color = material.color.xyz * light.color.xyz;\n"
 	
 					"vec3 norm = normalize(frag.normal);\n"
@@ -107,10 +106,10 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 					"float diff = max(dot(norm, light_dir), 0.0f);\n"
 					"vec3 diffuse = light.diffusion * diff * item_color;\n"
 
-					"float spec = pow(max(dot(halfway_dir, norm), 0.0f), material.reflectivity);\n"
+					"float spec = pow(max(dot(halfway_dir, norm), 0.0f), max(material.reflectivity, 1.0f));\n"
 					"vec3 specular = light.specularity * spec * item_color;\n"
 
-					" vec3 ambient = light.ambience * item_color;\n"
+					"vec3 ambient = light.ambience * item_color;\n"
 
 					"light.radius *= 0.5f;\n"
 					"light.radius = max(light.radius, 0.0f);"
@@ -193,7 +192,8 @@ void VCoreCompileDefaultVertexModule() {
 			" gl_Position = pos;\n"
 
 			" frag.pos = vec3(model_matrix * vec4(i_pos, 1.0f));\n"
-			" frag.normal = i_normal;\n"
+			" frag.normal = i_normal;"
+			//" frag.normal = mat3(transpose(inverse(model_matrix)))*i_normal;\n"
 			" camera_pos = cam_pos;\n"
 
 		"}\n";

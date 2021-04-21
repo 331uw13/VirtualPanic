@@ -53,31 +53,87 @@ void VMatrixTranslate(VMatrix* dest, float x, float y, float z) {
 	dest->data[3][2] = dest->data[0][2]*x + dest->data[1][2]*y + dest->data[2][2]*z + dest->data[3][2];
 	dest->data[3][3] = dest->data[0][3]*x + dest->data[1][3]*y + dest->data[2][3]*z + dest->data[3][3];
 }
+/*
+
+   0, 1, 2, 3        0, 0, 0, 0
+   0, 1, 2, 3        1, 1, 1, 1
+   0, 1, 2, 3        2, 2, 2, 2
+   0, 1, 2, 3        3, 3, 3, 3
+
+   2, 3, 7     9, 2, 1          2*9 + 3*6 + 7*7, ...
+   8, 5, 1     6, 3, 7          ...
+   4, 9, 2     7, 2, 4
+
+
+*/
 
 
 void VMatrixMerge(VMatrix* dest, VMatrix* a, VMatrix* b) {
-
-	// TODO: for loop... but make sure it works first.. lol
+	for(int i = 0; i < 4; i++) {
 	
-	dest->data[0][0] = a->data[0][0]*b->data[0][0] + a->data[1][0]*b->data[0][1] + a->data[2][0]*b->data[0][2] + a->data[3][0]*b->data[0][3]; 
-	dest->data[0][1] = a->data[0][1]*b->data[0][0] + a->data[1][1]*b->data[0][1] + a->data[2][1]*b->data[0][2] + a->data[3][1]*b->data[0][3]; 
-	dest->data[0][2] = a->data[0][2]*b->data[0][0] + a->data[1][2]*b->data[0][1] + a->data[2][2]*b->data[0][2] + a->data[3][2]*b->data[0][3]; 
-	dest->data[0][3] = a->data[0][3]*b->data[0][0] + a->data[1][3]*b->data[0][1] + a->data[2][3]*b->data[0][2] + a->data[3][3]*b->data[0][3]; 
+		dest->data[i][0] = a->data[0][0]*b->data[i][0] + a->data[1][0]*b->data[i][1] + a->data[2][0]*b->data[i][2] + a->data[3][0]*b->data[i][3];
+		dest->data[i][1] = a->data[0][1]*b->data[i][0] + a->data[1][1]*b->data[i][1] + a->data[2][1]*b->data[i][2] + a->data[3][1]*b->data[i][3];
+		dest->data[i][2] = a->data[0][2]*b->data[i][0] + a->data[1][2]*b->data[i][1] + a->data[2][2]*b->data[i][2] + a->data[3][2]*b->data[i][3];
+		dest->data[i][3] = a->data[0][3]*b->data[i][0] + a->data[1][3]*b->data[i][1] + a->data[2][3]*b->data[i][2] + a->data[3][3]*b->data[i][3];
+		
+		/*
+		dest->data[i][0] = a->data[0][0]*b->data[i][0] + a->data[1][0]*b->data[i][0] + a->data[2][0]*b->data[i][0] + a->data[3][0]*b->data[i][0];
+		dest->data[i][1] = a->data[0][1]*b->data[i][0] + a->data[1][1]*b->data[i][1] + a->data[2][1]*b->data[i][1] + a->data[3][1]*b->data[i][1];
+		dest->data[i][2] = a->data[0][2]*b->data[i][0] + a->data[1][2]*b->data[i][2] + a->data[2][2]*b->data[i][2] + a->data[3][2]*b->data[i][2];
+		dest->data[i][3] = a->data[0][3]*b->data[i][0] + a->data[1][3]*b->data[i][3] + a->data[2][3]*b->data[i][3] + a->data[3][3]*b->data[i][3];
+		*/
+	}
+}
 
-	dest->data[1][0] = a->data[0][0]*b->data[1][0] + a->data[1][0]*b->data[1][1] + a->data[2][0]*b->data[1][2] + a->data[3][0]*b->data[1][3]; 
-	dest->data[1][1] = a->data[0][1]*b->data[1][0] + a->data[1][1]*b->data[1][1] + a->data[2][1]*b->data[1][2] + a->data[3][1]*b->data[1][3]; 
-	dest->data[1][2] = a->data[0][2]*b->data[1][0] + a->data[1][2]*b->data[1][1] + a->data[2][2]*b->data[1][2] + a->data[3][2]*b->data[1][3]; 
-	dest->data[1][3] = a->data[0][3]*b->data[1][0] + a->data[1][3]*b->data[1][1] + a->data[2][3]*b->data[1][2] + a->data[3][3]*b->data[1][3]; 
 
-	dest->data[2][0] = a->data[0][0]*b->data[2][0] + a->data[1][0]*b->data[2][1] + a->data[2][0]*b->data[2][2] + a->data[3][0]*b->data[2][3]; 
-	dest->data[2][1] = a->data[0][1]*b->data[2][0] + a->data[1][1]*b->data[2][1] + a->data[2][1]*b->data[2][2] + a->data[3][1]*b->data[2][3]; 
-	dest->data[2][2] = a->data[0][2]*b->data[2][0] + a->data[1][2]*b->data[2][1] + a->data[2][2]*b->data[2][2] + a->data[3][2]*b->data[2][3]; 
-	dest->data[2][3] = a->data[0][3]*b->data[2][0] + a->data[1][3]*b->data[2][1] + a->data[2][3]*b->data[2][2] + a->data[3][3]*b->data[2][3]; 
+void VMatrixRotateX(VMatrix* dest, float angle) {
+	float c = cos(angle);
+	float s = sin(angle);
+
+	VMatrix m;
+	VNullMatrix(&m);
+
+	m.data[1][1] = c;
+	m.data[1][2] = -s;
+	m.data[2][1] = s;
+	m.data[2][2] = c;
+
+	VMatrix tmp = *dest;
+	VMatrixMerge(dest, &tmp, &m);
+}
+
+
+void VMatrixRotateY(VMatrix* dest, float angle) {
+	float c = cos(angle);
+	float s = sin(angle);
+
+	VMatrix m;
+	VNullMatrix(&m);
 	
-	dest->data[0][0] = a->data[0][0]*b->data[3][0] + a->data[1][0]*b->data[3][1] + a->data[2][0]*b->data[3][2] + a->data[3][0]*b->data[3][3]; 
-	dest->data[0][1] = a->data[0][1]*b->data[3][0] + a->data[1][1]*b->data[3][1] + a->data[2][1]*b->data[3][2] + a->data[3][1]*b->data[3][3]; 
-	dest->data[0][2] = a->data[0][2]*b->data[3][0] + a->data[1][2]*b->data[3][1] + a->data[2][2]*b->data[3][2] + a->data[3][2]*b->data[3][3]; 
-	dest->data[0][3] = a->data[0][3]*b->data[3][0] + a->data[1][3]*b->data[3][1] + a->data[2][3]*b->data[3][2] + a->data[3][3]*b->data[3][3]; 
+	m.data[0][0] = c;
+	m.data[0][2] = s;
+	m.data[2][0] = -s;
+	m.data[2][2] = c;
+	
+	VMatrix tmp = *dest;
+	VMatrixMerge(dest, &tmp, &m);
+}
+
+
+void VMatrixRotateZ(VMatrix* dest, float angle) {
+	float c = cos(angle);
+	float s = sin(angle);
+
+	VMatrix m;
+	VNullMatrix(&m);
+
+	m.data[0][0] = c;
+	m.data[0][1] = -s;
+	m.data[1][0] = s;
+	m.data[1][1] = c;
+
+	VMatrix tmp = *dest;
+	VMatrixMerge(dest, &tmp, &m);
 }
 
 
@@ -126,8 +182,6 @@ void VComputeViewMatrix(VMatrix* dest, Vector3 position, Vector3 direction) {
 	dest->data[3][0] = -VDot(s, position);
 	dest->data[3][1] = -VDot(u, position);
 	dest->data[3][2] =  VDot(f, position);
-
-
 }
 
 

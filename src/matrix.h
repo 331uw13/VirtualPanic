@@ -14,10 +14,12 @@ void VNullMatrix(VMatrix* matrix);
 void VMatrixScale(VMatrix* dest, float x, float y, float z);
 void VMatrixTranslate(VMatrix* dest, float x, float y, float z);
 void VMatrixMerge(VMatrix* dest, VMatrix* a, VMatrix* b);
-/*
+
 void VMatrixRotateX(VMatrix* dest, float angle);
 void VMatrixRotateY(VMatrix* dest, float angle);
 void VMatrixRotateZ(VMatrix* dest, float angle);
+
+/*
 void VMatrixCopyRotation(VMatrix* dest, VMatrix* src);
 
 Vector3 VGetMatrixTranslation(VMatrix* m);

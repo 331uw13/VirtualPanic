@@ -5,6 +5,9 @@
 #include "messages.h"
 
 
+static int rand_seed = 0;
+
+
 float VRadians(float a) {
 	return a*(M_PI/180.f);
 }
@@ -36,6 +39,35 @@ Vector3 VCross(Vector3 v0, Vector3 v1) {
 	const float z = v0.x*v1.y - v0.y*v1.x;
 	Vector3 c = { x, y, z };
 	return c;
+}
+
+
+float VDistance(Vector3 v0, Vector3 v1) {
+	const float x = v1.x - v0.x;
+	const float y = v1.y - v0.y;
+	const float z = v1.z - v0.z;
+	return sqrt(x*x+y*y+z*z);
+}
+
+
+float VLerp(float start, float end, float t) {
+	return start + (end - start) * t;
+}
+
+
+void VSetSeed(int new_seed) {
+	rand_seed = new_seed;
+}
+
+
+int VFastRand() {
+	rand_seed = 0x343FD * rand_seed + 0x269EC3;
+	return (rand_seed >> 16) & VFAST_RAND_MAX;
+}
+
+
+float VRandom(float min, float max) {
+	return min + (float)(VFastRand()/((float)VFAST_RAND_MAX/(max-min)));
 }
 
 
@@ -95,9 +127,7 @@ void VComputeNormals(VRenderData* rdata) {
 
 			k = 0;	
 		}
-		//printf("%1.2f, %1.2f, %1.2f\n", vertices[i], vertices[i+1], vertices[i+2]);
 	}
-
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 

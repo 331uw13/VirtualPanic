@@ -26,7 +26,7 @@ float add = 0.0f;
 uint8 keywasdown = 0;
 uint8 key2wasdown = 0;
 uint8 camera_enabled = 1;
-uint8 follow_light = 1;
+uint8 follow_light = 0;
 
 void update(double delta_time) {
 	VPlayer* player = VGetPlayer();
@@ -38,18 +38,22 @@ void update(double delta_time) {
 		VUpdateLights(lights, 0, 1);
 	}
 
-	add += 0.1f;
+	add += 0.01f;
 
-	float f = 2.f*sin(add);
+	float f = 2.f*sin(add*0.5);
+
 	if(f < 0.0f) {
 		f = -f;
 	}
 
 	VNullMatrix(&box.matrix);
-	VMatrixScale(&box.matrix, f, f, f);
-	VMatrixTranslate(&box.matrix, 0.0f, 0.0f, 0.0f);
+	VMatrixTranslate(&box.matrix, 0.0f, 1.0f, -5.0f);
+	//VMatrixScale(&box.matrix, f, f, f);
 
-
+	VMatrixRotateX(&box.matrix, add);
+	VMatrixRotateY(&box.matrix, add);
+	VMatrixRotateZ(&box.matrix, add);
+	
 	VRender(&box);
 	VRender(&plane);
 
@@ -89,10 +93,10 @@ void setup() {
 			"}"
 			);
 
-	VCreateNewBox(&box);
 	VCreateNewPlane(&plane);
+	VCreateNewBox(&box);
 	VMatrixTranslate(&box.matrix, 0.0f, 0.0f, -10.f);
-	VMatrixTranslate(&plane.matrix, 0.0f, -1.0f, 0.0f);
+	VMatrixTranslate(&plane.matrix, 0.0f, 0.0f, 0.0f);
 	VMatrixScale(&plane.matrix, 50.f, 0.0f, 50.f);
 	
 	VComputeNormals(&box);
@@ -102,25 +106,24 @@ void setup() {
 	box.material.color.y = 1.0f;
 	box.material.color.z = 0.1f;
 	
-	plane.material.color.x = 0.9f;
-	plane.material.color.y = 0.9f;
-	plane.material.color.z = 0.9f;
+	plane.material.color.x = 1.0f;
+	plane.material.color.y = 1.0f;
+	plane.material.color.z = 1.0f;
 
-
-	plane.material.reflectivity = 64.f;
-	box.material.reflectivity = 10.0f;
+	box.material.reflectivity = 54.0f;
+	plane.material.reflectivity = 54.0f;
 
 
 	float ambience = 0.65f;
 	float diffusion = 0.3f;
-	float specularity = 0.2f;
+	float specularity = 0.8f;
 
-	lights[0].position.x = 10.f;
+	lights[0].position.x = 0.f;
 	lights[0].position.y = 2.0f;
 	lights[0].position.z = 0.0f;
 	lights[0].color.x = 1.0f;
-	lights[0].color.y = 1.0f;
-	lights[0].color.z = 1.0f;
+	lights[0].color.y = 0.75f;
+	lights[0].color.z = 0.71f;
 	lights[0].radius = 15.f;
 	lights[0].ambience = ambience;
 	lights[0].diffusion = diffusion;
