@@ -15,7 +15,7 @@ VShader VCreateShader(const char* src) {
 	const uint32 module_id = VCoreCompileShaderModule(src, GL_FRAGMENT_SHADER, VCORE_COMPILE_USER_SHADER);
 	
 	if(module_id != 0) {
-		shader = VCoreLinkShaderModule(module_id);
+		shader = VCoreLinkToInternalVertexModule(module_id);
 		VShaderAddUniformBlockBinding(shader, "vpanic_vertex_data", 83);
 		VShaderAddUniformBlockBinding(shader, "vpanic_fragment_data", 82);
 
@@ -34,7 +34,7 @@ VShader VGetFirstCreatedShader() {
 
 
 void VDestroyShader(VShader* id) {
-	if(id == NULL || *id == 0) { return; }
+	if(id == NULL) { return; }
 	VMessage(VMSG_DEBUG, __FUNCTION__);
 	glDeleteProgram(*id);
 	*id = 0;

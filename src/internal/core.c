@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../libs/gl3w.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "../libs/stb_image.h"
 
 #include "core.h"
 #include "../messages.h"
@@ -205,29 +207,75 @@ void VCoreCompileDefaultVertexModule() {
 }
 
 
-uint32 VCoreLinkShaderModule(uint32 module_id) {
-	uint32 program_id = glCreateProgram();	
-	if(program_id == 0) {
-		VMessage(VMSG_ERROR, "Failed to create shader program!");
-	}
-	else {
-		glAttachShader(program_id, vertex_module);
-		glAttachShader(program_id, module_id);
-		glLinkProgram(program_id);
+uint32 VCoreLinkModules(uint32* modules, uint32 size) {
+	uint32 program_id = 0;
+	if(modules != NULL && size > 0) {
+		program_id = glCreateProgram();
+		if(program_id == 0) {
+			VMessage(VMSG_ERROR, "Failed to create shader program!");
+		}
+		else {
+			
+			for(uint32 i = 0; i < size; i++) {
+				glAttachShader(program_id, modules[i]);
+			}
 
-		glDeleteShader(module_id);
-		if(!VCoreIsShaderOk(program_id, VCORE_SHADER_PROGRAM)) {
-			VMessage(VMSG_ERROR, "Failed to link shader!");
-			glDeleteProgram(program_id);
-			program_id = 0;
+			glLinkProgram(program_id);
+			
+			for(uint32 i = 0; i < size; i++) {
+				glDeleteShader(modules[i]);
+			}
+			
+			if(!VCoreIsShaderOk(program_id, VCORE_SHADER_PROGRAM)) {
+				VMessage(VMSG_ERROR, "Failed to link shader!");
+				glDeleteProgram(program_id);
+				program_id = 0;
+			}
 		}
 	}
 	return program_id;
 }
 
 
+uint32 VCoreLinkToInternalVertexModule(uint32 module_id) {
+	uint32 m[2] = { module_id, vertex_module };
+	return VCoreLinkModules(m, 2);
+}
+
+
 uint32 VCoreGetVertexModule() {
 	return vertex_module;
+}
+
+
+void VCoreGenerateImage(const char* filename, int type) {
+	int width = 0;
+	int height = 0;
+	int num_channels = 0;
+	int format = GL_RGB;
+	uint8* data = NULL;
+
+	data = stbi_load(filename, &width, &height, &num_channels, 0);
+	if(data == NULL) {
+		VMessage(VMSG_ERROR, "Failed to load texture from file \"%s\"", filename);
+		VMessage(VMSG_ERROR, "Reason: \"%s\"", stbi_failure_reason());
+		return;
+	}
+
+	switch(num_channels) {
+		case 1: format = GL_RED;   break;
+		case 2: format = GL_RG;    break;
+		case 3: format = GL_RGB;   break;
+		case 4: format = GL_RGBA;  break;
+		default: 
+			VMessage(VMSG_WARNING, "Failed to pickup format for \"%s\". Using GL_RGB.", filename);
+			break;
+	}
+
+	glTexImage2D(type, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(type);
+	
+	stbi_image_free(data);
 }
 
 

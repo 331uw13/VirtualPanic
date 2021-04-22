@@ -5,7 +5,7 @@
 #include "matrix.h"
 
 
-typedef uint16 VShader;
+typedef uint32 VShader;
 
 VShader VCreateShader(const char* src);
 VShader VGetFirstCreatedShader();
