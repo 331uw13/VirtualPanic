@@ -30,13 +30,23 @@ void VCreateNewShape(VRenderData* rdata, float* points, uint32 size) {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float)*3));
 	glEnableVertexAttribArray(1);
 
+/*	
+	// texture coordinates
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float)*6));
+	glEnableVertexAttribArray(2);
+*/	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
 	VNullMatrix(&rdata->matrix);
 	rdata->size = size/sizeof(float);
+	rdata->points = rdata->size/6;
 	rdata->shader = VGetFirstCreatedShader();
-	rdata->texture = 0;
+	rdata->material.color.x = 1.0f;
+	rdata->material.color.y = 1.0f;
+	rdata->material.color.z = 1.0f;
+	rdata->material.color.w = 1.0f;
+	rdata->material.reflectivity = 32.0f;
 }
 
 
@@ -44,7 +54,7 @@ void VCreateNewBox(VRenderData* rdata) {
 	float box_points[] = {
 
 		// TODO: optimize these.
-		
+
 		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
 		 0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
@@ -94,15 +104,15 @@ void VCreateNewBox(VRenderData* rdata) {
 
 void VCreateNewPlane(VRenderData* rdata) {
 	float plane_points[] = {
-		
 		// TODO: optimize these.
+		
+		-0.5f,  0.0f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.0f, -0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.0f,  0.5f,    0.0f, 0.0f, 0.0f,
+		 0.5f,  0.0f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f,  0.0f,  0.5f,    0.0f, 0.0f, 0.0f,
+		-0.5f,  0.0f, -0.5f,    0.0f, 0.0f, 0.0f
 
-		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-	     0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f
 	};
 
 	VCreateNewShape(rdata, plane_points, sizeof plane_points);
@@ -115,6 +125,8 @@ void VDestroyRenderData(VRenderData* rdata) {
 	rdata->vao = 0;
 	rdata->vbo = 0;
 	rdata->shader = 0;
+	rdata->texture.id = 0;
+	rdata->texture.type = 0;
 }
 
 
@@ -126,6 +138,10 @@ void VSetWireframeEnabled(uint8 b) {
 void VRender(VRenderData* rdata) {
 	if(rdata == NULL) { return; }
 
+	if(rdata->texture.id != 0) {
+		glBindTexture(rdata->texture.type, rdata->texture.id);
+	}	
+
 	//glUseProgram(rdata->shader);
 	VShaderSetMatrix(rdata->shader, "model_matrix", &rdata->matrix);
 	VShaderSetVector4(rdata->shader, "material.color", &rdata->material.color);
@@ -133,7 +149,7 @@ void VRender(VRenderData* rdata) {
 	//VShaderSetFloat(rdata->shader, "material.smoothness", &rdata->material.smoothness);
 	//VShaderSetFloat(rdata->shader, "material.test", rdata->material.test);
 	glBindVertexArray(rdata->vao);
-	glDrawArrays(GL_TRIANGLES, 0, rdata->size/6);
+	glDrawArrays(GL_TRIANGLES, 0, rdata->points);
 }	
 
 

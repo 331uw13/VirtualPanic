@@ -131,12 +131,12 @@ void VComputeNormals(VRenderData* rdata) {
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 
+float VMin(float a, float b) {
+	return (a < b) ? a : b;
+}
 
-
-
-
-
-
-
+float VMax(float a, float b) {
+	return (a > b) ? a : b;
+}
 
 

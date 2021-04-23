@@ -68,6 +68,7 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 				"struct Fragment {\n"
 					" vec3 pos;\n"
 					" vec3 normal;\n"
+					" vec2 texcoord;\n"
 				"};\n"
 
 				"struct Material {\n"
@@ -79,6 +80,7 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 				
 				"struct Light {\n"
 					" vec4 pos;\n" 
+					" vec4 direction;\n"
 					" vec4 color;\n"
 					" float radius;\n"
 					" float ambience;\n"
@@ -90,20 +92,24 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 					" Light lights[];\n"
 				"};\n"
 
+				"#define POINT_LIGHT 0\n"
+				"#define DIRECTIONAL_LIGHT 1\n"
 
 				"in vec3 camera_pos;\n"
 				"in Fragment frag;\n"
 
-				"uniform Material material;"
+				"uniform sampler2D texture0;\n"
+				"uniform Material material;\n"
 
-
-				"vec3 compute_light(Light light) {\n"
-					" vec3 item_color = material.color.xyz * light.color.xyz;\n"
-	
+				"vec3 compute_light(Light light, int type) {\n"
+					"vec3 item_color = material.color.xyz * light.color.xyz;\n"
+					
+					"vec3 v = (type == POINT_LIGHT) ? light.pos.xyz - frag.pos : light.direction.xyz;\n"
+					"vec3 light_dir = normalize(v);\n"
 					"vec3 norm = normalize(frag.normal);\n"
-					"vec3 light_dir = normalize(light.pos.xyz - frag.pos);\n"
 					"vec3 view_dir = normalize(camera_pos - frag.pos);\n"
 					"vec3 halfway_dir = normalize(light_dir + view_dir);\n"
+					//"vec3 reflect_dir = reflect(-light_dir, norm);\n"
 					
 					"float diff = max(dot(norm, light_dir), 0.0f);\n"
 					"vec3 diffuse = light.diffusion * diff * item_color;\n"
@@ -113,17 +119,20 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 
 					"vec3 ambient = light.ambience * item_color;\n"
 
-					"light.radius *= 0.5f;\n"
-					"light.radius = max(light.radius, 0.0f);"
-					"float dist = length(light.pos.xyz - frag.pos);\n"
-					"float att = smoothstep(light.radius + dist, 0.0f, dist);\n"
+					"if(type == POINT_LIGHT) {\n"
+						"light.radius *= 0.5f;\n"
+						"light.radius = max(light.radius, 0.0f);"
+						"float dist = length(light.pos.xyz - frag.pos);\n"
+						"float att = smoothstep(light.radius + dist, 0.0f, dist);\n"
 
-					"diffuse *= att;\n"
-					"specular *= att;\n"
-					"ambient *= att;\n"
+						"diffuse *= att;\n"
+						"specular *= att;\n"
+						"ambient *= att;\n"
+					"}\n"
 
 					"return ambient+diffuse+specular;\n"
 				"}\n";
+
 
 			const int src_length = strlen(src);
 			const int src_utils_length = strlen(src_utils);
@@ -142,13 +151,11 @@ uint32 VCoreCompileShaderModule(const char* src, uint32 type, uint8 flag) {
 				memmove(buf + src_utils_length, src, src_length);
 				buf[buf_length] = '\0';
 		
-				VMessage(VMSG_DEBUG, "glShaderSource(%p) | module_id: %i (VCORE_COMPILE_USER_SHADER)", buf, module_id);
 				glShaderSource(module_id, 1, (const char* const*)&buf, NULL);
 				free(buf);
 			}
 		}
 		else {
-			VMessage(VMSG_DEBUG, "glShaderSource(%p) | module_id: %i (VCORE_COMPILE_INTERNAL_SHADER)", src, module_id);
 			glShaderSource(module_id, 1, &src, NULL);
 		}
 
@@ -170,16 +177,18 @@ void VCoreCompileDefaultVertexModule() {
 		"#version 430 core\n"
 		"layout(location = 0) in vec3 i_pos;\n"
 		"layout(location = 1) in vec3 i_normal;\n"
+		//"layout(location = 2) in vec2 i_texcoord;\n"
 
 		"layout (std140, binding = 83) uniform vpanic_vertex_data {\n"
 			" uniform mat4 view;\n"
 			" uniform mat4 proj;\n"
 			" uniform vec3 cam_pos;\n"
 		"};\n"
-			
+
 		"struct Fragment {\n"
 			"vec3 pos;\n"
 			"vec3 normal;\n"
+			"vec2 texcoord;\n"
 		"};\n"
 
 		"out vec3 camera_pos;\n"
@@ -187,15 +196,18 @@ void VCoreCompileDefaultVertexModule() {
 		
 		"uniform mat4 model_matrix;\n"
 
-		
+
 		"void main() {\n"
 			
 			" vec4 pos = proj * view * model_matrix * vec4(i_pos, 1.0f);\n"
 			" gl_Position = pos;\n"
-
+			
+			" frag.texcoord.x = i_pos.x+0.5f;"
+			" frag.texcoord.y = i_pos.z+0.5f;"
 			" frag.pos = vec3(model_matrix * vec4(i_pos, 1.0f));\n"
-			" frag.normal = i_normal;"
-			//" frag.normal = mat3(transpose(inverse(model_matrix)))*i_normal;\n"
+			//" frag.normal = -i_normal;"
+			" frag.normal = mat3(transpose(inverse(model_matrix)))*i_normal;\n"
+			//" frag.normal = normalize(frag.normal);"
 			" camera_pos = cam_pos;\n"
 
 		"}\n";
@@ -274,8 +286,9 @@ void VCoreGenerateImage(const char* filename, int type) {
 
 	glTexImage2D(type, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(type);
-	
 	stbi_image_free(data);
+	
+	VMessage(VMSG_OK, "Loaded texture \"%s\"", filename);
 }
 
 

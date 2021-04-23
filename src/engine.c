@@ -187,6 +187,9 @@ void VEngineInit(const char* title) {
 	engine_valuesf[VENGINE_ZNEAR] = 0.05f;
 	engine_valuesf[VENGINE_ZFAR] = 1000.f;
 	engine_valuesf[VENGINE_TIME_SCALE] = 1.0f;
+	engine_valuesf[VENGINE_BG_RED] = 0.0f;
+	engine_valuesf[VENGINE_BG_GREEN] = 0.0f;
+	engine_valuesf[VENGINE_BG_BLUE] = 0.0f;
 
 	engine_status &= ~VENGINE_INIT_OK;
 	VEngineSetCameraEnabled(TRUE);
@@ -251,7 +254,7 @@ void VEngineStart() {
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(0.0, 0.0, 0.0, 1.0);
+		glClearColor(engine_valuesf[VENGINE_BG_RED], engine_valuesf[VENGINE_BG_GREEN], engine_valuesf[VENGINE_BG_BLUE], 1.0);
 
 		if(engine_update_callback != NULL) {
 			engine_update_callback(delta_time);

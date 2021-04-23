@@ -3,7 +3,11 @@
 
 #include "types.h"
 
-typedef uint32 VTexture;
+typedef struct {
+	uint32 id;
+	uint32 type;
+} VTexture;
+
 
 VTexture VLoadTexture(const char* filename);
 void VDestroyTexture(VTexture* texture);

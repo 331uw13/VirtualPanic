@@ -5,6 +5,7 @@
 
 typedef struct {
 	Vector4 position;
+	Vector4 direction;
 	Vector4 color;
 	float radius;
 	float ambience;

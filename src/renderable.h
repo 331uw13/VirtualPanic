@@ -12,6 +12,7 @@ typedef struct {
 	uint32 vao;
 	uint32 vbo;
 	uint32 size;
+	uint32 points;
 	VShader shader;
 	VTexture texture;
 	VMatrix matrix;

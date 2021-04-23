@@ -29,20 +29,24 @@ void VNullMatrix(VMatrix* m) {
 
 void VMatrixScale(VMatrix* dest, float x, float y, float z) {
 	if(dest == NULL) { return; }
-	dest->data[0][0] *= x;
-	dest->data[0][1] *= x;
-	dest->data[0][2] *= x;
-	dest->data[0][3] *= x;
+	float nx = VMax(x, 0.01f);
+	float ny = VMax(y, 0.01f);
+	float nz = VMax(z, 0.01f);
+
+	dest->data[0][0] *= nx;
+	dest->data[0][1] *= nx;
+	dest->data[0][2] *= nx;
+	dest->data[0][3] *= nx;
 	
-	dest->data[1][0] *= y;
-	dest->data[1][1] *= y;
-	dest->data[1][2] *= y;
-	dest->data[1][3] *= y;
+	dest->data[1][0] *= ny;
+	dest->data[1][1] *= ny;
+	dest->data[1][2] *= ny;
+	dest->data[1][3] *= ny;
 	
-	dest->data[2][0] *= z;
-	dest->data[2][1] *= z;
-	dest->data[2][2] *= z;
-	dest->data[2][3] *= z;
+	dest->data[2][0] *= nz;
+	dest->data[2][1] *= nz;
+	dest->data[2][2] *= nz;
+	dest->data[2][3] *= nz;
 }
 
 

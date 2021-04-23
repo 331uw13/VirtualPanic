@@ -10,7 +10,6 @@ static VShader first_created_shader = 0;
 
 VShader VCreateShader(const char* src) {
 	if(src == NULL) { return 0; }
-	VMessage(VMSG_DEBUG, __FUNCTION__);
 	uint32 shader = 0;
 	const uint32 module_id = VCoreCompileShaderModule(src, GL_FRAGMENT_SHADER, VCORE_COMPILE_USER_SHADER);
 	
@@ -35,7 +34,6 @@ VShader VGetFirstCreatedShader() {
 
 void VDestroyShader(VShader* id) {
 	if(id == NULL) { return; }
-	VMessage(VMSG_DEBUG, __FUNCTION__);
 	glDeleteProgram(*id);
 	*id = 0;
 }

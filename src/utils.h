@@ -19,6 +19,8 @@ void VSetSeed(int new_seed);
 int VFastRand();
 float VRandom(float min, float max);
 void VComputeNormals(VRenderData* rdata);
+float VMin(float a, float b);
+float VMax(float a, float b);
 
 
 #endif
