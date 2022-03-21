@@ -5,10 +5,7 @@
 ### Aims to be very simple and fast 3D graphics library with OpenGL
 (work in progress)
 
-Todo:
+(2022-03-21: i will probably continue this at some point in my life)
 
-- [ ]  Rewrite in C
-
-# 
 
 https://learnopengl.com/  thanks for reading material :heart:
